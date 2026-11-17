@@ -6,7 +6,7 @@ import { privyAppId } from '@/lib/auth';
  * bed, the token-page trade box, trenches quick buy) must check this before rendering.
  */
 export function isSwapEnabled(): boolean {
-  return process.env.NEXT_PUBLIC_SWAP_ENABLED === '1';
+  return process.env.NEXT_PUBLIC_PREVIEW_ONLY !== '1' && process.env.NEXT_PUBLIC_SWAP_ENABLED === '1';
 }
 
 /** Trading needs the flag AND sign-in (a Privy app id): lib/auth provides the session. */

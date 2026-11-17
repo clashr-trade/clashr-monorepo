@@ -46,6 +46,9 @@ function writeDraft(d: Draft | null) {
  * session token is present). The API has no category field, so the kind is a "[bug] " prefix.
  */
 async function sendFeedback(kind: Kind, message: string, page: string): Promise<{ ok: true } | { ok: false; message: string }> {
+  if (process.env.NEXT_PUBLIC_PREVIEW_ONLY === '1') {
+    return { ok: false, message: 'Feedback stays in this browser as a draft in this preview. Configure your own backend to send it.' };
+  }
   try {
     const token = await auth.getAccessToken().catch(() => null);
     const r = await fetch(`${V1}/feedback`, {

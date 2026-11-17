@@ -12,6 +12,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     <div className="terminal-ui flex h-dvh flex-col overflow-hidden">
       <TopBar />
       <MobileNav />
+      {process.env.NEXT_PUBLIC_PREVIEW_ONLY === '1' && (
+        <div role="note" className="shrink-0 border-b border-white/[0.06] bg-surface px-4 py-1.5 text-center text-xs text-muted">
+          Independent local preview · Live public data from Rushr · Sign-in, posting and trading are unavailable.
+        </div>
+      )}
       <div className="min-h-0 flex-1">{children}</div>
       <AuthRoot />
     </div>

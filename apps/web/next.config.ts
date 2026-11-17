@@ -2,14 +2,11 @@ import type { NextConfig } from 'next';
 import { initOpenNextCloudflareForDev } from '@opennextjs/cloudflare';
 
 /**
- * Privy's optional peers we never use (Rushr is Ethereum-only). pnpm auto-installs mismatched
- * versions of the Solana ones, which break the build, so they resolve to an empty module.
+ * Optional wallet integrations not used by this app. Do not stub Solana libraries:
+ * Privy's main entry imports x402, whose token clients need their real named exports
+ * even when the application only enables Ethereum wallets.
  */
 const UNUSED_PRIVY_PEERS = [
-  '@solana/kit',
-  '@solana-program/system',
-  '@solana-program/token',
-  '@solana-program/memo',
   '@farcaster/mini-app-solana',
   '@abstract-foundation/agw-client',
   'permissionless',

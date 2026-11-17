@@ -55,13 +55,11 @@ export function GeneratedAvatar({
   const { from, to, angle, cells } = avatarSpec(address);
   // Unique per instance: a shared id breaks when the first copy sits in a display:none subtree.
   const id = `ga${useId().replace(/[^a-zA-Z0-9]/g, '')}`;
-  const rad = (angle * Math.PI) / 180;
-  const x = Math.cos(rad) * 0.5;
-  const y = Math.sin(rad) * 0.5;
   return (
     <svg viewBox="0 0 40 40" width={size} height={size} aria-hidden className="block">
       <defs>
-        <linearGradient id={id} x1={0.5 - x} y1={0.5 - y} x2={0.5 + x} y2={0.5 + y}>
+        {/* Let SVG rotate the vector: server/browser trig rounding can differ during hydration. */}
+        <linearGradient id={id} x1="0" y1="0.5" x2="1" y2="0.5" gradientTransform={`rotate(${angle} 0.5 0.5)`}>
           <stop offset="0" stopColor={from} />
           <stop offset="1" stopColor={to} />
         </linearGradient>

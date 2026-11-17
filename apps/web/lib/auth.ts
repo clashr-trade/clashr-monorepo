@@ -60,7 +60,7 @@ export interface AuthActions {
   getAccessToken(): Promise<string | null>;
 }
 
-const APP_ID = process.env.NEXT_PUBLIC_PRIVY_APP_ID ?? '';
+const APP_ID = process.env.NEXT_PUBLIC_PREVIEW_ONLY === '1' ? '' : (process.env.NEXT_PUBLIC_PRIVY_APP_ID ?? '');
 
 let state: AuthState = { enabled: !!APP_ID, ready: false, authenticated: false, user: null };
 let actions: AuthActions | null = null;

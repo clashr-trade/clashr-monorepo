@@ -2,6 +2,9 @@
   "name": "rushr",
   "private": true,
   "packageManager": "pnpm@11.10.0",
+  "engines": {
+    "node": ">=22.23.4"
+  },
   "scripts": {
     "dev:web": "pnpm --filter @rushr/web dev",
     "dev:indexer": "pnpm --filter @rushr/indexer dev",

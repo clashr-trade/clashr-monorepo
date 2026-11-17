@@ -38,7 +38,7 @@ export function AccountMenu() {
 
   if (!enabled) {
     return (
-      <button type="button" disabled title="Sign-in opens soon" className="flex items-center gap-2 rounded-xl bg-ink px-3.5 py-2 text-sm font-semibold text-bg opacity-90">
+      <button type="button" disabled title={process.env.NEXT_PUBLIC_PREVIEW_ONLY === '1' ? 'Sign-in requires your own Privy app and backend' : 'Sign-in opens soon'} className="flex items-center gap-2 rounded-xl bg-ink px-3.5 py-2 text-sm font-semibold text-bg opacity-90">
         <Wallet size={16} weight="bold" />
         <span className="hidden sm:inline">Sign in</span>
       </button>

@@ -27,7 +27,7 @@ export const viewport: Viewport = { themeColor: '#050706' };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${sans.variable} ${mono.variable}`}>
+    <html lang="en" data-scroll-behavior="smooth" className={`${sans.variable} ${mono.variable}`}>
       <body className="font-sans">
         <StaleDeployGuard />
         {children}
