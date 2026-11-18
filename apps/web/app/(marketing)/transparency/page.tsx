@@ -26,7 +26,6 @@ export const metadata: Metadata = {
   twitter: { card: 'summary_large_image', site: '@rushrtrade', creator: '@rushrtrade', title: SHARE.title, description: SHARE.description, images: [SHARE.image] },
 };
 
-const SOURCE = 'https://github.com/rushr-dev/platform';
 /** The $RUSHR contract on Robinhood Chain (PONS fair launch). */
 const RUSHR_TOKEN = '0xa8ceeeb747fcf136947c35c5de6187ee90d6bfed';
 
@@ -371,9 +370,7 @@ export default async function TransparencyPage() {
 
           <p className="mt-16 border-t border-line pt-8 text-sm text-muted">
             Numbers come from the chain and Rushr&apos;s open-source indexer.{' '}
-            <a href={SOURCE} target="_blank" rel="noreferrer" className="text-ink underline underline-offset-2">
-              Read the code on GitHub
-            </a>
+
             {data?.updatedAt && <> · updated {new Date(data.updatedAt).toISOString().slice(11, 16)} UTC</>}
           </p>
         </div>

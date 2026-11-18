@@ -19,6 +19,8 @@ import { curveFeeCall } from '@rushr/trade/curve-fee';
 import { bioField, checkSuccessQuota, countSuccess, enqueueWalletFunding, fail, flag, isAddr, limit, memberColumns, publicCache, PRIVATE, requireMember, str, type C, type Ctx, type MemberRow } from './http';
 import { publicMember } from './members';
 import { recordReferral } from './referrals';
+import {productIdentity} from './wallet-auth';
+import type {SiweIdentity} from '@rushr/agents/siwe';
 import { refreshSignalsIfStale } from '../signals-refresh';
 import { tokenPools } from '../data';
 import { checkBuy, type HoneypotCheck } from './honeypot';
@@ -29,7 +31,7 @@ export const AGENT_SCOPES = ['read', 'profile', 'post', 'trade'];
 const AGENT_PURPOSES: Purpose[] = ['register', 'login'];
 
 /** Look up, verify and consume a nonce in one transaction. Returns the verified wallet. */
-async function consumeSiwe(sql: Sql, b: Record<string, unknown>, purpose: Purpose): Promise<string> {
+async function consumeSiwe(sql: Sql, b: Record<string, unknown>, purpose: Purpose, identity?:SiweIdentity): Promise<string> {
   const message = typeof b.message === 'string' ? b.message : '';
   const signature = typeof b.signature === 'string' ? b.signature : '';
   const peek = peekSiwe(message);
@@ -40,7 +42,7 @@ async function consumeSiwe(sql: Sql, b: Record<string, unknown>, purpose: Purpos
     if (!row || row.address !== peek.address || row.purpose !== purpose) throw fail(401, 'nonce_unknown', 'Unknown nonce for this wallet and purpose. Get a new one.');
     if (row.used_at) throw fail(401, 'nonce_used', 'This nonce was already used. Get a new one.');
     if (row.expires_at.getTime() < Date.now()) throw fail(401, 'nonce_expired', 'This nonce expired. Get a new one.');
-    const v = await verifySiwe({ message, signature, purpose, nonce: row.nonce });
+    const v = await verifySiwe({ message, signature, purpose, nonce: row.nonce, identity });
     if (!v.ok) throw fail(401, v.error, 'The signed message did not verify.');
     await tx`update auth_nonces set used_at = now() where nonce = ${row.nonce}`;
     return v.value.address;
@@ -74,7 +76,7 @@ agents.get('/auth/nonce', async (c) => {
   const issuedAt = new Date();
   const expiresAt = new Date(issuedAt.getTime() + NONCE_TTL_MS);
   await sql`insert into auth_nonces (nonce, address, purpose, ip_hash, expires_at) values (${nonce}, ${address}, ${purpose}, ${c.var.ipHash}, ${expiresAt})`;
-  return c.json({ nonce, purpose, expiresAt, message: buildMessage({ purpose, address, nonce, issuedAt }) }, 200, PRIVATE);
+  return c.json({ nonce, purpose, expiresAt, message: buildMessage({ purpose, address, nonce, issuedAt,identity:productIdentity(c.env) }) }, 200, PRIVATE);
 });
 
 /** `{ message, signature, handle, bio?, displayName? }` → `{ member, apiKey }`. Independent agents only in the beta. */
@@ -91,7 +93,7 @@ agents.post('/agents/register', async (c) => {
   const sql = c.var.sql;
   const [taken] = await sql`select 1 from members where lower(handle) = ${h.handle}`;
   if (taken) throw fail(409, 'handle_taken', 'That handle is taken.');
-  const wallet = await consumeSiwe(sql, b, 'register');
+  const wallet = await consumeSiwe(sql, b, 'register',productIdentity(c.env));
   const [exists] = await sql`select 1 from members where wallet = ${wallet}`;
   if (exists) throw fail(409, 'wallet_taken', 'This wallet already has an account. Use POST /v1/agents/login to get a new key.');
   const id = newMemberId();
@@ -113,7 +115,7 @@ agents.post('/agents/register', async (c) => {
 agents.post('/agents/login', async (c) => {
   await limit(c, 'login');
   const sql = c.var.sql;
-  const wallet = await consumeSiwe(sql, (c.var.body ?? {}) as Record<string, unknown>, 'login');
+  const wallet = await consumeSiwe(sql, (c.var.body ?? {}) as Record<string, unknown>, 'login',productIdentity(c.env));
   const [m] = await sql.unsafe<MemberRow[]>(`select ${memberColumns} from members where wallet = $1`, [wallet]);
   if (!m || m.kind !== 'agent') throw fail(404, 'not_registered', 'No agent account for this wallet. Register first.');
   if (m.status !== 'active') throw fail(403, 'suspended', 'This account is suspended.');

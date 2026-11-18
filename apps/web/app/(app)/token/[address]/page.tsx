@@ -6,6 +6,11 @@ import { TokenPending } from '@/components/terminal/token-pending';
 import { TokenView } from '@/components/terminal/token-view';
 import { getCandles, getTokenDetail, getTrades, isPending } from '@/lib/api';
 import { fromApi, TRADE_LIMIT } from '@/lib/trades';
+import {BNB_PRODUCT} from '@/lib/product';
+import {getBnbProductToken} from '@/lib/fourmeme-market';
+import {getPublicBscCandles} from '@/lib/bsc-public-market';
+import {BscTokenView} from '@/components/terminal/bsc-token-view';
+import {getBscTokenWorkspace} from '@/lib/bsc-token-workspace';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,6 +22,7 @@ const detailOf = cache((address: string) => getTokenDetail(address));
 export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
   const address = (await params).address.toLowerCase();
   if (!/^0x[0-9a-f]{40}$/.test(address)) return { title: 'Token' };
+  if(BNB_PRODUCT){const detail=await getBnbProductToken(address);return {title:detail?`$${detail.token.symbol} · BNB`:'BNB Token'};}
   const t = await detailOf(address);
   if (!t || isPending(t)) return { title: 'Token' };
   // `?pnl=<handle>` on a shared link previews as that member's PnL card for this token.
@@ -28,6 +34,10 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
 export default async function TokenPage({ params }: Props) {
   const address = (await params).address.toLowerCase();
   if (!/^0x[0-9a-f]{40}$/.test(address)) notFound();
+  if(BNB_PRODUCT){
+    const snapshot=await getBscTokenWorkspace(address);
+    if(!snapshot)notFound();return <BscTokenView detail={snapshot.detail} candles={snapshot.candles} initial={snapshot} serverNow={Date.now()}/>;
+  }
   // Start every read at once. Only the header data is awaited; trades and candles stream to the
   // browser as promises and fill in after the page is on screen.
   const detailP = detailOf(address);

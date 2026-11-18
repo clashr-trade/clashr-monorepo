@@ -1,10 +1,17 @@
 /** Server-side reads from the Rushr indexer API. Every call degrades to null so pages still render. */
 
-export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'https://api.rushr.trade';
+import { BNB_PRODUCT } from './product';
+export const API_URL = BNB_PRODUCT
+  ? typeof window === 'undefined' ? (process.env.PRODUCT_API_URL ?? 'http://127.0.0.1:8790') : '/api/product'
+  : process.env.NEXT_PUBLIC_API_URL ?? 'https://api.rushr.trade';
 
 export type RiskLevel = 'low' | 'medium' | 'high' | 'unknown';
 
 export interface TokenCard {
+  /** Explicit scope for market adapters; absent on historical Robinhood responses. */
+  chain_id?: 56 | 4663;
+  market_column?: Column;
+  holders_known?: boolean;
   address: string;
   symbol: string;
   name: string;

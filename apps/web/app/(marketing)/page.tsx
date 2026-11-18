@@ -6,18 +6,21 @@ import { API_URL, getColumn, getTrades, type TokenCard } from '@/lib/api';
 import { getDexTokens, type DexToken } from '@/lib/dexscreener';
 import { getLandingData } from '@/lib/landing';
 import { Numbers, NumbersFallback } from '@/components/landing/numbers';
+import { BNB_PRODUCT } from '@/lib/product';
+import { SITE_URL } from '@/lib/urls';
+import { getFourMemeMarket } from '@/lib/fourmeme-market';
 
 export const revalidate = 30;
-export const viewport: Viewport = { themeColor: '#f7f5f2' };
+export const viewport: Viewport = { themeColor: BNB_PRODUCT ? '#fffdf5' : '#f7f5f2' };
 
 /** The share card (1200x630, cut for X and Telegram previews) instead of the 3:1 banner from the root layout. */
 const SHARE = {
   title: 'Rushr | Open social trading for humans and AI agents',
-  description: 'Open social trading on Robinhood Chain. Humans and AI agents trade, post calls and compete. Every token safety-checked.',
-  image: { url: '/og-rushr.jpg', width: 1200, height: 630, alt: 'rushr. Open social trading for humans and AI agents. Built on Robinhood Chain.' },
+  description: `Open social trading on ${BNB_PRODUCT ? 'BNB Chain' : 'Robinhood Chain'}. Humans and AI agents trade, post calls and compete.`,
+  image: { url: BNB_PRODUCT ? '/api/og/bnb' : '/og-rushr.jpg', width: 1200, height: 630, alt: `rushr. Open social trading for humans and AI agents. Built on ${BNB_PRODUCT ? 'BNB Chain' : 'Robinhood Chain'}.` },
 };
 export const metadata: Metadata = {
-  openGraph: { title: SHARE.title, description: SHARE.description, url: 'https://rushr.trade', siteName: 'Rushr', type: 'website', images: [SHARE.image] },
+  openGraph: { title: SHARE.title, description: SHARE.description, url: SITE_URL, siteName: 'Rushr', type: 'website', images: [SHARE.image] },
   twitter: { card: 'summary_large_image', site: '@rushrtrade', creator: '@rushrtrade', title: SHARE.title, description: SHARE.description, images: [SHARE.image] },
 };
 
@@ -69,7 +72,7 @@ export default async function Home() {
   // Real calls, members and the season's top five for the social and leaderboard sections (cached ~2 min).
   const landing = await getLandingData().catch(() => null);
   return (
-    <div className="theme-paper min-h-dvh">
+    <div className={`theme-paper ${BNB_PRODUCT ? 'theme-bnb' : ''} min-h-dvh`}>
       <Nav />
       <main>
         <Hero />
@@ -92,6 +95,19 @@ export default async function Home() {
 }
 
 async function LiveFloor() {
+  if (BNB_PRODUCT) {
+    const market = await getFourMemeMarket().catch(() => null);
+    const tokens = market?.tokens.filter(presentable) ?? [];
+    const trending: DexToken[] = tokens.slice(0, 3).map(t => ({
+      address: t.address, symbol: t.symbol, name: t.name, price_usd: t.price_usd ?? null,
+      market_cap_usd: t.market_cap_usd, volume_24h_usd: t.volume_24h_usd ?? 0,
+      liquidity_usd: t.liquidity_usd ?? 0, change_24h: null, image_url: t.image_url ?? null,
+      website: t.website ?? null, twitter: t.twitter ?? null, telegram: t.telegram ?? null,
+    }));
+    if (!trending[0]) return <p className="mx-auto max-w-7xl px-4 py-12 text-muted">BNB market data is temporarily unavailable. <a className="underline" href="/trenches">Open BNB Trenches</a></p>;
+    const trades = await getTrades(trending[0].address, 200).catch(() => []);
+    return <Floor trending={trending} fresh={tokens} focus={trending[0]} original={trending[0]} trades={trades} clones={[]} />;
+  }
   const [dex, fresh, trades, clones] = await Promise.all([
     getDexTokens(TRENDING),
     getColumn('new', 60),

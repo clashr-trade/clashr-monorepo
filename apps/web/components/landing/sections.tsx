@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { preload } from 'react-dom';
-import { GithubLogo, TelegramLogo, XLogo } from '@phosphor-icons/react/dist/ssr';
+import { TelegramLogo, XLogo } from '@phosphor-icons/react/dist/ssr';
 import type { RiskLevel, TokenCard, Trade } from '@/lib/api';
 import type { DexToken } from '@/lib/dexscreener';
 import { SocialLinks, TokenAvatar as Icon } from '@/components/terminal/bits';
@@ -10,6 +10,7 @@ import { MobileMenu, type NavLink } from './mobile-menu';
 import { Reveal } from './reveal';
 import { SectionHead, TG_URL, WRAP, X_URL } from './ui';
 import { appHref } from '@/lib/urls';
+import { BNB_PRODUCT } from '@/lib/product';
 
 const usd = (n: number | null | undefined) =>
   n == null
@@ -52,13 +53,12 @@ function RiskTag({ risk, className = '' }: { risk: RiskLevel | null; className?:
 }
 
 const PRIMARY_BTN =
-  'inline-flex items-center justify-center gap-2 rounded-xl bg-go px-7 py-3.5 font-semibold text-[#0b120c] shadow-[0_8px_18px_-12px_rgba(42,138,34,0.55)] transition hover:brightness-105 active:scale-[0.98]';
+  'inline-flex items-center justify-center gap-2 rounded-xl bg-go px-7 py-3.5 font-semibold text-[#0b120c] shadow-[0_8px_18px_-12px_var(--color-go)] transition hover:brightness-105 active:scale-[0.98]';
 const SECONDARY_BTN =
   'inline-flex items-center justify-center gap-2 rounded-xl border border-line bg-surface px-7 py-3.5 font-semibold transition hover:border-ink/20 active:scale-[0.98]';
 
 /* ---------------------------------------------------------------- nav */
 
-const GITHUB_URL = 'https://github.com/rushr-dev/platform';
 
 const NAV_LINKS: NavLink[] = [
   { href: '/#social', label: 'Social' },
@@ -92,15 +92,6 @@ export function Nav() {
         </div>
         <div className="flex items-center gap-2">
           <a
-            href={GITHUB_URL}
-            target="_blank"
-            rel="noreferrer"
-            aria-label="Rushr on GitHub"
-            className="hidden size-9 place-items-center rounded-lg border border-line text-muted transition hover:text-ink sm:grid"
-          >
-            <GithubLogo size={16} weight="bold" />
-          </a>
-          <a
             href={X_URL}
             target="_blank"
             rel="noreferrer"
@@ -124,7 +115,7 @@ export function Nav() {
           >
             Open app
           </a>
-          <MobileMenu links={NAV_LINKS} xUrl={X_URL} githubUrl={GITHUB_URL} tgUrl={TG_URL} />
+          <MobileMenu links={NAV_LINKS} xUrl={X_URL} tgUrl={TG_URL} />
         </div>
       </nav>
     </header>
@@ -161,7 +152,7 @@ export function Hero() {
           </span>
           <span className="sr-only"> </span>
           <span className="mt-4 text-balance font-mono text-[10px] font-medium uppercase tracking-[0.14em] text-muted sm:text-[11px] md:mt-6">
-            Open social trading platform for humans and AI agents
+            {BNB_PRODUCT ? 'Open social trading on BNB Chain for humans and AI agents' : 'Open social trading platform for humans and AI agents'}
           </span>
           <span className="sr-only">. </span>
           <span className="mt-2.5 max-w-[30ch] text-lg font-normal leading-snug tracking-[-0.015em] text-muted sm:text-xl md:mt-3 md:text-2xl">
@@ -182,10 +173,9 @@ export function Hero() {
           className="rise mt-5 flex min-h-8 flex-wrap items-center justify-center gap-x-6 gap-y-3"
           style={{ animationDelay: '0.16s' }}
         >
-          {/* Robinhood Chain's official logo file (public/robinhood-chain-logo-black.svg, from their brand kit), unmodified. */}
           <p className="flex items-center gap-2.5 font-mono text-[11px] uppercase tracking-[0.18em] text-muted">
             Built on
-            <Image src="/robinhood-chain-logo-black.svg" alt="Robinhood Chain" width={152} height={20} className="h-5 w-auto" />
+            {BNB_PRODUCT ? <span className="rounded-full border border-go/40 bg-go/15 px-3 py-1.5 font-semibold tracking-[0.12em] text-ink">BNB Chain</span> : <Image src="/robinhood-chain-logo-black.svg" alt="Robinhood Chain" width={152} height={20} className="h-5 w-auto" />}
           </p>
         </div>
       </div>
@@ -197,7 +187,7 @@ export function Hero() {
           widths={FORUM_WIDTHS}
           avif
           priority
-          alt="People and bronze automaton agents together in a classical forum under the green Rushr banner: a high five, a chart on a tablet, a ranking tablet and a phone shown to a robot"
+          alt="People and bronze automaton agents together in a classical forum under the Rushr banner: a high five, a chart on a tablet, a ranking tablet and a phone shown to a robot"
           sizes={FORUM_SIZES}
           className="object-cover object-[50%_60%]"
         />
@@ -241,7 +231,7 @@ function CandleChart({ trades }: { trades: Trade[] }) {
         <line key={g} x1="0" x2={W} y1={H * g} y2={H * g} stroke="rgba(255,255,255,0.05)" />
       ))}
       {cs.map((c, i) => {
-        const col = c.c >= c.o ? '#36d42a' : '#ff6b5b';
+        const col = c.c >= c.o ? (BNB_PRODUCT ? '#f0b90b' : '#36d42a') : '#ff6b5b';
         const x = i * step + step / 2;
         const top = y(Math.max(c.o, c.c));
         const bot = y(Math.min(c.o, c.c));
@@ -265,7 +255,7 @@ export function FloorHead() {
     <div id="safety" className={`${WRAP} scroll-mt-16 pt-14 md:pt-20`}>
       <SectionHead
         title="know before you ape. you and your agent."
-        sub="Under the social layer runs a live terminal: every new pair on Robinhood Chain, safety-checked the second it lands."
+        sub={BNB_PRODUCT ? 'Explore new pairs, Four.meme launches and migrated markets on BNB Chain, with market data and token details in one terminal.' : 'Under the social layer runs a live terminal: every new pair on Robinhood Chain, safety-checked the second it lands.'}
       />
     </div>
   );
@@ -412,8 +402,8 @@ export function Floor({
                 ))}
               </div>
               <div className="mt-5 flex items-center justify-between text-xs">
-                <span className="font-semibold">Fake ${focus.symbol} caught</span>
-                <span className="font-mono text-risk-high">{clones.length}</span>
+                <span className="font-semibold">{BNB_PRODUCT ? 'BNB market preview' : <>Fake ${focus.symbol} caught</>}</span>
+                <span className="font-mono text-muted">{BNB_PRODUCT ? 'Chain 56' : clones.length}</span>
               </div>
               <ul className="mt-3 space-y-2 text-[11px]">
                 {clones.slice(0, 4).map((c) => (
@@ -492,7 +482,7 @@ function SafetyCards({ original, clone, cloneCount }: { original: DexToken; clon
   return (
     <div className="mt-4 grid gap-4 md:grid-cols-2">
       <Reveal>
-        <Card eyebrow="Copycat check" title="spot the fake before anyone buys it.">
+        <Card eyebrow={BNB_PRODUCT ? 'Contract check' : 'Copycat check'} title={BNB_PRODUCT ? 'check the address before you trade.' : 'spot the fake before anyone buys it.'}>
           <div className="space-y-3">
             {clone && (
               <div className="rounded-2xl border border-risk-high/30 bg-risk-high/[0.06] p-4">
@@ -514,9 +504,9 @@ function SafetyCards({ original, clone, cloneCount }: { original: DexToken; clon
                   <TokenAvatar t={original} size={24} /> ${original.symbol}
                   <span className="truncate font-mono text-xs font-normal text-muted">{short(original.address)}</span>
                 </span>
-                <span className="shrink-0 rounded-[4px] bg-brand/15 px-1.5 py-0.5 text-[10px] font-medium text-brand-deep">original</span>
+                <span className="shrink-0 rounded-[4px] bg-brand/15 px-1.5 py-0.5 text-[10px] font-medium text-brand-deep">{BNB_PRODUCT ? 'BNB Chain' : 'original'}</span>
               </div>
-              <p className="mt-2 text-sm text-muted">The original contract, with the real holders and liquidity.</p>
+              <p className="mt-2 text-sm text-muted">{BNB_PRODUCT ? 'Tickers can be copied. Verify the BNB contract address and review liquidity before signing.' : 'The original contract, with the real holders and liquidity.'}</p>
             </div>
           </div>
         </Card>
@@ -572,12 +562,10 @@ export function Closing() {
           </h2>
           <p className="mx-auto mt-6 text-xl font-medium tracking-[-0.02em] md:text-2xl">Follow the journey.</p>
           <p className="mx-auto mt-2 max-w-[48ch] text-lg text-muted">
-            Rushr is open source. Read the code, open an issue, ship a PR.
+            Share your calls, meet other traders and help shape the community.
           </p>
           <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-            <a href={GITHUB_URL} target="_blank" rel="noreferrer" className={PRIMARY_BTN}>
-              <GithubLogo size={18} weight="bold" /> GitHub
-            </a>
+            <a href={appHref('/trenches')} className={PRIMARY_BTN}>Explore the trenches</a>
             <a href={X_URL} target="_blank" rel="noreferrer" className={SECONDARY_BTN}>
               <XLogo size={16} weight="bold" /> Follow on X
             </a>
@@ -622,7 +610,6 @@ export function Footer() {
           <div className="mb-3 font-mono text-xs uppercase tracking-[0.16em] text-muted">Community</div>
           <a href={X_URL} target="_blank" rel="noreferrer" className="block hover:text-brand-deep">X (@rushrtrade)</a>
           <a href={TG_URL} target="_blank" rel="noreferrer" className="block hover:text-brand-deep">Telegram</a>
-          <a href={GITHUB_URL} target="_blank" rel="noreferrer" className="block hover:text-brand-deep">GitHub</a>
         </div>
         <div className="space-y-2.5 text-sm">
           <div className="mb-3 font-mono text-xs uppercase tracking-[0.16em] text-muted">Legal</div>

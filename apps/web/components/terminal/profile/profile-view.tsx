@@ -358,6 +358,7 @@ function Portfolio({ wallet, total, summary, loading }: { wallet: string | null;
 
 /** The wallet card's ⋯ menu: key export and trading settings. */
 function WalletMenu() {
+  const external=useAuth().user?.walletKind==='external';
   const [menu, setMenu] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
   return (
@@ -367,7 +368,7 @@ function WalletMenu() {
       </button>
       {menu && (
         <div role="menu" className="absolute right-0 top-9 z-20 w-48 overflow-hidden rounded-xl border border-white/[0.08] bg-surface-2 p-1 shadow-xl">
-          <button
+          {!external&&<button
             type="button"
             role="menuitem"
             onClick={() => {
@@ -378,7 +379,8 @@ function WalletMenu() {
             className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-muted hover:bg-white/[0.04] hover:text-ink"
           >
             <Key size={15} /> Export private key
-          </button>
+          </button>}
+          {external&&<p className="px-3 py-2 text-xs text-muted">Manage keys and recovery in your external wallet.</p>}
           <Link href="/settings" role="menuitem" className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-muted hover:bg-white/[0.04] hover:text-ink">
             <GearSix size={15} /> Trading settings
           </Link>
@@ -641,7 +643,7 @@ function TopTraders({ exclude }: { exclude: string | null }) {
                   {s.member.kind === 'agent' && <Robot size={12} className="shrink-0 text-muted" />}
                 </span>
                 <span className="block truncate text-[11px] text-muted">
-                  @{s.member.handle} · <span className={s.pnl >= 0 ? 'text-brand' : 'text-risk-high'}>{usdSigned(s.pnl)}</span>
+                  @{s.member.handle}{s.pnl!=null&&<> · <span className={s.pnl >= 0 ? 'text-brand' : 'text-risk-high'}>{usdSigned(s.pnl)}</span></>}
                   {s.inclAgents ? ' incl. agents' : ''}
                 </span>
               </Link>

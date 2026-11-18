@@ -12,7 +12,9 @@
  * - Images: same origin (token icons and X avatars go through /api/img), data/blob, Privy, WalletConnect.
  * Based on Privy's CSP guidance (docs.privy.io/security/implementation-guide/content-security-policy).
  */
-export function buildCsp(opts: { nonce: string; dev?: boolean; apiUrl?: string }): string {
+import { BSC_PUBLIC_RPC } from '@rushr/core/chain/bsc-rpc';
+
+export function buildCsp(opts: { nonce: string; dev?: boolean; apiUrl?: string;chainId?:56 }): string {
   const api = (opts.apiUrl ?? 'https://api.rushr.trade').replace(/\/+$/, '');
   const ws = api.replace(/^http/, 'ws');
   const directives: Record<string, string[]> = {
@@ -30,9 +32,8 @@ export function buildCsp(opts: { nonce: string; dev?: boolean; apiUrl?: string }
     'frame-src': ['https://auth.privy.io', 'https://verify.walletconnect.com', 'https://verify.walletconnect.org', 'https://challenges.cloudflare.com'],
     'connect-src': [
       "'self'",
-      api,
-      ws,
-      'https://rpc.mainnet.chain.robinhood.com',
+      ...(opts.chainId===56?[]:[api,ws,'https://rpc.mainnet.chain.robinhood.com']),
+      BSC_PUBLIC_RPC,
       'https://api.dexscreener.com',
       'https://auth.privy.io',
       'https://*.rpc.privy.systems',
@@ -41,7 +42,7 @@ export function buildCsp(opts: { nonce: string; dev?: boolean; apiUrl?: string }
       'wss://www.walletlink.org',
       'https://explorer-api.walletconnect.com',
       'https://cloudflareinsights.com',
-      ...(opts.dev ? ['ws://localhost:*', 'http://localhost:*'] : []),
+      ...(opts.dev ? ['ws://localhost:*', 'http://localhost:*', 'ws://127.0.0.1:*', 'http://127.0.0.1:*'] : []),
     ],
     'worker-src': ["'self'", 'blob:'],
     'manifest-src': ["'self'"],

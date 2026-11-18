@@ -66,7 +66,7 @@ export function WalletPanel({ onClose }: { onClose: () => void }) {
           </div>
         )}
 
-        <section className="mt-4 rounded-2xl border border-white/[0.06] bg-bg p-4">
+        {user?.walletKind==='external'?<section className="mt-4 rounded-2xl border border-white/[0.06] bg-bg p-4"><h3 className="text-sm font-semibold">External wallet</h3><p className="mt-2 text-xs leading-relaxed text-muted">Manage keys and recovery in your wallet application. Rushr does not hold or export this wallet&apos;s private key.</p></section>:<section className="mt-4 rounded-2xl border border-white/[0.06] bg-bg p-4">
           <h3 className="flex items-center gap-1.5 text-sm font-semibold">
             <Key size={15} /> Export private key
           </h3>
@@ -94,7 +94,7 @@ export function WalletPanel({ onClose }: { onClose: () => void }) {
               <Warning size={13} /> {exportError}
             </p>
           )}
-        </section>
+        </section>}
 
         <Link
           href="/settings"

@@ -29,6 +29,8 @@ export interface MemberRow {
 }
 
 export interface Viewer {
+  walletAddress?: string;
+  sessionHash?: string;
   /** Set when a Privy token was verified, even before the human has a member row. */
   privyDid?: string;
   member?: MemberRow;
@@ -107,7 +109,9 @@ export const body: MiddlewareHandler<Ctx> = async (c, next) => {
       throw fail(400, 'invalid_json', 'Body must be JSON.');
     }
   }
-  const allow = KEY_SHAPED_ALLOWED.find((a) => a.method === c.req.method && a.path.test(c.req.path))?.fields;
+  const baseAllow = KEY_SHAPED_ALLOWED.find((a) => a.method === c.req.method && a.path.test(c.req.path))?.fields;
+  const allow = c.env.CHAIN_ID==='56' && c.req.method==='POST' && /\/trades\/?$/.test(c.req.path)
+    ? [...(baseAllow??[]),'quote.id','quote.blockHash','approvals[0].hash','approvals[1].hash'] : baseAllow;
   const hit = findKeyMaterial(parsed, { allow });
   if (hit) {
     throw fail(400, 'never_send_keys', `Field "${hit}" looks like a private key or seed phrase. Rushr never accepts keys: you sign locally and send only signatures.`);
@@ -150,6 +154,17 @@ export const auth: MiddlewareHandler<Ctx> = async (c, next) => {
   if (!header) return next();
   const token = header.replace(/^Bearer\s+/i, '').trim();
   const sql = c.var.sql;
+  if (token.startsWith('ws_')) {
+    if (c.env.CHAIN_ID !== '56' || !/^ws_[0-9a-f]{64}$/.test(token)) throw fail(401, 'invalid_session', 'Invalid wallet session.');
+    if (!allowedOrigin(c.req.header('origin'),c.req.url,c.env.WEB_ORIGINS)) throw fail(403,'bad_origin','Invalid session origin.');
+    const hash = await sha256Hex(token);
+    const [session] = await sql`select address from wallet_sessions where token_hash=${hash} and expires_at>now()`;
+    if (!session) throw fail(401,'invalid_session','Wallet session expired. Sign in again.');
+    viewer.walletAddress = session.address; viewer.sessionHash = hash;
+    const [member] = await sql.unsafe<MemberRow[]>(`select ${MEMBER_COLUMNS} from members where wallet=$1`,[session.address]);
+    if (member) { if(member.kind!=='human'||member.status!=='active') throw fail(403,'suspended','Account unavailable.'); viewer.member=member; }
+    return next();
+  }
   if (token.startsWith('rk_')) {
     const parsed = parseApiKey(token);
     if (!parsed) throw fail(401, 'invalid_key', 'Malformed API key.');

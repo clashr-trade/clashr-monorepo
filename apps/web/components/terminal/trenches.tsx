@@ -30,12 +30,14 @@ import { migrateQuickBuyToUsd, QUICK_USD_PRESETS, updateSettings, useSettings } 
 import { useEthUsd } from '@/lib/profile';
 import { RingedAvatar, ringOf, SocialLinks } from './bits';
 import { SHOW_RISK } from '@/lib/risk-labels';
+import { BNB_PRODUCT, productTokenHref } from '@/lib/product';
 
 /** Loaded only when trading is on (one chunk shared by every row). */
 const QuickBuyButton = dynamic(() => import('@/components/trade/quick-buy-button').then((m) => m.QuickBuyButton), {
   ssr: false,
   loading: () => <span className="inline-block h-6 w-16 animate-pulse rounded-lg bg-brand/10" />,
 });
+const BscQuickBuyButton=dynamic(()=>import('@/components/trade/bsc-quick-buy-button').then(module=>module.BscQuickBuyButton),{ssr:false});
 
 /* ------------------------------------------------------------------ column rules (mirror the API) */
 
@@ -44,6 +46,7 @@ const CURVE_LAUNCHPADS = new Set(['pons', 'liftfun']);
 const ALMOST_BONDED = 0.5;
 
 function columnOf(t: TokenCard): Column {
+  if (t.chain_id === 56 && t.market_column) return t.market_column;
   if (t.status === 'migrated') return 'migrated';
   // Only curve tokens can be "almost bonded"; a plain pool has no curve, whatever its market cap.
   const almost = CURVE_LAUNCHPADS.has(t.launchpad ?? '') && (t.bonding_progress ?? 0) >= ALMOST_BONDED;
@@ -74,6 +77,7 @@ const COLUMNS: { id: Column; title: string; icon: typeof Plant }[] = [
   { id: 'almost', title: 'Almost bonded', icon: Plant },
   { id: 'migrated', title: 'Migrated', icon: RocketLaunch },
 ];
+const BSC_COLUMNS = COLUMNS.map((column) => ({ ...column, title: column.id === 'new' ? 'New pairs' : column.id === 'almost' ? 'Trending' : 'Established' }));
 
 const PER_COLUMN = 60;
 
@@ -121,10 +125,10 @@ function passes(t: TokenCard, f: Filters, now: number) {
   return true;
 }
 
-function loadFilters(): Record<Column, Filters> {
+function loadFilters(chainId = 4663): Record<Column, Filters> {
   const base = { new: NO_FILTERS, almost: NO_FILTERS, migrated: NO_FILTERS };
   try {
-    const raw = JSON.parse(localStorage.getItem('rushr.trenches.filters') ?? '{}') as Partial<Record<Column, Partial<Filters>>>;
+    const raw = JSON.parse(localStorage.getItem(chainId === 56 ? 'rushr.trenches.filters.56' : 'rushr.trenches.filters') ?? '{}') as Partial<Record<Column, Partial<Filters>>>;
     // Older saves lack the newer keys; fill them in.
     return { new: { ...NO_FILTERS, ...raw.new }, almost: { ...NO_FILTERS, ...raw.almost }, migrated: { ...NO_FILTERS, ...raw.migrated } };
   } catch {
@@ -134,18 +138,21 @@ function loadFilters(): Record<Column, Filters> {
 
 /* ------------------------------------------------------------------ main */
 
-export function Trenches({ initial, serverNow }: { initial: TokenCard[]; serverNow: number }) {
+export function Trenches({ initial, serverNow, chainId = 4663 }: { initial: TokenCard[]; serverNow: number; chainId?: 56 | 4663 }) {
+  const legacyEnabled = chainId === 4663;
+  const columns = legacyEnabled || BNB_PRODUCT ? COLUMNS : BSC_COLUMNS;
+  const sortsKey = legacyEnabled ? SORTS_KEY : `${SORTS_KEY}.56`;
   // Every known token, by address: server-rendered first screen, then the HTTP snapshot and live
   // deltas from the feed client (batched once per frame there).
   // v1: one `trenches` topic, columns computed here. v2: one topic per column, membership decided by
   // the server (moves included). Both are subscribed; the v2 columns take over once all three have
   // a server snapshot. (A v2 server rejects the legacy topic; a v1 server never fills the columns.)
-  const legacy = useTopic<TrenchesState>('trenches', () => trenchesSpec(initial));
-  const colNew = useTopic<TrenchesState>('trenches:new', () => trenchesColumnSpec('new', initial.filter((t) => columnOf(t) === 'new')));
-  const colAlmost = useTopic<TrenchesState>('trenches:almost', () => trenchesColumnSpec('almost', initial.filter((t) => columnOf(t) === 'almost')));
-  const colMigrated = useTopic<TrenchesState>('trenches:migrated', () => trenchesColumnSpec('migrated', initial.filter((t) => columnOf(t) === 'migrated')));
-  const serverColumns = colNew.fromServer && colAlmost.fromServer && colMigrated.fromServer;
-  const tokens = legacy.data;
+  const legacy = useTopic<TrenchesState>('trenches', () => trenchesSpec(initial), legacyEnabled);
+  const colNew = useTopic<TrenchesState>('trenches:new', () => trenchesColumnSpec('new', initial.filter((t) => columnOf(t) === 'new')), legacyEnabled);
+  const colAlmost = useTopic<TrenchesState>('trenches:almost', () => trenchesColumnSpec('almost', initial.filter((t) => columnOf(t) === 'almost')), legacyEnabled);
+  const colMigrated = useTopic<TrenchesState>('trenches:migrated', () => trenchesColumnSpec('migrated', initial.filter((t) => columnOf(t) === 'migrated')), legacyEnabled);
+  const serverColumns = legacyEnabled && colNew.fromServer && colAlmost.fromServer && colMigrated.fromServer;
+  const tokens = useMemo(() => legacyEnabled ? legacy.data : new Map(initial.filter((t) => t.chain_id === 56).map((t) => [t.address,t])), [legacyEnabled,legacy.data,initial]);
   const flashed = useRef(new Map<string, number>());
   // Last seen market cap per token, so a row only flashes when its number actually moves.
   const mcaps = useRef(new Map(initial.map((t) => [t.address, t.market_cap_usd])));
@@ -157,34 +164,34 @@ export function Trenches({ initial, serverNow }: { initial: TokenCard[]; serverN
   const [paused, setPaused] = useState<Partial<Record<Column, string[]>>>({});
   const [mobileCol, setMobileCol] = useState<Column>('new');
   const [showSpam, setShowSpam] = useState(false);
-  const [showPlain, setShowPlain] = useState(false);
+  const [showPlain, setShowPlain] = useState(!legacyEnabled);
   // One-tap buy amounts in dollars (P1/P2): shared with the settings page.
   const { quickBuyUsd: quick, quickBuy2Usd: quick2 } = useSettings();
   // Saves from before dollar amounts move to the nearest dollar preset once the ETH price is in.
-  const ethUsd = useEthUsd();
-  useEffect(() => migrateQuickBuyToUsd(ethUsd), [ethUsd]);
+  const ethUsd = useEthUsd(legacyEnabled);
+  useEffect(() => { if (legacyEnabled) migrateQuickBuyToUsd(ethUsd); }, [ethUsd,legacyEnabled]);
   const [sorts, setSorts] = useState<Record<Column, SortKey>>({ new: 'default', almost: 'default', migrated: 'default' });
   useEffect(() => {
     try {
-      const saved = JSON.parse(localStorage.getItem(SORTS_KEY) ?? 'null') as Partial<Record<Column, SortKey>> | null;
+      const saved = JSON.parse(localStorage.getItem(sortsKey) ?? 'null') as Partial<Record<Column, SortKey>> | null;
       if (saved) setSorts((p) => ({ ...p, ...saved }));
     } catch {
       // storage unavailable
     }
-  }, []);
+  }, [sortsKey]);
   const setSort = useCallback((col: Column, k: SortKey) => {
     setSorts((p) => {
       const next = { ...p, [col]: k };
       try {
-        localStorage.setItem(SORTS_KEY, JSON.stringify(next));
+        localStorage.setItem(sortsKey, JSON.stringify(next));
       } catch {
         // storage unavailable
       }
       return next;
     });
-  }, []);
+  }, [sortsKey]);
 
-  useEffect(() => setFilters(loadFilters()), []);
+  useEffect(() => setFilters(loadFilters(chainId)), [chainId]);
   const changeQuick = useCallback((v: number) => updateSettings({ quickBuyUsd: v }), []);
   useEffect(() => {
     // Only the max-age filter needs this; row ages tick on their own clock.
@@ -204,10 +211,10 @@ export function Trenches({ initial, serverNow }: { initial: TokenCard[]; serverN
       }
     }
   };
-  useTopicDeltas('trenches', onDeltas);
-  useTopicDeltas('trenches:new', onDeltas);
-  useTopicDeltas('trenches:almost', onDeltas);
-  useTopicDeltas('trenches:migrated', onDeltas);
+  useTopicDeltas('trenches', onDeltas, legacyEnabled);
+  useTopicDeltas('trenches:new', onDeltas, legacyEnabled);
+  useTopicDeltas('trenches:almost', onDeltas, legacyEnabled);
+  useTopicDeltas('trenches:migrated', onDeltas, legacyEnabled);
 
   const lists = useMemo(() => {
     const out: Record<Column, TokenCard[]> = { new: [], almost: [], migrated: [] };
@@ -242,20 +249,20 @@ export function Trenches({ initial, serverNow }: { initial: TokenCard[]; serverN
     setFilters((prev) => {
       const next = { ...prev, [col]: f };
       try {
-        localStorage.setItem('rushr.trenches.filters', JSON.stringify(next));
+        localStorage.setItem(chainId === 56 ? 'rushr.trenches.filters.56' : 'rushr.trenches.filters', JSON.stringify(next));
       } catch {
         // storage unavailable; filters still apply for this visit
       }
       return next;
     });
-  }, []);
+  }, [chainId]);
 
   return (
-    <div className="flex h-full flex-col">
-      <Toolbar showSpam={showSpam} onShowSpam={setShowSpam} showPlain={showPlain} onShowPlain={setShowPlain} quick={quick} onQuick={changeQuick} />
+    <div className="flex h-full min-h-0 flex-col overflow-hidden">
+      <Toolbar chainId={chainId} showSpam={showSpam} onShowSpam={setShowSpam} showPlain={showPlain} onShowPlain={setShowPlain} quick={quick} onQuick={changeQuick} />
       {/* Mobile: one column at a time */}
       <div className="flex gap-1 px-2 pb-2 md:hidden">
-        {COLUMNS.map((c) => (
+        {columns.map((c) => (
           <button
             key={c.id}
             type="button"
@@ -266,8 +273,8 @@ export function Trenches({ initial, serverNow }: { initial: TokenCard[]; serverN
           </button>
         ))}
       </div>
-      <div className="grid min-h-0 flex-1 grid-cols-1 gap-2 px-2 pb-2 md:grid-cols-3">
-        {COLUMNS.map((c) => {
+      <div className="grid min-h-0 flex-1 grid-cols-1 grid-rows-[minmax(0,1fr)] gap-2 overflow-hidden px-2 pb-2 md:grid-cols-3">
+        {columns.map((c) => {
           const f = filters[c.id];
           const live = lists[c.id].filter((t) => passes(t, f, now));
           const frozen = paused[c.id];
@@ -277,6 +284,7 @@ export function Trenches({ initial, serverNow }: { initial: TokenCard[]; serverN
           const waiting = frozen ? live.filter((t) => !frozen.includes(t.address)).length : 0;
           return (
             <ColumnPanel
+              chainId={chainId}
               key={c.id}
               col={c}
               tokens={shown}
@@ -307,6 +315,7 @@ export function Trenches({ initial, serverNow }: { initial: TokenCard[]; serverN
 /* ------------------------------------------------------------------ toolbar */
 
 function Toolbar({
+  chainId,
   showSpam,
   onShowSpam,
   showPlain,
@@ -314,6 +323,7 @@ function Toolbar({
   quick,
   onQuick,
 }: {
+  chainId: 56 | 4663;
   showSpam: boolean;
   onShowSpam: (v: boolean) => void;
   showPlain: boolean;
@@ -327,9 +337,9 @@ function Toolbar({
   return (
     <div className="flex flex-wrap items-center gap-x-3 gap-y-2 px-3 py-2.5">
       <h1 className="text-lg font-semibold tracking-[-0.03em]">Trenches</h1>
-      <span className="rounded-md bg-white/[0.06] px-2 py-0.5 text-xs text-muted">Robinhood Chain</span>
+      <span className="rounded-md bg-white/[0.06] px-2 py-0.5 text-xs text-muted">{chainId === 56 ? 'BNB Smart Chain' : 'Robinhood Chain'}</span>
       {/* Hidden with the risk labels: spam clones and plain pools stay filtered out by default. */}
-      {SHOW_RISK && (
+      {SHOW_RISK && chainId === 4663 && (
         <>
       <label
         className="ml-2 flex cursor-pointer items-center gap-1.5 text-xs text-muted hover:text-ink"
@@ -349,7 +359,7 @@ function Toolbar({
       )}
       <div
         className="ml-auto flex items-center gap-1.5 rounded-xl border border-white/[0.06] bg-surface py-1 pl-3 pr-1 text-xs"
-        title="The first Buy amount on every card, in US dollars (converted to ETH at the live price)"
+        title={chainId === 56 ? 'BNB quick trading is not enabled yet' : 'The first Buy amount on every card, in US dollars (converted to ETH at the live price)'}
       >
         <Lightning size={14} weight="fill" className="text-brand" />
         <span className="hidden text-muted sm:inline">Quick buy</span>
@@ -391,6 +401,7 @@ function Toolbar({
 /* ------------------------------------------------------------------ column */
 
 function ColumnPanel({
+  chainId,
   col,
   tokens,
   total,
@@ -408,6 +419,7 @@ function ColumnPanel({
   onPause,
   className,
 }: {
+  chainId: 56 | 4663;
   col: (typeof COLUMNS)[number];
   tokens: TokenCard[];
   total: number;
@@ -441,7 +453,7 @@ function ColumnPanel({
             </span>
           ) : (
             <span className="flex items-center gap-1.5 text-[11px] text-muted">
-              <span className="size-1.5 animate-pulse rounded-full bg-brand" /> Live
+              <span className="size-1.5 animate-pulse rounded-full bg-brand" /> {chainId === 56 ? '30s updates' : 'Live'}
             </span>
           )}
           <button
@@ -484,7 +496,7 @@ function ColumnPanel({
           ))}
         </select>
       </div>
-      {showFilters && <FilterBar value={filters} onChange={onFilters} />}
+      {showFilters && <FilterBar chainId={chainId} value={filters} onChange={onFilters} />}
       <ul
         className="min-h-0 flex-1 overflow-y-auto overscroll-contain"
         onMouseEnter={() => onPause(true)}
@@ -492,6 +504,7 @@ function ColumnPanel({
       >
         {tokens.map((t) => (
           <Row
+            chainId={chainId}
             key={t.address}
             t={t}
             col={col.id}
@@ -512,7 +525,7 @@ function ColumnPanel({
   );
 }
 
-function FilterBar({ value, onChange }: { value: Filters; onChange: (f: Filters) => void }) {
+function FilterBar({ value, onChange, chainId }: { value: Filters; onChange: (f: Filters) => void; chainId:56|4663 }) {
   const toggle = (k: 'hideHighRisk' | 'hideCopycat' | 'hasSocial', label: string) => (
     <label className="flex items-center gap-2 text-xs">
       <input type="checkbox" checked={value[k]} onChange={(e) => onChange({ ...value, [k]: e.target.checked })} className="accent-[var(--color-brand)]" />
@@ -548,7 +561,7 @@ function FilterBar({ value, onChange }: { value: Filters; onChange: (f: Filters)
           className="rounded-lg border border-white/[0.06] bg-black/30 px-2 py-1.5 text-xs outline-none"
         >
           <option value="">All</option>
-          {['pons', 'doppler', 'lift.fun', 'uniswap-v4'].map((l) => (
+          {(chainId === 56 ? [] : ['pons', 'doppler', 'lift.fun', 'uniswap-v4']).map((l) => (
             <option key={l} value={l}>
               {LAUNCHPAD_LABEL[l] ?? l}
             </option>
@@ -626,6 +639,7 @@ function Pill({ icon: Icon, value, bad, title, digits = 0 }: { icon: typeof Crow
 const Dot = () => <span className="text-muted/40">·</span>;
 
 const Row = memo(function Row({
+  chainId,
   t,
   col,
   serverNow,
@@ -634,6 +648,7 @@ const Row = memo(function Row({
   quick,
   quick2,
 }: {
+  chainId: 56 | 4663;
   t: TokenCard;
   col: Column;
   serverNow: number;
@@ -678,14 +693,14 @@ const Row = memo(function Row({
       {flashAt > 0 && <span key={flashAt} className="trench-flash pointer-events-none absolute inset-0" />}
       <div className="group relative px-3 pb-2.5 pt-3 transition-colors hover:bg-white/[0.03] sm:px-4 md:px-5">
         {/* Whole-row link sits underneath; links and buttons above it stay clickable. */}
-        <Link href={`/token/${t.address}`} aria-label={`${t.symbol} token page`} className="absolute inset-0" />
+        <Link href={chainId===56?productTokenHref(t.address):`/token/${t.address}`} aria-label={`${t.symbol} token page`} className="absolute inset-0" />
         <div className="flex items-center gap-2.5 sm:gap-3">
         <span className="flex shrink-0 flex-col items-center gap-1">
           <span className="sm:hidden">
-            <RingedAvatar t={t} size={44} ring={ringOf(t, col === 'migrated')} badge />
+            <RingedAvatar t={t} size={44} ring={ringOf(t, chainId === 4663 && col === 'migrated')} badge />
           </span>
           <span className="hidden sm:block">
-            <RingedAvatar t={t} size={52} ring={ringOf(t, col === 'migrated')} badge />
+            <RingedAvatar t={t} size={52} ring={ringOf(t, chainId === 4663 && col === 'migrated')} badge />
           </span>
           <span className="font-mono text-[9px] leading-none text-muted">{short(t.address, 2, 4)}</span>
         </span>
@@ -714,7 +729,7 @@ const Row = memo(function Row({
             <Age created={created} serverNow={serverNow} />
             <Dot />
             <span>
-              <span className="font-mono text-ink/75">{t.holders < 1000 ? t.holders : compact(t.holders)}</span> holders
+              <span className="font-mono text-ink/75">{t.holders_known === false ? '—' : t.holders < 1000 ? t.holders : compact(t.holders)}</span> holders
             </span>
             {txns != null && (
               <>
@@ -778,7 +793,7 @@ const Row = memo(function Row({
             )}
           </span>
           <span className="relative z-10 ml-auto flex shrink-0 items-center gap-1">
-            {tradingAvailable() ? (
+            {chainId===56 && BNB_PRODUCT ? <><BscQuickBuyButton token={t.address as `0x${string}`} symbol={t.symbol} amountUsd={quick}/><BscQuickBuyButton token={t.address as `0x${string}`} symbol={t.symbol} amountUsd={quick2}/></> : chainId === 4663 && tradingAvailable() ? (
               <>
                 <QuickBuyButton token={tradeToken} amountUsd={quick} variant="subtle" />
                 <QuickBuyButton token={tradeToken} amountUsd={quick2} variant="subtle" />

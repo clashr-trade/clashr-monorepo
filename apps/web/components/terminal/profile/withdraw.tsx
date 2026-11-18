@@ -6,9 +6,12 @@ import { ArrowSquareOut, CheckCircle, Warning } from '@phosphor-icons/react';
 import { auth } from '@/lib/auth';
 import { publicClient, USDG, type Balances } from '@/lib/balances';
 import { EXPLORER, short } from '@/lib/format';
+import {BNB_PRODUCT,NATIVE_SYMBOL,STABLE_SYMBOL} from '@/lib/product';
+import {parseBscInput} from '@/lib/bsc-wallet';
 
 type Asset = 'ETH' | 'USDG';
-const DECIMALS: Record<Asset, number> = { ETH: 18, USDG: 6 };
+const DECIMALS: Record<Asset, number> = { ETH: 18, USDG: BNB_PRODUCT?18:6 };
+const symbol=(asset:Asset)=>asset==='ETH'?NATIVE_SYMBOL:STABLE_SYMBOL;
 /** Gas kept back on "Max" for an ETH send: a plain transfer is 21k gas; keep room for a busy block. */
 const GAS_RESERVE_UNITS = 60_000n;
 
@@ -28,7 +31,7 @@ export function WithdrawPanel({ from, balances, onDone }: { from: `0x${string}`;
   const bal = balances ? (asset === 'ETH' ? balances.eth : balances.usdg) : null;
   let wei: bigint | null = null;
   try {
-    wei = amount ? parseUnits(amount, DECIMALS[asset]) : null;
+    wei = amount ? BNB_PRODUCT?parseBscInput(amount,DECIMALS[asset]):parseUnits(amount, DECIMALS[asset]) : null;
   } catch {
     wei = null;
   }
@@ -37,7 +40,7 @@ export function WithdrawPanel({ from, balances, onDone }: { from: `0x${string}`;
 
   const max = async () => {
     if (bal == null) return;
-    if (asset === 'USDG') return setAmount(formatUnits(bal, 6));
+    if (asset === 'USDG') return setAmount(formatUnits(bal, DECIMALS.USDG));
     const gasPrice = await publicClient().getGasPrice().catch(() => 100_000_000n);
     const left = bal - gasPrice * GAS_RESERVE_UNITS;
     setAmount(left > 0n ? formatUnits(left, 18) : '0');
@@ -48,7 +51,7 @@ export function WithdrawPanel({ from, balances, onDone }: { from: `0x${string}`;
     if (!toOk) return setError('Enter a valid 0x address.');
     if (self) return setError('That is your own Rushr wallet.');
     if (!wei || wei <= 0n) return setError('Enter an amount.');
-    if (bal != null && wei > bal) return setError(`More than your ${asset} balance.`);
+    if (bal != null && wei > bal) return setError(`More than your ${symbol(asset)} balance.`);
     setStep({ kind: 'review' });
   };
 
@@ -77,7 +80,7 @@ export function WithdrawPanel({ from, balances, onDone }: { from: `0x${string}`;
         <CheckCircle size={40} weight="fill" className="mx-auto text-brand" />
         <p className="mt-2 font-semibold">Sent</p>
         <p className="mt-1 text-sm text-muted">
-          {amount} {asset} to {short(to.trim())}
+          {amount} {symbol(asset)} to {short(to.trim())}
         </p>
         <a href={`${EXPLORER}/tx/${step.hash}`} target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-1 text-xs text-muted hover:text-ink">
           View transaction <ArrowSquareOut size={12} />
@@ -89,13 +92,13 @@ export function WithdrawPanel({ from, balances, onDone }: { from: `0x${string}`;
     return (
       <div>
         <dl className="space-y-2 rounded-xl border border-white/[0.06] bg-bg p-4 text-sm">
-          <Row k="Send" v={`${amount} ${asset}`} />
+          <Row k="Send" v={`${amount} ${symbol(asset)}`} />
           <Row k="To" v={<span className="break-all font-mono text-xs">{getAddress(to.trim())}</span>} />
-          <Row k="Network" v="Robinhood Chain (4663)" />
+          <Row k="Network" v={BNB_PRODUCT?'BNB Smart Chain (56)':'Robinhood Chain (4663)'} />
         </dl>
         <p className="mt-3 flex items-start gap-1.5 text-[11px] leading-relaxed text-risk-medium">
           <Warning size={13} weight="fill" className="mt-px shrink-0" />
-          Transfers can&apos;t be undone. Make sure the address can receive on Robinhood Chain (an exchange deposit address must support this network).
+          Transfers can&apos;t be undone. Make sure the address can receive on {BNB_PRODUCT?'BNB Smart Chain':'Robinhood Chain'} (an exchange deposit address must support this network).
         </p>
         {step.kind === 'failed' && <p className="mt-2 text-xs text-risk-high">{step.message}</p>}
         <div className="mt-4 grid grid-cols-2 gap-2">
@@ -119,12 +122,12 @@ export function WithdrawPanel({ from, balances, onDone }: { from: `0x${string}`;
       <div className="grid grid-cols-2 rounded-xl bg-white/[0.04] p-1 text-sm font-semibold">
         {(['ETH', 'USDG'] as const).map((a) => (
           <button key={a} type="button" onClick={() => setAsset(a)} className={`rounded-lg py-1.5 ${asset === a ? 'bg-white/[0.1] text-ink' : 'text-muted'}`}>
-            {a}
+            {symbol(a)}
           </button>
         ))}
       </div>
       <label className="mt-4 block">
-        <span className="text-xs text-muted">To address (Robinhood Chain)</span>
+        <span className="text-xs text-muted">To address ({BNB_PRODUCT?'BNB Smart Chain':'Robinhood Chain'})</span>
         <input
           value={to}
           onChange={(e) => setTo(e.target.value.trim())}

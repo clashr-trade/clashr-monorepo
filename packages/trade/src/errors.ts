@@ -1,5 +1,12 @@
 /** Every failure in @rushr/trade is a TradeError with a stable code the UI can map to copy. */
 export type TradeErrorCode =
+  | 'UNSUPPORTED_CHAIN'
+  | 'QUOTE_EXPIRED'
+  | 'QUOTE_MISMATCH'
+  | 'WALLET_CHANGED'
+  | 'INSUFFICIENT_FUNDS'
+  | 'BSC_TRADING_DISABLED'
+  | 'EXECUTION_CANCELLED'
   | 'CONFIG_INVALID' // fee rate out of bounds, bad recipient
   | 'FEE_RECIPIENT_PLACEHOLDER' // building a tx for signing while the treasury is still a placeholder
   | 'INVALID_AMOUNT'

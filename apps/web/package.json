@@ -13,6 +13,7 @@
     "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "test:hydration": "node scripts/check-landing-hydration.mjs",
     "test:dependencies": "vitest run test/wallet-dependencies.test.ts",
     "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts",
     "predev": "node scripts/gen-whitepaper.mjs",

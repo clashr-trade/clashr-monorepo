@@ -4,7 +4,7 @@ import { LEGAL_PAGES } from '@/components/landing/legal';
 import { parseMarkdown } from '@/components/landing/markdown';
 import { Footer, Nav } from '@/components/landing/sections';
 import { WRAP } from '@/components/landing/ui';
-import { RiskNotice, TocDesktop, TocMobile, WHITEPAPER_SOURCE, WhitepaperBody, tocOf } from '@/components/landing/whitepaper';
+import { RiskNotice, TocDesktop, TocMobile, WhitepaperBody, tocOf } from '@/components/landing/whitepaper';
 import { WHITEPAPER_MD } from '@/components/landing/whitepaper-source.generated';
 
 // docs/whitepaper.md is the source of truth. It is bundled as a string at build time (scripts/gen-whitepaper.mjs),
@@ -63,14 +63,7 @@ export default function Whitepaper() {
                   {p.label}
                 </Link>
               ))}
-              <a
-                href={WHITEPAPER_SOURCE}
-                target="_blank"
-                rel="noreferrer"
-                className="ml-auto rounded-lg bg-ink px-3.5 py-1.5 font-medium text-bg transition hover:bg-ink/85"
-              >
-                Read on GitHub
-              </a>
+
             </nav>
           </div>
         </div>

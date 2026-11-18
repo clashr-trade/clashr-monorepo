@@ -26,15 +26,16 @@ export const RUSH = {
   minUsd: 20,
   minLiquidityUsd: 5_000,
 } as const;
+export interface RushConfig {id:string;name:string;startsAt:Date;endsAt:Date;prizes:{caller:number;gainer:number;trader:number};minUsd:number;minLiquidityUsd:number}
 
 /** Wallets and handles that can't win: Rushr's dev, team and treasury wallets, and Rushr's own agents. */
-const EXCLUDED_WALLETS = [
+const LEGACY_EXCLUDED_WALLETS = [
   '0xe5ed29849043380aea7cfe62e97a23e82c55578e', // dev wallet
   '0x4fc9e610c270ae08717f43275f0fcaa57af39e5d', // team wallet
   RUSHR_TREASURY.toLowerCase(),
   ...LEGACY_TREASURIES.map((a) => a.toLowerCase()),
 ];
-const EXCLUDED_HANDLES = ['talos'];
+const LEGACY_EXCLUDED_HANDLES = ['talos'];
 
 const TOP = 10;
 const round2 = (x: number) => Math.round(x * 100) / 100;
@@ -64,8 +65,8 @@ export interface TradeAgg {
 }
 
 /** Realized result of a member's trades in one token: cost of the tokens sold at the average buy price. */
-export function scoreTrade(a: TradeAgg): { costUsd: number; pnlUsd: number; multiplier: number } | null {
-  if (a.boughtUsd < RUSH.minUsd || a.boughtTokens <= 0 || a.soldTokens <= 0 || a.soldUsd <= 0) return null;
+export function scoreTrade(a: TradeAgg,minUsd:number=RUSH.minUsd): { costUsd: number; pnlUsd: number; multiplier: number } | null {
+  if (a.boughtUsd < minUsd || a.boughtTokens <= 0 || a.soldTokens <= 0 || a.soldUsd <= 0) return null;
   const sold = Math.min(1, a.soldTokens / a.boughtTokens);
   const costUsd = a.boughtUsd * sold;
   return { costUsd, pnlUsd: a.soldUsd - costUsd, multiplier: a.soldUsd / costUsd };
@@ -89,7 +90,8 @@ export function bestPerMember<T extends { memberId: string }>(items: T[], score:
 type MemberRow = { id: string; handle: string; kind: 'human' | 'agent'; display_name: string | null; avatar_url: string | null };
 const memberOut = (m: MemberRow): RushMember => ({ handle: m.handle, kind: m.kind, displayName: m.display_name, avatarUrl: m.avatar_url });
 
-export async function rushStandings(sql: Sql, now = new Date()) {
+export async function rushStandings(sql: Sql, now = new Date(),config:RushConfig=RUSH,exclusions={wallets:LEGACY_EXCLUDED_WALLETS,handles:LEGACY_EXCLUDED_HANDLES}) {
+  const RUSH=config,EXCLUDED_WALLETS=exclusions.wallets,EXCLUDED_HANDLES=exclusions.handles;
   const from = RUSH.startsAt;
   const to = now < RUSH.endsAt ? now : RUSH.endsAt;
   const status = now < RUSH.startsAt ? 'upcoming' : now < RUSH.endsAt ? 'live' : 'ended';
@@ -129,7 +131,7 @@ export async function rushStandings(sql: Sql, now = new Date()) {
   const trades = aggs
     .map((a) => {
       const agg: TradeAgg = { memberId: a.member_id, token: a.token, boughtUsd: a.bought_usd, boughtTokens: a.bought_tokens, soldUsd: a.sold_usd, soldTokens: a.sold_tokens, trades: a.trades };
-      const s = scoreTrade(agg);
+      const s = scoreTrade(agg,RUSH.minUsd);
       return s ? { ...agg, ...s, symbol: a.symbol, imageUrl: a.image_url } : null;
     })
     .filter((t): t is NonNullable<typeof t> => !!t);

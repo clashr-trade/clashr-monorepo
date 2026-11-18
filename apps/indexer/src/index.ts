@@ -1,4 +1,6 @@
 import { Hono } from 'hono';
+import { chainApi } from './chain-api';
+import { isLegacyJob } from './bsc/jobs';
 import { cors } from 'hono/cors';
 import postgres from 'postgres';
 import { dbUrl, holderHistory, poolHistory, positionsJob, poller as pollerOf, type Env, type EnrichMessage } from './env';
@@ -451,6 +453,7 @@ v1.route('/', trades);
 // Members, social, leaderboard and agents. Off unless AGENTS_ENABLED=1; after the edge
 // cache so public /v1 responses with s-maxage are cached; authenticated ones are private, no-store.
 app.route('/v1', v1);
+app.route('/v2', chainApi);
 // Agents' admin endpoints, behind the /admin/* ADMIN_TOKEN check above.
 app.route('/admin/agents', adminV1);
 
@@ -597,7 +600,17 @@ export default {
     }
   },
   // Recompute safety signals for tokens the poller saw trading (deduped within the batch).
-  async queue(batch, env) {
+  async queue(incoming, env) {
+    const messages = incoming.messages.filter((message) => {
+      if (isLegacyJob(message.body)) return true;
+      console.error('Rejected non-legacy job on Robinhood queue', message.id);
+      message.ack();
+      return false;
+    });
+    if (!messages.length) return;
+    const batch = messages.length === incoming.messages.length ? incoming : { queue: incoming.queue, messages,
+      ackAll: () => messages.forEach((m) => m.ack()),
+      retryAll: (options?: QueueRetryOptions) => messages.forEach((m) => m.retry(options)) };
     // Workers allow 6 simultaneous outgoing connections per invocation, and Hyperdrive stalls when the
     // client pipelines queries on a busy connection: so 2 connections and never more than 2 queries at once.
     const sql = postgres(dbUrl(env), { max: 2, fetch_types: false, prepare: false });

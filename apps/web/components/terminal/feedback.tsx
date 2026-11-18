@@ -7,6 +7,7 @@ import { ChatCircleText, X } from '@phosphor-icons/react';
 import { auth } from '@/lib/auth';
 import { useLiveStatus } from '@/lib/live';
 import { V1 } from '@/lib/members';
+import {BNB_PRODUCT} from '@/lib/product';
 
 const MAX = 2000;
 const DRAFT_KEY = 'rushr.feedback.draft';
@@ -46,7 +47,7 @@ function writeDraft(d: Draft | null) {
  * session token is present). The API has no category field, so the kind is a "[bug] " prefix.
  */
 async function sendFeedback(kind: Kind, message: string, page: string): Promise<{ ok: true } | { ok: false; message: string }> {
-  if (process.env.NEXT_PUBLIC_PREVIEW_ONLY === '1') {
+  if (process.env.NEXT_PUBLIC_PREVIEW_ONLY === '1'&&!BNB_PRODUCT) {
     return { ok: false, message: 'Feedback stays in this browser as a draft in this preview. Configure your own backend to send it.' };
   }
   try {
@@ -89,7 +90,7 @@ export function FeedbackButton() {
         ref={btn}
         type="button"
         onClick={() => setOpen(true)}
-        title={`Send feedback · ${live}`}
+        title={BNB_PRODUCT?'Send feedback to this BNB product':`Send feedback · ${live}`}
         aria-haspopup="dialog"
         className="relative flex items-center gap-1.5 rounded-xl border border-white/[0.06] bg-surface px-2.5 py-2 text-xs text-muted transition hover:text-ink sm:px-3"
       >
@@ -97,7 +98,7 @@ export function FeedbackButton() {
         <span className="hidden sm:inline">Feedback</span>
         <span
           aria-label={connected ? 'Live' : 'Reconnecting'}
-          className={`absolute -right-0.5 -top-0.5 size-2 rounded-full ring-2 ring-bg ${connected ? 'bg-brand' : 'bg-risk-high'}`}
+          className={`${BNB_PRODUCT?'hidden':'absolute'} -right-0.5 -top-0.5 size-2 rounded-full ring-2 ring-bg ${connected ? 'bg-brand' : 'bg-risk-high'}`}
         />
       </button>
       {open && <FeedbackDialog onClose={close} />}

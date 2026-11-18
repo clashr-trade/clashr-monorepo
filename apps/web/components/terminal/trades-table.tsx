@@ -24,6 +24,7 @@ export function TradesTable({
   serverNow,
   maker,
   onMaker,
+  updateMode='live',
 }: {
   trades: Tx[] | null;
   ctx: MakerContext;
@@ -31,6 +32,7 @@ export function TradesTable({
   serverNow: number;
   maker: string | null;
   onMaker: (wallet: string | null) => void;
+  updateMode?:'live'|'poll';
 }) {
   const [side, setSide] = useState<'all' | 'buy' | 'sell'>('all');
   const [tags, setTags] = useState<MakerTag[]>([]);
@@ -131,7 +133,7 @@ export function TradesTable({
             </span>
           ) : (
             <>
-              <span className="size-1.5 animate-pulse rounded-full bg-brand" /> Live
+              <span className="size-1.5 rounded-full bg-brand" /> {updateMode==='poll'?'15s updates':'Live'}
             </>
           )}
         </span>

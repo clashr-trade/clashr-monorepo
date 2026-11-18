@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react';
 import { createPublicClient, erc20Abi, type Address } from 'viem';
 import { robinhoodChain } from '@rushr/trade';
+import { bsc } from 'viem/chains';
+import { BNB_PRODUCT, PRODUCT_CHAIN_ID } from './product';
 import { rpcTransport } from './rpc';
 
 /**
@@ -10,11 +12,11 @@ import { rpcTransport } from './rpc';
  * The same client serves quotes, simulations and sends in the trade code.
  */
 
-export const USDG: Address = '0x5fc5360d0400a0fd4f2af552add042d716f1d168';
+export const USDG: Address = BNB_PRODUCT ? '0x55d398326f99059ff775485246999027b3197955' : '0x5fc5360d0400a0fd4f2af552add042d716f1d168';
 const REFRESH_MS = 15_000;
 
 let client: ReturnType<typeof createPublicClient> | null = null;
-export const publicClient = () => (client ??= createPublicClient({ chain: robinhoodChain, transport: rpcTransport(), batch: { multicall: true } }));
+export const publicClient = () => (client ??= createPublicClient({ chain: BNB_PRODUCT ? bsc : robinhoodChain, transport: rpcTransport(PRODUCT_CHAIN_ID), batch: { multicall: true } }));
 
 export interface Balances {
   eth: bigint;

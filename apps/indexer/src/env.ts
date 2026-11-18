@@ -5,6 +5,8 @@ import type { Gateway } from './gateway';
 import type { RpcBudget, TokenHydrator } from './hydrator';
 
 export interface Env {
+  /** Opt-in only after 0012 and the chain backfill have been rehearsed. */
+  CHAIN_V2_READS?: string;
   CHAIN_ID: string;
   BLOCKSCOUT_API: string;
   RPC_URL: string;

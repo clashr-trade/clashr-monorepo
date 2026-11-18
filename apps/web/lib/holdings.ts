@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { erc20Abi, formatUnits, type Address } from 'viem';
 import { publicClient, USDG, useBalances } from './balances';
 import { useEthQuote, useWalletPnl, type Position } from './profile';
+import {BNB_PRODUCT,NATIVE_SYMBOL,STABLE_SYMBOL} from './product';
 
 /**
  * A wallet's holdings for the wallet views: ETH and USDG plus every token it holds, valued in $.
@@ -127,8 +128,8 @@ export function useWalletHoldings(wallet: Address | null): Holdings {
       const ethAmt = Number(formatUnits(balances.eth, 18));
       items.push({
         address: null,
-        symbol: 'ETH',
-        name: 'Ether',
+        symbol: NATIVE_SYMBOL,
+        name: BNB_PRODUCT?'BNB':'Ether',
         imageUrl: null,
         amount: ethAmt,
         raw: balances.eth,
@@ -138,15 +139,15 @@ export function useWalletHoldings(wallet: Address | null): Holdings {
         change24hPct: eth?.change24h ?? null,
         cash: true,
       });
-      const usdgAmt = Number(formatUnits(balances.usdg, 6));
+      const usdgAmt = Number(formatUnits(balances.usdg, BNB_PRODUCT?18:6));
       items.push({
         address: USDG,
-        symbol: 'USDG',
-        name: 'Global Dollar',
+        symbol: STABLE_SYMBOL,
+        name: BNB_PRODUCT?'Tether USD':'Global Dollar',
         imageUrl: null,
         amount: usdgAmt,
         raw: balances.usdg,
-        decimals: 6,
+        decimals: BNB_PRODUCT?18:6,
         priceUsd: 1,
         valueUsd: usdgAmt,
         change24hPct: 0,

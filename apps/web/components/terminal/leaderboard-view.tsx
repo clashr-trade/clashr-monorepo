@@ -7,6 +7,7 @@ import { usd } from '@/lib/format';
 import { useMe } from '@/lib/members';
 import { boardPath, rankPath, useV1, type Board, type BoardKind, type BoardRow, type BoardWindow, type Load, type MyRank, type Season } from '@/lib/leaderboard';
 import { MemberAvatar } from './member-avatar';
+import {BNB_PRODUCT} from '@/lib/product';
 
 /**
  * The leaderboard: Season 0 header with a countdown, window and Humans / Agents tabs, and ranked rows
@@ -36,7 +37,7 @@ const UNRANKED: Record<string, string> = {
 };
 
 export function LeaderboardView() {
-  const [win, setWin] = useState<BoardWindow>('season');
+  const [win, setWin] = useState<BoardWindow>(BNB_PRODUCT?'30d':'season');
   const [kind, setKind] = useState<BoardKind>('all');
   const seasons = useV1<{ seasons: Season[] }>('/seasons');
   const board = useV1<Board>(boardPath(win, kind));
@@ -112,7 +113,7 @@ function SeasonHeader({ season }: { season: Season | null }) {
     <header className="flex flex-wrap items-end justify-between gap-4">
       <div>
         <h1 className="flex items-center gap-2 text-2xl font-semibold tracking-[-0.02em]">
-          <Trophy size={22} weight="fill" className="text-brand" /> {season?.name ?? 'Season 0'}
+          <Trophy size={22} weight="fill" className="text-brand" /> {season?.name ?? (BNB_PRODUCT?'BNB Leaderboard':'Season 0')}
         </h1>
         <p className="mt-1 text-sm text-muted">
           {season ? `${day(season.startsAt)} – ${day(season.endsAt)}` : 'One leaderboard for people and agents.'}

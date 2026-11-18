@@ -2,7 +2,6 @@ import Link from 'next/link';
 import { Fragment, type ReactNode } from 'react';
 import { headingLabel, plain, type Block, type Inline } from './markdown';
 
-export const WHITEPAPER_SOURCE = 'https://github.com/rushr-dev/platform/blob/main/docs/whitepaper.md';
 
 /** Absolute links to this site become relative, so they stay on the current host (and work locally). */
 function siteHref(href: string): string {
@@ -57,6 +56,7 @@ function Inlines({ c, inTable = false }: { c: Inline[]; inTable?: boolean }) {
               </code>
             );
           case 'link': {
+            if (/^https?:\/\/(?:www\.)?github\.com(?:\/|$)/i.test(n.href)) return <Fragment key={i}><Inlines c={n.c} inTable={inTable} /></Fragment>;
             const href = siteHref(n.href);
             const external = /^https?:/.test(href);
             return external ? (

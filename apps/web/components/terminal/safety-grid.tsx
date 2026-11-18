@@ -18,7 +18,8 @@ import {
   XCircle,
   type Icon,
 } from '@phosphor-icons/react';
-import type { TokenDetail } from '@/lib/api';
+import type { TokenCard,TokenDetail } from '@/lib/api';
+type SafetyToken=TokenCard&Partial<Pick<TokenDetail,'signals'>>;
 import { countFmt } from '@/lib/format';
 import { SHOW_RISK } from '@/lib/risk-labels';
 
@@ -73,7 +74,7 @@ function yesNo(v: boolean | null | undefined, goodWhen: boolean): Pick<Cell, 'va
   return { value: ok ? 'Yes' : 'No', tone: ok ? 'good' : 'bad', mark: ok ? 'ok' : 'no' };
 }
 
-export function safetyCells(t: TokenDetail): Cell[] {
+export function safetyCells(t: SafetyToken): Cell[] {
   const x = t as TokenDetail & Extra;
   const s = (t.signals ?? {}) as NonNullable<TokenDetail['signals']> & ExtraSignals;
 
@@ -113,7 +114,7 @@ export function safetyCells(t: TokenDetail): Cell[] {
       key: 'holders',
       label: 'Holders',
       icon: Users,
-      value: num(t.holders) == null ? NONE : countFmt(t.holders),
+      value: t.holders_known===false||num(t.holders) == null ? NONE : countFmt(t.holders),
       tone: num(t.holders) == null ? 'unknown' : 'plain',
       help: 'Wallets holding the token right now.',
     },
@@ -216,7 +217,7 @@ const TONE: Record<Tone, string> = {
   unknown: 'text-muted',
 };
 
-export function SafetyGrid({ t, className = '' }: { t: TokenDetail; className?: string }) {
+export function SafetyGrid({ t, className = '' }: { t: SafetyToken; className?: string }) {
   const cells = safetyCells(t);
   return (
     <dl className={`grid grid-cols-3 gap-1 sm:grid-cols-4 ${className}`} aria-label="Safety indicators">

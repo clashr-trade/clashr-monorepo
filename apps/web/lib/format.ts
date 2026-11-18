@@ -41,6 +41,7 @@ const HUES = ['#36d42a', '#ffb547', '#5ec8ff', '#ff7ab6', '#b58cff', '#ff6b5b', 
 export const hue = (address: string) => HUES[parseInt(address.slice(2, 6), 16) % HUES.length]!;
 
 export const LAUNCHPAD_LABEL: Record<string, string> = {
+  fourmeme: 'Four.meme',
   pons: 'PONS',
   doppler: 'Doppler',
   'lift.fun': 'lift.fun',
@@ -78,8 +79,9 @@ export const usdSigned = (n: number | null | undefined) => (n == null ? '—' : 
 export const pctSigned = (n: number | null | undefined, digits = 1) =>
   n == null || !Number.isFinite(n) ? '—' : `${n >= 0 ? '+' : ''}${n.toFixed(digits)}%`;
 
-export const EXPLORER = 'https://robinhoodchain.blockscout.com';
-export const dexscreenerUrl = (token: string) => `https://dexscreener.com/robinhood/${token}`;
+import {BNB_PRODUCT,NATIVE_SYMBOL} from './product';
+export const EXPLORER = BNB_PRODUCT ? 'https://bscscan.com' : 'https://robinhoodchain.blockscout.com';
+export const dexscreenerUrl = (token: string) => `https://dexscreener.com/${BNB_PRODUCT?'bsc':'robinhood'}/${token}`;
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 /**
@@ -101,7 +103,9 @@ const QUOTE_LABEL: Record<string, string> = {
   '0x5e81213613b6b86eab4c6c50d718d34359459786': 'TTWO',
   '0xd0601ce157db5bdc3162bbac2a2c8af5320d9eec': 'NVDA',
 };
-export const quoteLabel = (q: string | null | undefined) => (q ? (QUOTE_LABEL[q.toLowerCase()] ?? short(q, 2, 2)) : 'ETH');
+export const quoteLabel = (q: string | null | undefined) => BNB_PRODUCT
+  ? !q||/^0x0{40}$/.test(q)?'BNB':q.toLowerCase()==='0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c'?'WBNB':q.toLowerCase()==='0x55d398326f99059ff775485246999027b3197955'?'USDT':short(q,2,2)
+  : (q ? (QUOTE_LABEL[q.toLowerCase()] ?? short(q, 2, 2)) : NATIVE_SYMBOL);
 
 /** Counts: whole numbers under 1,000, then 1.2K / 3.4M. */
 export const countFmt = (n: number | null | undefined) => (n == null || !Number.isFinite(n) ? '—' : Math.abs(n) < 1000 ? String(Math.round(n)) : compact(n));

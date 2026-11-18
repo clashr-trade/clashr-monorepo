@@ -2,6 +2,7 @@
 
 import { useSyncExternalStore } from 'react';
 import { clearHint, writeHint } from './session-hint';
+import { BNB_PRODUCT } from './product';
 
 /**
  * Sign-in state and actions, without importing Privy. The Privy SDK is large, so it loads lazily
@@ -11,6 +12,7 @@ import { clearHint, writeHint } from './session-hint';
  */
 
 export interface AuthUser {
+  walletKind?: 'external' | 'embedded';
   id: string;
   email: string | null;
   twitter: { username: string; avatar: string | null } | null;
@@ -60,9 +62,10 @@ export interface AuthActions {
   getAccessToken(): Promise<string | null>;
 }
 
-const APP_ID = process.env.NEXT_PUBLIC_PREVIEW_ONLY === '1' ? '' : (process.env.NEXT_PUBLIC_PRIVY_APP_ID ?? '');
+const APP_ID = BNB_PRODUCT ? (process.env.NEXT_PUBLIC_BSC_PRIVY_APP_ID ?? '')
+  : process.env.NEXT_PUBLIC_PREVIEW_ONLY === '1' ? '' : (process.env.NEXT_PUBLIC_PRIVY_APP_ID ?? '');
 
-let state: AuthState = { enabled: !!APP_ID, ready: false, authenticated: false, user: null };
+let state: AuthState = { enabled: BNB_PRODUCT || !!APP_ID, ready: false, authenticated: false, user: null };
 let actions: AuthActions | null = null;
 let loginRequested = false;
 const listeners = new Set<() => void>();

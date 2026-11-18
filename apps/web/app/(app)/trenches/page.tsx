@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import { appShare } from '@/lib/share';
 import { Trenches } from '@/components/terminal/trenches';
 import { getColumn } from '@/lib/api';
+import { BNB_PRODUCT } from '@/lib/product';
+import { BscTrenches } from '@/components/terminal/bsc-trenches';
 
 export const metadata: Metadata = appShare('Trenches', '/trenches', 'Live trenches on Robinhood Chain: new pairs, almost bonded and migrated tokens, each with a safety check.');
 export const dynamic = 'force-dynamic';
@@ -10,6 +12,7 @@ export const dynamic = 'force-dynamic';
 const FIRST_SCREEN = 10;
 
 export default async function TrenchesPage() {
+  if (BNB_PRODUCT) return <BscTrenches initial={null} serverNow={Date.now()} />;
   // Server-render the top of each column so the page is useful before any script runs, but keep
   // the HTML small: every token card is serialized twice (HTML and the RSC payload).
   const [fresh, almost, migrated] = await Promise.all([

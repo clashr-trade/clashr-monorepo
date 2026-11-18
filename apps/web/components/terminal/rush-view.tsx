@@ -8,6 +8,7 @@ import { usd } from '@/lib/format';
 import { useNow } from '@/lib/now';
 import { MemberAvatar } from './member-avatar';
 import { TokenAvatar } from './bits';
+import {BNB_PRODUCT} from '@/lib/product';
 
 /** Rush the Trenches: the event page (GET /v1/events/rush), with the rules and the live standings. */
 
@@ -25,7 +26,7 @@ interface RushData {
     prizes: { caller: number; gainer: number; trader: number };
     poolUsd: number;
     rules: { minUsd: number; minLiquidityUsd: number };
-  };
+  } | null;
   standings: { caller: CallerRow[]; gainer: GainerRow[]; trader: TraderRow[] };
   updatedAt: string;
 }
@@ -86,7 +87,7 @@ export function RushView() {
           <div className="absolute inset-0 bg-gradient-to-t from-bg via-bg/70 to-bg/30" />
           <div className="relative flex flex-col gap-5 p-6 md:p-10">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="rounded-full border border-white/15 px-2.5 py-1 font-mono text-[11px] uppercase tracking-wider text-muted">Season 0 event</span>
+              <span className="rounded-full border border-white/15 px-2.5 py-1 font-mono text-[11px] uppercase tracking-wider text-muted">{BNB_PRODUCT?'BNB event':'Season 0 event'}</span>
               {status === 'live' && (
                 <span className="flex items-center gap-1.5 rounded-full bg-brand/15 px-2.5 py-1 font-mono text-[11px] uppercase tracking-wider text-brand">
                   <span className="size-1.5 animate-pulse rounded-full bg-brand" /> Live
@@ -103,7 +104,7 @@ export function RushView() {
             <div className="flex flex-wrap items-end gap-x-10 gap-y-4">
               <div>
                 <div className="font-mono text-[11px] uppercase tracking-wider text-muted">Prize pool</div>
-                <div className="font-mono text-3xl font-semibold text-ink md:text-4xl">up to ${(ev?.poolUsd ?? 1000).toLocaleString('en-US')}</div>
+                <div className="font-mono text-3xl font-semibold text-ink md:text-4xl">{BNB_PRODUCT&&!ev?'Not configured':`up to $${(ev?.poolUsd??1000).toLocaleString('en-US')}`}</div>
               </div>
               {ev && status && startsAt && endsAt && (
                 <div>
@@ -133,6 +134,7 @@ export function RushView() {
         </section>
 
         {failed && !data && <p className="mt-4 text-sm text-risk-high">Couldn&apos;t load the standings. Retrying…</p>}
+        {BNB_PRODUCT&&data&&!ev&&<p role="status" className="mt-4 text-sm text-muted">The BNB event schedule, prizes and eligibility rules have not been configured. Trading and calls remain available; they do not enter a competition until an event is published.</p>}
 
         {/* Categories */}
         <div className="mt-6 grid gap-4 lg:grid-cols-3">
@@ -188,7 +190,7 @@ export function RushView() {
         </div>
 
         {/* Rules */}
-        <section className="mt-6 rounded-2xl border border-white/[0.06] bg-surface p-5 md:p-6">
+        {(!BNB_PRODUCT||ev)&&<section className="mt-6 rounded-2xl border border-white/[0.06] bg-surface p-5 md:p-6">
           <h2 className="text-lg font-semibold">Rules</h2>
           <ul className="mt-3 grid gap-2 text-sm text-muted md:grid-cols-2">
             <Rule>Only trades made on Rushr count (app or agent API), inside the event window.</Rule>
@@ -200,7 +202,7 @@ export function RushView() {
             <Rule>One prize per category: the leader when the event ends. Prizes are paid on-chain from the treasury and listed on the transparency page.</Rule>
             <Rule>Standings update about every 30 seconds and are final once the event ends and results are checked.</Rule>
           </ul>
-        </section>
+        </section>}
       </div>
     </div>
   );

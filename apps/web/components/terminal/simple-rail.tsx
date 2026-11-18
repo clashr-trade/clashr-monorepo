@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { CaretDown, Globe, MagnifyingGlass, ShareNetwork, TelegramLogo, XLogo } from '@phosphor-icons/react';
-import type { TokenDetail } from '@/lib/api';
+import type { TokenCard,TokenDetail } from '@/lib/api';
 import { auth, useAuth } from '@/lib/auth';
 import { compact, countFmt, pctSigned, usd } from '@/lib/format';
 import { getMe, setMe, useMe } from '@/lib/members';
@@ -30,7 +30,7 @@ const money = (n: number) => `${n < 0 ? '-' : n > 0 ? '+' : ''}${cash(n)}`;
  * Numbers come from the live position (server totals plus our own trades applied optimistically),
  * so they survive a refresh and move the moment a trade lands.
  */
-export function PositionCard({ t, position: p, supply }: { t: TokenDetail; position: LivePosition; supply: number }) {
+export function PositionCard({ t, position: p, supply }: { t: TokenCard; position: LivePosition; supply: number }) {
   const [open, setOpen] = useState(false);
   if (!p.loaded || (!p.holding && p.boughtUsd <= 0)) return null;
   const closed = !p.holding;
@@ -111,7 +111,7 @@ function Fig({ k, v }: { k: string; v: string }) {
  * the token is linked by the server. The stance starts from your last trade here, and right after
  * a buy the box offers to share the call. Posting needs a registered member.
  */
-export function ThesisBox({ t, position }: { t: TokenDetail; position: LivePosition }) {
+export function ThesisBox({ t, position }: { t: Pick<TokenDetail,'address'|'symbol'>; position: LivePosition }) {
   const session = useAuth();
   const me = useMe();
   const member = me?.status === 'registered' ? me.member : null;

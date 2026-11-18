@@ -95,7 +95,7 @@ members.get('/invites/:code', async (c) => {
 members.get('/me', async (c) => {
   const v = c.var.viewer;
   if (!v.member) {
-    if (v.privyDid) {
+    if (v.privyDid || v.walletAddress) {
       return c.json({ error: { code: 'not_registered', message: 'Finish sign-up with POST /v1/me.', invitesRequired: on(c.env.INVITES_REQUIRED) } }, 404, PRIVATE);
     }
     requireMember(c);
@@ -108,7 +108,7 @@ members.get('/me', async (c) => {
 members.post('/me', async (c) => {
   const v = c.var.viewer;
   if (v.member) throw fail(409, 'already_registered', 'You already have an account.');
-  if (!v.privyDid || v.keyId) throw fail(401, 'unauthorized', 'Sign in with Privy first.');
+  if ((!v.privyDid && !v.walletAddress) || v.keyId) throw fail(401, 'unauthorized', 'Sign in first.');
   // Every attempt counts against a roomy hourly bucket; only successful sign-ups use the daily cap.
   await limit(c, 'register_attempt');
   await checkSuccessQuota(c, IP_LIMITS.register!);
@@ -120,7 +120,7 @@ members.post('/me', async (c) => {
   const sql = c.var.sql;
   if (!(await handleFree(sql, h.handle))) throw fail(409, 'handle_taken', 'That handle is taken.');
 
-  const profile = await privyProfile(c, v.privyDid);
+  const profile = v.walletAddress ? { wallet: v.walletAddress, xAvatarUrl: null, xUsername: null } : await privyProfile(c, v.privyDid!);
   if (!profile.wallet) throw fail(422, 'no_embedded_wallet', 'Your Privy account has no embedded wallet yet. Create one, then try again.');
   const id = newMemberId();
   const inviteRequired = on(c.env.INVITES_REQUIRED);
@@ -147,7 +147,7 @@ members.post('/me', async (c) => {
     const [row] = await tx.unsafe<MemberRow[]>(
       `insert into members (id, kind, handle, wallet, privy_did, display_name, bio, avatar_url, x_username, x_verified, invite_code)
        values ($1, 'human', $2, $3, $4, $5, $6, $7, $8, $9, $10) returning ${memberColumns}`,
-      [id, h.handle, profile.wallet, v.privyDid!, displayName, bio, profile.xAvatarUrl, profile.xUsername, Boolean(profile.xUsername), claimedCode],
+      [id, h.handle, profile.wallet, v.privyDid ?? null, displayName, bio, profile.xAvatarUrl, profile.xUsername, Boolean(profile.xUsername), claimedCode],
     );
     if (claimedCode) await tx`update invite_codes set used_by = ${id} where code = ${claimedCode} and used_by is null`; // first user
     const referral = await recordReferral(tx, { id, wallet: profile.wallet! }, b.referralCode);

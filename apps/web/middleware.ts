@@ -1,8 +1,8 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { buildCsp, newNonce } from '@/components/trade/csp';
+import { buildCsp, newNonce } from './components/trade/csp';
 
 /** Terminal routes: served on app.rushr.trade, with the strict per-request-nonce CSP (see components/trade/csp.ts). */
-const APP_ROUTES = /^\/(trenches|token|feed|swap|settings|me|u|leaderboard|agents)(\/|$)/;
+const APP_ROUTES = /^\/(bsc|trenches|token|feed|people|swap|settings|me|u|leaderboard|agents|rush)(\/|$)/;
 /** Landing, legal, whitepaper and transparency pages: served on rushr.trade. */
 const SITE_ROUTES = /^\/(terms|privacy|risk|whitepaper|transparency)(\/|$)/;
 const LOCAL = /^(localhost|127\.0\.0\.1|\[::1\])(:\d+)?$/;
@@ -38,7 +38,14 @@ export function middleware(req: NextRequest) {
   const host = (req.headers.get('host') ?? req.nextUrl.host).toLowerCase();
   const local = LOCAL.test(host);
   const path = req.nextUrl.pathname;
-  if (!local) {
+  if (process.env.NEXT_PUBLIC_PRODUCT_CHAIN_ID === '56') {
+    const destination = path === '/bsc' ? '/trenches'
+      : path.startsWith('/bsc/') && !path.startsWith('/bsc/indexed') ? path.slice(4) : null;
+    if (destination) { const url = req.nextUrl.clone(); url.pathname = destination; return NextResponse.redirect(url, 307); }
+  }
+  if (!local && process.env.NEXT_PUBLIC_PRODUCT_CHAIN_ID === '56') {
+    if(isHttp(req))return redirect(req,host);
+  } else if (!local) {
     const onApp = host === APP_HOST;
     if (onApp && path === '/') return redirect(req, APP_HOST, '/trenches');
     if (onApp && SITE_ROUTES.test(path)) return redirect(req, SITE_HOST);
@@ -50,7 +57,7 @@ export function middleware(req: NextRequest) {
   let res: NextResponse;
   if (APP_ROUTES.test(path)) {
     const nonce = newNonce();
-    const csp = buildCsp({ nonce, dev: process.env.NODE_ENV !== 'production', apiUrl: process.env.NEXT_PUBLIC_API_URL });
+    const csp = buildCsp({ nonce, dev: process.env.NODE_ENV !== 'production', apiUrl: process.env.NEXT_PUBLIC_API_URL,chainId:process.env.NEXT_PUBLIC_PRODUCT_CHAIN_ID==='56'?56:undefined });
     const headers = new Headers(req.headers);
     headers.set('x-nonce', nonce);
     headers.set('content-security-policy', csp);

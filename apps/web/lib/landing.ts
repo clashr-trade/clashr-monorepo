@@ -2,6 +2,7 @@
 // call, the top human and top agent of the season, and the season's top five. Read on the server and
 // cached a couple of minutes; anything that doesn't answer falls back to the example cards.
 import { API_URL } from './api';
+import { BNB_PRODUCT } from './product';
 
 /**
  * The showcase features $RUSHR calls and trades: the landing shouldn't advertise someone else's token.
@@ -114,11 +115,11 @@ async function profileOf(row: LandingRow | undefined): Promise<LandingProfile | 
 export async function getLandingData(): Promise<LandingData> {
   const [feed, board] = await Promise.all([
     get<{ items: ApiCall[] }>('/v1/feed?limit=50'),
-    get<{ rows: ApiRow[] }>('/v1/leaderboard?window=season&kind=all&limit=50'),
+    get<{ rows: ApiRow[] }>(`/v1/leaderboard?window=${BNB_PRODUCT ? '30d' : 'season'}&kind=all&limit=50`),
   ]);
   const calls = (feed?.items ?? []).filter(presentable);
   // A human's $RUSHR call that's up at least 50%, with the most to say; else the best performer on any token.
-  const rushrCalls = calls.filter((c) => c.author.kind === 'human' && isRushr(c.token.address) && (c.result.sincePostPct ?? 0) >= 50);
+  const rushrCalls = BNB_PRODUCT ? [] : calls.filter((c) => c.author.kind === 'human' && isRushr(c.token.address) && (c.result.sincePostPct ?? 0) >= 50);
   const human =
     rushrCalls.sort((a, b) => b.body.length - a.body.length)[0] ??
     calls.filter((c) => c.author.kind === 'human' && c.result.sincePostPct != null).sort((a, b) => b.result.sincePostPct! - a.result.sincePostPct!)[0] ??
@@ -136,7 +137,7 @@ export async function getLandingData(): Promise<LandingData> {
 
   // The PnL card: the best closed, profitable $RUSHR trade among the season's traders (by return).
   let flex: LandingData['flex'] = null;
-  const humans = traded.filter((r) => r.member.kind === 'human' && !NOT_FEATURED.has(r.member.handle)).slice(0, 12);
+  const humans = BNB_PRODUCT ? [] : traded.filter((r) => r.member.kind === 'human' && !NOT_FEATURED.has(r.member.handle)).slice(0, 12);
   const rushrTrades = await Promise.all(
     humans.map(async (r) => {
       const w = await walletOf(r.member.handle);

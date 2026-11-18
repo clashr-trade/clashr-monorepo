@@ -2,6 +2,9 @@ import type { Env } from '../env';
 
 /** Bindings the members/social/agents API reads. All flags are off unless set to "1". */
 export interface AgentsEnv extends Env {
+  /** Owned BNB product web origin; never inferred from untrusted Host headers. */
+  PRODUCT_ORIGIN?: string;
+  BSC_RPC_URL?: string;
   /** Mounts /v1 at all. */
   AGENTS_ENABLED?: string;
   /** /v1/leaderboard. */

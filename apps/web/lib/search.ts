@@ -4,22 +4,30 @@ import { useEffect, useState } from 'react';
 import { API_URL, type TokenCard } from './api';
 
 /** Token search by symbol, name or contract (GET /search), debounced; empty below two characters. */
-export function useTokenSearch(q: string): TokenCard[] {
-  const [results, setResults] = useState<TokenCard[]>([]);
+export const normalizeTokenQuery = (q: string) => q.trim().replace(/^\$+\s*/, '').trim().slice(0, 100);
+type SearchResult = { query: string; tokens: TokenCard[]; status: 'idle' | 'loading' | 'ready' | 'error' };
+
+export function useTokenSearchState(q: string): SearchResult {
+  const term = normalizeTokenQuery(q);
+  const [result, setResult] = useState<SearchResult>({ query: '', tokens: [], status: 'idle' });
   useEffect(() => {
-    const term = q.trim();
-    if (term.length < 2) return setResults([]);
+    if (term.length < 2) return;
     const ctl = new AbortController();
     const t = setTimeout(() => {
       fetch(`${API_URL}/search?q=${encodeURIComponent(term)}`, { signal: ctl.signal })
-        .then((r) => r.json() as Promise<{ tokens: TokenCard[] }>)
-        .then((d) => setResults(d.tokens ?? []))
-        .catch(() => undefined);
+        .then(async (r) => { if (!r.ok) throw new Error('Search unavailable'); return await r.json() as { tokens: TokenCard[] }; })
+        .then((d) => { if (!ctl.signal.aborted) setResult({query: term, tokens: d.tokens ?? [], status: 'ready'}); })
+        .catch(() => { if (!ctl.signal.aborted) setResult({query: term, tokens: [], status: 'error'}); });
     }, 120);
     return () => {
       clearTimeout(t);
       ctl.abort();
     };
-  }, [q]);
-  return results;
+  }, [term]);
+  if (term.length < 2) return {query: term, tokens: [], status: 'idle'};
+  return result.query === term ? result : {query: term, tokens: [], status: 'loading'};
+}
+
+export function useTokenSearch(q: string): TokenCard[] {
+  return useTokenSearchState(q).tokens;
 }

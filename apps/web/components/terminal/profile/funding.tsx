@@ -21,6 +21,11 @@ const MOONPAY_URL = 'https://www.moonpay.com/buy';
 /** Deposit modal body: the address, the chain warning, and every verified way to fund it. */
 export function DepositPanel({ address }: { address: `0x${string}` | null }) {
   const [copied, setCopied] = useState(false);
+  if(BNB_PRODUCT)return <div><p className="text-[11px] text-muted">Your wallet on BNB Smart Chain · chain 56</p>
+    <p className="mt-3 break-all rounded-xl border border-white/10 bg-bg p-3 font-mono text-xs">{address??'Connect a wallet first'}</p>
+    <button disabled={!address} onClick={async()=>{try{await navigator.clipboard.writeText(address!);setCopied(true);}catch{setCopied(false);}}} className="mt-3 rounded-xl bg-ink px-4 py-2 text-sm text-bg">{copied?'Copied':'Copy deposit address'}</button>
+    <p className="mt-4 text-xs leading-relaxed text-muted">Send BNB or supported BEP-20 tokens to this address on BNB Smart Chain. Keep BNB available for network fees. Confirm chain 56 in the sending wallet before transferring.</p>
+    <a href={`${EXPLORER}/address/${address??''}`} target="_blank" rel="noopener noreferrer" className="mt-4 inline-block text-xs underline">View BNB wallet on BscScan</a></div>;
   return (
     <div>
       <div className="text-[11px] text-muted">Your Rushr wallet on Robinhood Chain</div>
@@ -129,3 +134,4 @@ function ExtLink({ href, children, subtle = false }: { href: string; children: R
     </a>
   );
 }
+import {BNB_PRODUCT} from '@/lib/product';

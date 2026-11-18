@@ -67,8 +67,11 @@ export function PriceChart({
   selectedCall = null,
   onSelectCall,
   avgBuy = null,
+  candlesUrl,
 }: {
   address: string;
+  /** Explicit chain-scoped candle source. Second bars need trades; market cap needs known supply. */
+  candlesUrl?:string;
   /** 1m candles for the last 24h; null while they load. */
   initial: Candle[] | null;
   /** Server-built 1s candles (feed v2, last ~30 min). 1s and 30s use them instead of the trade list. */
@@ -99,7 +102,7 @@ export function PriceChart({
   const bars = useRef(new Map<number, Bar>());
   const appliedTop = useRef<string | null>(null);
   const [interval, setIv] = useState<Interval>('1m');
-  const [mode, setMode] = useState<'mcap' | 'price'>('mcap');
+  const [mode, setMode] = useState<'mcap' | 'price'>(supply>0?'mcap':'price');
   const [fetched, setFetched] = useState<{ iv: Interval; data: Candle[] } | null>(null);
   const [legend, setLegend] = useState<Bar | null>(null);
   const [hovering, setHovering] = useState(false);
@@ -118,9 +121,9 @@ export function PriceChart({
   // Remember the last interval and mode.
   useEffect(() => {
     try {
-      const saved = JSON.parse(localStorage.getItem('rushr.chart') ?? '{}') as { iv?: Interval; mode?: 'mcap' | 'price'; calls?: boolean; trades?: boolean };
-      if (saved.iv && saved.iv in INTERVALS) setIv(saved.iv);
-      if (saved.mode === 'price' || saved.mode === 'mcap') setMode(saved.mode);
+      const saved = JSON.parse(localStorage.getItem(candlesUrl?'rushr.chart.56':'rushr.chart') ?? '{}') as { iv?: Interval; mode?: 'mcap' | 'price'; calls?: boolean; trades?: boolean };
+      if (saved.iv && saved.iv in INTERVALS && (!candlesUrl || !FROM_TRADES.has(saved.iv) || !!trades?.length)) setIv(saved.iv);
+      if ((saved.mode === 'price' || (saved.mode === 'mcap'&&supply>0))) setMode(saved.mode);
       if (saved.calls === false) setShowCalls(false);
       if (saved.trades === false) setShowTrades(false);
     } catch {
@@ -129,7 +132,7 @@ export function PriceChart({
   }, []);
   useEffect(() => {
     try {
-      localStorage.setItem('rushr.chart', JSON.stringify({ iv: interval, mode, calls: showCalls, trades: showTrades }));
+      localStorage.setItem(candlesUrl?'rushr.chart.56':'rushr.chart', JSON.stringify({ iv: interval, mode, calls: showCalls, trades: showTrades }));
     } catch {
       // storage unavailable
     }
@@ -201,12 +204,12 @@ export function PriceChart({
   useEffect(() => {
     if (FROM_TRADES.has(interval) || interval === '1m') return;
     const ctl = new AbortController();
-    fetch(`${API_URL}/tokens/${address}/candles?interval=${interval}&hours=${HOURS[interval]}`, { signal: ctl.signal })
+    fetch(`${candlesUrl??`${API_URL}/tokens/${address}/candles`}?interval=${interval}&hours=${HOURS[interval]}`, { signal: ctl.signal })
       .then((r) => r.json() as Promise<{ candles: Candle[] }>)
       .then((d) => setFetched({ iv: interval, data: d.candles ?? [] }))
       .catch(() => undefined);
     return () => ctl.abort();
-  }, [interval, address]);
+  }, [interval, address,candlesUrl]);
 
   // The base series for this interval. Trade-built series only rebuild on interval change; new
   // trades after that are applied incrementally below.
@@ -391,7 +394,7 @@ export function PriceChart({
   return (
     <div className="flex h-full flex-col">
       <div className="flex items-center gap-0.5 overflow-x-auto px-2 py-2 text-xs [scrollbar-width:none]">
-        {(Object.keys(INTERVALS) as Interval[]).map((i) => (
+        {(Object.keys(INTERVALS) as Interval[]).filter(i=>!candlesUrl||!FROM_TRADES.has(i)||!!trades?.length).map((i) => (
           <button
             key={i}
             type="button"
@@ -409,7 +412,7 @@ export function PriceChart({
           {marks != null && <ChipToggle on={showTrades} onClick={() => setShowTrades(!showTrades)} label="My trades" short="Mine" />}
         </div>
         <div className="ml-1 flex shrink-0 rounded-lg bg-white/[0.04] p-0.5">
-          {(['mcap', 'price'] as const).map((m) => (
+          {(candlesUrl&&supply<=0 ? ['price'] as const : ['mcap', 'price'] as const).map((m) => (
             <button
               key={m}
               type="button"

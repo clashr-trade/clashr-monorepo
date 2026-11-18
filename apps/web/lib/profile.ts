@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { API_URL } from './api';
+import {BNB_PRODUCT} from './product';
 import { auth } from './auth';
 import { V1 } from './members';
 import type { Callout } from './callouts';
@@ -64,10 +65,10 @@ export interface Position {
 }
 
 export interface Suggestion {
-  rank: number;
+  rank: number | null;
   member: { id: string; handle: string; kind: 'human' | 'agent'; wallet: string; displayName: string | null; avatarUrl: string | null };
-  score: number;
-  pnl: number;
+  score: number | null;
+  pnl: number | null;
   inclAgents: boolean;
   followers: number;
 }
@@ -177,7 +178,14 @@ export function useWalletTrades(wallet: string | null): Loadable<WalletTrade[]> 
 export function useSuggestions(signedIn: boolean): Loadable<Suggestion[]> {
   return useJson(signedIn ? `${V1}/me/suggestions?limit=8` : `${V1}/suggestions?limit=8`, (b) => (b as { items?: Suggestion[] }).items ?? null, {
     authed: signedIn,
+    refreshMs: 30_000,
   });
+}
+
+export function usePeople(query:string,kind:string,after:string|null,signedIn:boolean) {
+  const params=new URLSearchParams({q:query,kind,limit:'30',...(after?{after}:{})});
+  return useJson<{items:Suggestion[];next:string|null}>(`${V1}/members/discover?${params}`,
+    b=>b as {items:Suggestion[];next:string|null},{authed:signedIn,refreshMs:30_000});
 }
 
 /** A member's calls, newest first, in the same shape as the feed (lib/callouts). */
@@ -280,7 +288,7 @@ export async function uploadImage(kind: 'avatar' | 'banner', file: File): Promis
 type EthQuote = { usd: number; change24h: number | null };
 let ethCache: { at: number; q: EthQuote } | null = null;
 let ethInflight: Promise<EthQuote | null> | null = null;
-const WETH = '0x0bd7d308f8e1639fab988df18a8011f41eacad73';
+const WETH = BNB_PRODUCT?'0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c':'0x0bd7d308f8e1639fab988df18a8011f41eacad73';
 type DsPairs = {
   pairs?: { chainId: string; baseToken: { address: string }; priceUsd?: string; liquidity?: { usd?: number }; priceChange?: { h24?: number } }[];
 };
@@ -290,7 +298,7 @@ function loadEth(): Promise<EthQuote | null> {
   ethInflight ??= fetch(`https://api.dexscreener.com/latest/dex/tokens/${WETH}`)
     .then((r) => (r.ok ? (r.json() as Promise<DsPairs>) : null))
     .then((b) => {
-      const pairs = (b?.pairs ?? []).filter((p) => p.chainId === 'robinhood' && p.baseToken.address.toLowerCase() === WETH && p.priceUsd);
+      const pairs = (b?.pairs ?? []).filter((p) => p.chainId === (BNB_PRODUCT?'bsc':'robinhood') && p.baseToken.address.toLowerCase() === WETH && p.priceUsd);
       pairs.sort((a, c) => (c.liquidity?.usd ?? 0) - (a.liquidity?.usd ?? 0));
       const top = pairs[0];
       if (!top?.priceUsd) return null;
@@ -309,18 +317,19 @@ function loadEth(): Promise<EthQuote | null> {
  * ETH/USD and its 24h change. The Rushr API doesn't expose one yet, so this
  * reads the deepest WETH pool on DexScreener (already allowed by the CSP), cached for a minute.
  */
-export function useEthQuote(): EthQuote | null {
+export function useEthQuote(enabled = true): EthQuote | null {
   const [q, setQ] = useState<EthQuote | null>(ethCache?.q ?? null);
   useEffect(() => {
+    if (!enabled) return;
     let live = true;
     void loadEth().then((v) => v && live && setQ(v));
     return () => {
       live = false;
     };
-  }, []);
+  }, [enabled]);
   return q;
 }
 
-export function useEthUsd(): number | null {
-  return useEthQuote()?.usd ?? null;
+export function useEthUsd(enabled = true): number | null {
+  return useEthQuote(enabled)?.usd ?? null;
 }

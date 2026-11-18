@@ -1,0 +1,20 @@
+{
+  // Separate opt-in worker. This file does not modify the Robinhood deployment.
+  "name": "rushr-bsc-index-staging",
+  "main": "src/bsc-worker.ts",
+  "compatibility_date": "2026-11-10",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": false,
+  "preview_urls": false,
+  "limits": { "cpu_ms": 300000 },
+  "vars": { "BSC_INDEX_ENABLED": "0", "BSC_BATCH_BLOCKS": "20" },
+  // Provision these new queues independently before deploying this worker.
+  "queues": {
+    "producers": [{ "binding": "BSC_INDEX_QUEUE", "queue": "rushr-bsc-index-v2-staging" }],
+    "consumers": [{ "queue": "rushr-bsc-index-v2-staging", "max_batch_size": 1,
+      "max_batch_timeout": 1, "max_concurrency": 1, "max_retries": 5,
+      "dead_letter_queue": "rushr-bsc-index-v2-staging-dlq" }]
+  }
+  // No cron, route or secrets enabled. Rehearse before configuring scheduled ticks.
+  // Required: DATABASE_URL, BSC_RPC_URL, ADMIN_TOKEN, BSC_START_BLOCK, BSC_INDEX_EPOCH.
+}

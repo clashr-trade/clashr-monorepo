@@ -1,4 +1,6 @@
 import { getCloudflareContext } from '@opennextjs/cloudflare';
+import { LEGACY_CHAIN_ID } from '@rushr/core/chain/networks';
+import { requestedRpcChain, rpcUpstream, verifyRpcChain, type RpcEnvironment } from '../../../lib/rpc-upstream';
 
 /**
  * JSON-RPC proxy to our Alchemy endpoint for the browser: wallet balances, quotes, simulations and sending signed
@@ -29,12 +31,12 @@ const METHODS = new Set([
   'eth_sendRawTransaction',
   'eth_sendRawTransactionSync',
 ]);
-const ORIGINS = new Set(['https://app.rushr.trade', 'https://rushr.trade', 'https://www.rushr.trade', 'http://localhost:3000', 'http://localhost:8790']);
+const ORIGINS = new Set(['https://app.rushr.trade', 'https://rushr.trade', 'https://www.rushr.trade', 'http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:8790']);
 const MAX_BATCH = 20;
 const MAX_BYTES = 64 * 1024;
 
 type RpcCall = { jsonrpc?: string; id?: unknown; method?: unknown; params?: unknown };
-type Env = { RPC_URL?: string; RPC_LIMIT?: { limit(o: { key: string }): Promise<{ success: boolean }> } };
+type Env = RpcEnvironment & { RPC_LIMIT?: { limit(o: { key: string }): Promise<{ success: boolean }> } };
 
 const rpcError = (id: unknown, code: number, message: string) => ({ jsonrpc: '2.0', id: id ?? null, error: { code, message } });
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json', 'cache-control': 'no-store' } });
@@ -43,8 +45,17 @@ export async function POST(req: Request) {
   const origin = req.headers.get('origin');
   if (origin && !ORIGINS.has(origin)) return json(rpcError(null, -32000, 'origin not allowed'), 403);
 
+  let chainId;
+  try { chainId = requestedRpcChain(req.url); }
+  catch { return json(rpcError(null, -32602, 'unsupported chain'), 400); }
   const { env } = getCloudflareContext() as unknown as { env: Env };
-  if (!env.RPC_URL) return json(rpcError(null, -32000, 'rpc not configured'), 503);
+  // Worker secrets take priority; Next development also loads server-only .env.local settings.
+  const upstreamUrl = rpcUpstream({
+    RPC_URL: env.RPC_URL ?? process.env.RPC_URL,
+    BSC_RPC_URL: env.BSC_RPC_URL ?? process.env.BSC_RPC_URL,
+    BSC_TESTNET_RPC_URL: env.BSC_TESTNET_RPC_URL ?? process.env.BSC_TESTNET_RPC_URL,
+  }, chainId);
+  if (!upstreamUrl) return json(rpcError(null, -32000, 'rpc not configured for this chain'), 503);
 
   if (env.RPC_LIMIT) {
     const ip = req.headers.get('cf-connecting-ip') ?? 'unknown';
@@ -62,11 +73,22 @@ export async function POST(req: Request) {
   }
   const calls = Array.isArray(body) ? body : [body];
   if (!calls.length || calls.length > MAX_BATCH) return json(rpcError(null, -32600, 'batch too large'), 400);
-  const bad = calls.find((c) => typeof c?.method !== 'string' || !METHODS.has(c.method));
+  const badIndex = calls.findIndex((c) => typeof c?.method !== 'string' || !METHODS.has(c.method));
   // One disallowed method fails the whole request, so the client's fallback retries it on the public RPC.
-  if (bad) return json(rpcError(bad?.id, -32601, `method not allowed: ${String(bad?.method)}`), 400);
+  if (badIndex >= 0) {
+    const bad = calls[badIndex];
+    return json(rpcError(bad?.id, -32601, `method not allowed: ${String(bad?.method)}`), 400);
+  }
 
-  const upstream = await fetch(env.RPC_URL, {
+  // BSC reads can be enabled independently. Broadcast stays closed until its
+  // routing, simulation and accounting adapters have been verified.
+  if (chainId !== LEGACY_CHAIN_ID && calls.some((c) => typeof c.method === 'string' && c.method.startsWith('eth_send'))) {
+    return json(rpcError(null, -32601, 'transaction submission is not enabled for this chain'), 403);
+  }
+  try { await verifyRpcChain(upstreamUrl, chainId); }
+  catch { return json(rpcError(null, -32000, 'rpc chain verification failed'), 502); }
+
+  const upstream = await fetch(upstreamUrl, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: text,

@@ -8,6 +8,8 @@ export const SIWE_URI = 'https://rushr.trade';
 export const CHAIN_ID = 4663;
 export const NONCE_TTL_MS = 10 * 60_000;
 export const TERMS_URL = 'https://rushr.trade/terms#agents';
+export interface SiweIdentity { chainId: number; domain: string; uri: string; termsUrl: string }
+const LEGACY_IDENTITY: SiweIdentity = { chainId: CHAIN_ID, domain: SIWE_DOMAIN, uri: SIWE_URI, termsUrl: TERMS_URL };
 
 export type Purpose = 'human' | 'register' | 'register_owned' | 'link' | 'unlink' | 'login';
 export const PURPOSES: readonly Purpose[] = ['human', 'register', 'register_owned', 'link', 'unlink', 'login'];
@@ -39,18 +41,19 @@ export function statementFor(purpose: Purpose, ctx: PurposeContext = {}): string
   }
 }
 
-export function buildMessage(args: { purpose: Purpose; address: string; nonce: string; issuedAt: Date; ctx?: PurposeContext }): string {
+export function buildMessage(args: { purpose: Purpose; address: string; nonce: string; issuedAt: Date; ctx?: PurposeContext; identity?: SiweIdentity }): string {
+  const identity = args.identity ?? LEGACY_IDENTITY;
   return createSiweMessage({
-    domain: SIWE_DOMAIN,
-    uri: SIWE_URI,
+    domain: identity.domain,
+    uri: identity.uri,
     version: '1',
-    chainId: CHAIN_ID,
+    chainId: identity.chainId,
     address: getAddress(args.address),
     nonce: args.nonce,
     issuedAt: args.issuedAt,
     expirationTime: new Date(args.issuedAt.getTime() + NONCE_TTL_MS),
     statement: statementFor(args.purpose, args.ctx),
-    resources: [TERMS_URL],
+    resources: [identity.termsUrl],
   });
 }
 
@@ -74,8 +77,10 @@ export async function verifySiwe(args: {
   /** When known (the nonce row), the nonce the message must carry. */
   nonce?: string;
   now?: Date;
+  identity?: SiweIdentity;
 }): Promise<{ ok: true; value: VerifiedSiwe } | { ok: false; error: SiweFailure }> {
   const now = args.now ?? new Date();
+  const identity = args.identity ?? LEGACY_IDENTITY;
   if (typeof args.message !== 'string' || args.message.length > 4000) return { ok: false, error: 'malformed' };
   if (typeof args.signature !== 'string' || !/^0x[0-9a-fA-F]{130}$/.test(args.signature)) return { ok: false, error: 'invalid_signature' };
   let parsed: ReturnType<typeof parseSiweMessage>;
@@ -85,9 +90,9 @@ export async function verifySiwe(args: {
     return { ok: false, error: 'malformed' };
   }
   if (!parsed.address || !isAddress(parsed.address) || !parsed.nonce || !parsed.issuedAt) return { ok: false, error: 'malformed' };
-  if (parsed.domain !== SIWE_DOMAIN || parsed.uri !== SIWE_URI || parsed.version !== '1') return { ok: false, error: 'wrong_domain' };
-  if (parsed.chainId !== CHAIN_ID) return { ok: false, error: 'wrong_chain' };
-  if (!validateSiweMessage({ message: parsed, domain: SIWE_DOMAIN, time: now })) return { ok: false, error: 'expired' };
+  if (parsed.domain !== identity.domain || parsed.uri !== identity.uri || parsed.version !== '1') return { ok: false, error: 'wrong_domain' };
+  if (parsed.chainId !== identity.chainId) return { ok: false, error: 'wrong_chain' };
+  if (!validateSiweMessage({ message: parsed, domain: identity.domain, time: now })) return { ok: false, error: 'expired' };
   const age = now.getTime() - parsed.issuedAt.getTime();
   if (age > NONCE_TTL_MS || age < -60_000) return { ok: false, error: 'expired' };
   let expected: string;

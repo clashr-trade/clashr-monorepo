@@ -1,4 +1,5 @@
 import { encodeFunctionData, maxUint256, type Address, type Hex, type PublicClient } from 'viem';
+import { assertLegacyTradeClient } from './chain';
 import { TRADE_ADDRESSES } from './addresses';
 import { erc20Abi, permit2Abi, ponsCurveAbi } from './abis';
 import { buildSwap } from './build';
@@ -251,6 +252,7 @@ export function quickApprovalCalls(token: Address, a: { erc20ToPermit2: bigint; 
  * Permit2 → Universal Router, 30-day expiry), guardrails, and a pre-send simulation.
  */
 export async function prepareQuickTrade(client: PublicClient, req: QuickTradeRequest, opts: QuickTradeOptions = {}): Promise<QuickTrade> {
+  assertLegacyTradeClient(client);
   const settings = { ...DEFAULT_QUICK_SETTINGS, ...opts.settings };
   const cfg = resolveConfig(opts.config);
   const now = opts.now?.() ?? Date.now();
@@ -369,6 +371,7 @@ export const quickBuy = (client: PublicClient, p: { token: Address; ethWei: bigi
 
 /** Sell an amount, or a percentage of the trader's balance (`percent` 1–100). */
 export async function quickSell(client: PublicClient, p: { token: Address; trader: Address; amount?: bigint; percent?: number; referral?: Referral | null }, opts?: QuickTradeOptions) {
+  assertLegacyTradeClient(client);
   let amount = p.amount;
   if (amount === undefined) {
     const pct = Math.min(100, Math.max(1, Math.round(p.percent ?? 100)));

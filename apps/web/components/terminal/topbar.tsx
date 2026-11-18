@@ -6,60 +6,65 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { MagnifyingGlass } from '@phosphor-icons/react';
 import { useTokenSearch } from '@/lib/search';
+import { useBscTokenSearch } from '@/lib/bsc-search';
+import {bscSigningEnabled} from '@/lib/bsc-flags';
+import { isBscPath, terminalNavigation, terminalNetworkDestination } from '@/lib/terminal-navigation';
+import { BNB_PRODUCT } from '@/lib/product';
 import { usd } from '@/lib/format';
 import { TokenAvatar, RiskDot } from './bits';
 import { AccountMenu } from './auth/account-menu';
 import { FeedbackButton } from './feedback';
 
-const NAV = [
-  { href: '/trenches', label: 'Trenches' },
-  { href: '/feed', label: 'Feed' },
-  { href: '/agents', label: 'Agents' },
-  { href: '/leaderboard', label: 'Leaderboard' },
-  // Rush the Trenches (the Season 0 trading event): its rules and live standings.
-  { href: '/rush', label: 'Rush' },
-];
-
 export function TopBar() {
   const path = usePathname();
+  const bsc = BNB_PRODUCT || isBscPath(path);
+  const navigation = terminalNavigation(path);
+  const router = useRouter();
   return (
-    <header className="sticky top-0 z-40 flex h-14 items-center gap-6 border-b border-white/[0.06] bg-bg/90 px-4 backdrop-blur-md">
-      <Link href="/" className="flex items-center gap-2">
+    <header className="sticky top-0 z-40 flex h-14 shrink-0 items-center gap-2 border-b border-white/[0.06] bg-bg/90 px-3 backdrop-blur-md sm:gap-4 sm:px-4">
+      <Link href="/" aria-label="Rushr home" className="flex items-center gap-2">
         <Image src="/logo-mark.png" alt="" width={22} height={22} priority />
         <span className="text-lg font-semibold tracking-[-0.04em]">rushr</span>
         {/* Same dashed chip as the landing's, in the dark theme. */}
         <span className="rounded-full border border-dashed border-white/20 px-1.5 py-px font-mono text-[9px] uppercase tracking-wider text-muted">Beta</span>
       </Link>
-      <nav className="hidden items-center gap-1 text-sm md:flex">
-        {NAV.map((n) => (
+      <label className="ml-auto flex shrink-0 items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.03] px-2 py-1.5 text-xs md:ml-0">
+        <span aria-hidden="true" className={`size-1.5 rounded-full ${bsc ? 'bg-amber-300' : 'bg-brand'}`} />
+        {BNB_PRODUCT?<span aria-label="BNB Smart Chain"><span className="sm:hidden">BNB</span><span className="hidden sm:inline">BNB Smart Chain</span></span>:<select aria-label="Network" value={bsc ? '56' : '4663'} onChange={(e) => router.push(terminalNetworkDestination(path, e.target.value === '56' ? 56 : 4663))} className="max-w-36 cursor-pointer bg-surface text-ink outline-none">
+          <option value="56">BNB Smart Chain</option>
+          {!BNB_PRODUCT && <option value="4663">Robinhood Chain</option>}
+        </select>}
+      </label>
+      <nav aria-label="Primary navigation" className="hidden shrink-0 items-center gap-1 whitespace-nowrap text-sm lg:flex">
+        {navigation.map((n) => (
           <Link
             key={n.label}
             href={n.href}
-            className={`rounded-lg px-3 py-1.5 transition ${path.startsWith(n.href) ? 'bg-white/[0.07] text-ink' : 'text-muted hover:text-ink'}`}
+            aria-current={n.active ? 'page' : undefined}
+            className={`rounded-lg px-2 py-1.5 transition xl:px-3 ${n.active ? 'bg-white/[0.07] text-ink' : 'text-muted hover:text-ink'}`}
           >
             {n.label}
           </Link>
         ))}
       </nav>
-      <Search />
+      <Search chainId={bsc?56:4663}/>
       <div className="ml-auto flex items-center gap-2">
-        <FeedbackButton />
-        <AccountMenu />
+        {BNB_PRODUCT ? <><FeedbackButton/><AccountMenu /></> : bsc ? <span className="whitespace-nowrap rounded-full border border-amber-300/20 px-2 py-1 font-mono text-[10px] text-amber-200">{bscSigningEnabled()?'Wallet confirmed':'Signing off'}</span> : <><FeedbackButton /><AccountMenu /></>}
       </div>
     </header>
   );
 }
 
 /**
- * The same four sections as a tab row under the top bar on phones, where the bar has no room for them. A row
+ * The same five sections as a tab row under the top bar on phones, where the bar has no room for them. A row
  * rather than a bottom tab bar: the token page already pins its trade bar to the bottom of the screen.
  */
 export function MobileNav() {
   const path = usePathname();
   return (
-    <nav aria-label="Sections" className="grid shrink-0 grid-cols-5 border-b border-white/[0.06] bg-bg/90 text-[12px] backdrop-blur-md md:hidden">
-      {NAV.map((n) => {
-        const on = path.startsWith(n.href);
+    <nav aria-label="Sections" className="grid shrink-0 grid-cols-5 border-b border-white/[0.06] bg-bg/90 text-[12px] backdrop-blur-md lg:hidden">
+      {terminalNavigation(path).map((n) => {
+        const on = n.active;
         return (
           <Link
             key={n.label}
@@ -76,10 +81,12 @@ export function MobileNav() {
   );
 }
 
-function Search() {
+function Search({chainId=4663}:{chainId?:56|4663}) {
   const router = useRouter();
   const [q, setQ] = useState('');
-  const results = useTokenSearch(q);
+  const legacyResults = useTokenSearch(chainId===4663?q:'');
+  const bscResults=useBscTokenSearch(chainId===56?q:'');
+  const results=chainId===56?bscResults:legacyResults;
   const [open, setOpen] = useState(false);
   const input = useRef<HTMLInputElement>(null);
 
@@ -98,11 +105,11 @@ function Search() {
   const go = (address: string) => {
     setOpen(false);
     setQ('');
-    router.push(`/token/${address}`);
+    router.push(`${chainId===56&&!BNB_PRODUCT?'/bsc':''}/token/${address}`);
   };
 
   return (
-    <div className="relative hidden w-full max-w-md lg:block">
+    <div className="relative hidden min-w-0 w-full max-w-md xl:block">
       <MagnifyingGlass size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
       <input
         ref={input}
@@ -120,7 +127,7 @@ function Search() {
             else if (results[0]) go(results[0].address);
           }
         }}
-        placeholder="Search token, contract or ticker"
+        placeholder={chainId===56?'Search BNB view or paste a contract':'Search token, contract or ticker'}
         className="w-full rounded-xl border border-white/[0.06] bg-surface py-2 pl-9 pr-10 text-sm outline-none placeholder:text-muted focus:border-white/15"
       />
       <kbd className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded border border-white/10 px-1.5 font-mono text-[10px] text-muted">/</kbd>

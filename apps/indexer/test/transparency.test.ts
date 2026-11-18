@@ -8,6 +8,7 @@ import { freshDb, pgAvailable } from '../../../packages/agents/test/pg';
 import { feeTotals, formatUnits, transparency } from '../src/transparency';
 import { resetPauseCache } from '../src/pause';
 import { api } from '../src/api';
+import { Rpc } from '../src/rpc';
 
 const ETH = '0x0000000000000000000000000000000000000000';
 const USDG = '0x5fc5360d0400a0fd4f2af552add042d716f1d168';
@@ -69,21 +70,29 @@ describe.skipIf(!ok)('GET /transparency (local Postgres)', () => {
 
   it('totals confirmed fees all-time and for the current season, without trader addresses', async () => {
     resetPauseCache();
-    const res = await api.request('/transparency', {}, { DATABASE_URL: db.url, RPC_URL: 'http://rpc.invalid', PUBLIC_RPC_URL: 'http://127.0.0.1:9' }, ctx);
-    expect(res.status).toBe(200);
-    expect(res.headers.get('cache-control')).toContain('s-maxage=60');
-    const body = (await res.json()) as Awaited<ReturnType<typeof transparency>>;
-    expect(body.treasury.address).toBe(RUSHR_TREASURY);
-    expect(body.treasury.explorer).toBe(`https://robinhoodchain.blockscout.com/address/${RUSHR_TREASURY}`);
-    expect(body.feeRate).toMatchObject({ currentBps: 25, standardBps: 50, beta: true });
-    expect(body.fees.allTime).toMatchObject({ trades: 3, traders: 2, volumeUsd: 1000, usd: 6.5 });
-    expect(body.fees.allTime.byRoute.curve.trades).toBe(1);
-    expect(body.fees.allTime.byRoute.uniswap.trades).toBe(2);
-    expect(body.fees.season).toMatchObject({ id: 's0', trades: 2, traders: 1, usd: 4.5 });
-    expect(body.treasury.balances).toBeNull(); // RPC unreachable: null, not an error
-    expect(body.buybacks).toEqual([]);
-    expect(body.creatorTax).toMatchObject({ earned: { pending: null }, claimed: { claims: [] }, asOf: null });
-    expect(JSON.stringify(body)).not.toContain('1'.repeat(40));
+    // Exercise the unavailable-RPC path without depending on DNS/network timeouts.
+    const batch = vi.spyOn(Rpc.prototype, 'batch').mockRejectedValue(new Error('RPC unavailable'));
+    const call = vi.spyOn(Rpc.prototype, 'call').mockRejectedValue(new Error('RPC unavailable'));
+    try {
+      const res = await api.request('/transparency', {}, { DATABASE_URL: db.url, RPC_URL: 'http://rpc.invalid', PUBLIC_RPC_URL: 'http://127.0.0.1:9' }, ctx);
+      expect(res.status).toBe(200);
+      expect(res.headers.get('cache-control')).toContain('s-maxage=60');
+      const body = (await res.json()) as Awaited<ReturnType<typeof transparency>>;
+      expect(body.treasury.address).toBe(RUSHR_TREASURY);
+      expect(body.treasury.explorer).toBe(`https://robinhoodchain.blockscout.com/address/${RUSHR_TREASURY}`);
+      expect(body.feeRate).toMatchObject({ currentBps: 25, standardBps: 50, beta: true });
+      expect(body.fees.allTime).toMatchObject({ trades: 3, traders: 2, volumeUsd: 1000, usd: 6.5 });
+      expect(body.fees.allTime.byRoute.curve.trades).toBe(1);
+      expect(body.fees.allTime.byRoute.uniswap.trades).toBe(2);
+      expect(body.fees.season).toMatchObject({ id: 's0', trades: 2, traders: 1, usd: 4.5 });
+      expect(body.treasury.balances).toBeNull(); // RPC unreachable: null, not an error
+      expect(body.buybacks).toEqual([]);
+      expect(body.creatorTax).toMatchObject({ earned: { pending: null }, claimed: { claims: [] }, asOf: null });
+      expect(JSON.stringify(body)).not.toContain('1'.repeat(40));
+    } finally {
+      batch.mockRestore();
+      call.mockRestore();
+    }
   });
 });
 

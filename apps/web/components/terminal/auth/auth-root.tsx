@@ -1,11 +1,14 @@
 'use client';
 
 import dynamic from 'next/dynamic';
+import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { onAuthLoadRequest, privyAppId, setAuthState } from '@/lib/auth';
 import { setMe, type MeResult } from '@/lib/members';
 import { readHint } from '@/lib/session-hint';
 import { MemberGate } from './onboarding';
+import { BNB_PRODUCT } from '@/lib/product';
+const BnbAuthHost = dynamic(() => import('./bnb-auth-host'), { ssr: false });
 
 const PrivyHost = dynamic(() => import('./privy-host'), { ssr: false });
 
@@ -17,6 +20,11 @@ const LOAD_AFTER_MS = 1_500;
  * sign in. Without NEXT_PUBLIC_PRIVY_APP_ID, sign-in stays off and nothing loads.
  */
 export function AuthRoot() {
+  const path = usePathname();
+  if (BNB_PRODUCT) return privyAppId()?<LegacyAuthRoot/>:<><BnbAuthHost /><MemberGate /></>;
+  return path.startsWith('/bsc') ? null : <LegacyAuthRoot />;
+}
+function LegacyAuthRoot() {
   const [load, setLoad] = useState(false);
   useEffect(() => {
     // Privy's embedded wallet throws over plain http (and took the whole page down). The middleware

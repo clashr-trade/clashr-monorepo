@@ -1,6 +1,7 @@
 'use client';
 
 import { API_URL } from '../api';
+import { BNB_PRODUCT } from '../product';
 import {
   blockTimeOf,
   fromV1,
@@ -139,7 +140,9 @@ class Entry<S> {
   }
 }
 
-class FeedClient {
+export class FeedClient {
+  // The independent BNB API serves HTTP snapshots, not the legacy gateway's /ws protocol.
+  constructor(private readonly transport: 'socket' | 'poll' = BNB_PRODUCT ? 'poll' : 'socket') {}
   private socket: WebSocket | null = null;
   private retry = 0;
   private pingTimer: ReturnType<typeof setInterval> | undefined;
@@ -237,6 +240,12 @@ class FeedClient {
   /* ---------------------------------------------------------------- topics */
 
   private open<S>(topic: string, e: Entry<S>) {
+    if (this.transport === 'poll') {
+      e.set({ phase: 'fallback' });
+      if (!e.spec.initialIsSnapshot) void this.httpSnapshot(topic, e);
+      this.startFallback(topic, e);
+      return;
+    }
     if (this.status.protocol === 2 && this.serverTopics.has(topic)) {
       // Still subscribed (an entry of another kind just handed over): ask for a fresh snapshot.
       e.awaitingSnapshot = true;
@@ -286,7 +295,7 @@ class FeedClient {
     const finish = (base: S) => {
       e.awaitingHttp = false;
       const held = e.held.splice(0);
-      e.set({ data: held.length ? e.spec.apply(base, held) : base, phase: this.status.connected || this.status.protocol == null ? 'live' : 'fallback' });
+      e.set({ data: held.length ? e.spec.apply(base, held) : base, phase: this.transport === 'poll' ? 'fallback' : this.status.connected || this.status.protocol == null ? 'live' : 'fallback' });
     };
     try {
       const snap = await fetcher(ctl.signal, e.attempts++);
@@ -302,6 +311,7 @@ class FeedClient {
   private startFallback<S>(topic: string, e: Entry<S>) {
     if (!e.spec.fetchSnapshot || e.pollTimer) return;
     e.pollTimer = setInterval(() => {
+      if (e.refs === 0 || e.awaitingHttp) return;
       if (this.status.connected) {
         clearInterval(e.pollTimer);
         e.pollTimer = undefined;
@@ -397,7 +407,7 @@ class FeedClient {
   /* ---------------------------------------------------------------- socket */
 
   private send(msg: ClientMessage) {
-    if (this.socket?.readyState === WebSocket.OPEN) this.socket.send(JSON.stringify(msg));
+    if (this.socket && this.socket.readyState === WebSocket.OPEN) this.socket.send(JSON.stringify(msg));
   }
 
   private setStatus(next: Partial<FeedStatus>) {
@@ -406,7 +416,7 @@ class FeedClient {
   }
 
   private connect() {
-    if (typeof window === 'undefined' || this.socket) return;
+    if (this.transport === 'poll' || typeof window === 'undefined' || this.socket) return;
     const ws = new WebSocket(wantV2() ? `${WS_BASE}?v=2` : WS_BASE);
     this.socket = ws;
     ws.onopen = () => {

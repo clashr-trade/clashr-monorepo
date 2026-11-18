@@ -9,9 +9,9 @@ describe.skipIf(!pg)('beta gate: one shared code, N seats', () => {
   let n = 0;
   /** A fresh Privy user trying to sign up with `code`. */
   const attempt = async (code: string) => {
-    n++;
-    const tok = await t.human(`did:privy:u${n}`, w(1000 + n));
-    return t.call('POST', '/me', { auth: tok, body: { handle: `user_${n}`, inviteCode: code } });
+    const id = ++n;
+    const tok = await t.human(`did:privy:u${id}`, w(1000 + id));
+    return t.call('POST', '/me', { auth: tok, body: { handle: `user_${id}`, inviteCode: code } });
   };
 
   beforeAll(async () => {

@@ -1,4 +1,5 @@
 import type { Address, Hex, PublicClient } from 'viem';
+import { assertLegacyTradeClient } from './chain';
 import { buildSwap, type BuildOptions } from './build';
 import { assertSignable, resolveConfig, type TradeConfig } from './config';
 import { assertOneClickAllowed } from './signer';
@@ -47,6 +48,7 @@ export interface PreparedSwap {
 }
 
 export async function prepareSwap(client: PublicClient, req: SwapRequest, opts: PrepareOptions = {}): Promise<PreparedSwap> {
+  assertLegacyTradeClient(client);
   const cfg = resolveConfig(opts.config);
   if (opts.forSigning || opts.oneClick) assertSignable(cfg);
   if (opts.oneClick) assertOneClickAllowed(cfg);

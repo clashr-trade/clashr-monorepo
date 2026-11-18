@@ -3,7 +3,8 @@
  * (middleware.ts routes between them). Set NEXT_PUBLIC_APP_URL in production builds; without it (local dev)
  * app links stay relative, so one dev server serves both.
  */
-export const SITE_URL = 'https://rushr.trade';
+import {BNB_PRODUCT} from './product';
+export const SITE_URL = BNB_PRODUCT?(process.env.NEXT_PUBLIC_APP_URL||'http://localhost:3000'):'https://rushr.trade';
 export const APP_URL = (process.env.NEXT_PUBLIC_APP_URL ?? '').replace(/\/+$/, '');
 
 /** A terminal link from the landing: absolute to the app host in production, relative locally. */

@@ -3,6 +3,9 @@
 import { useEffect, useRef } from 'react';
 import { PrivyProvider, useExportWallet, usePrivy, useSendTransaction, useSignTransaction, useWallets } from '@privy-io/react-auth';
 import { robinhoodChain } from '@rushr/trade';
+import {bsc} from 'viem/chains';
+import {BNB_PRODUCT} from '@/lib/product';
+import {setBscEmbeddedProvider,type BscInjectedProvider} from '@/lib/bsc-wallet';
 import { privyAppId, setAuthActions, setAuthState, type AuthUser } from '@/lib/auth';
 
 /**
@@ -29,8 +32,8 @@ export default function PrivyHost() {
         embeddedWallets: { ethereum: { createOnLogin: 'all-users' }, showWalletUIs: false },
         // Privy's modal links Terms and Privacy; the Risk disclosure is linked in our own sign-up step.
         legal: { termsAndConditionsUrl: `${window.location.origin}/terms`, privacyPolicyUrl: `${window.location.origin}/privacy` },
-        defaultChain: robinhoodChain,
-        supportedChains: [robinhoodChain],
+        defaultChain: BNB_PRODUCT?bsc:robinhoodChain,
+        supportedChains: [BNB_PRODUCT?bsc:robinhoodChain],
       }}
     >
       <Bridge />
@@ -46,6 +49,12 @@ function Bridge() {
   const { signTransaction } = useSignTransaction();
 
   const embedded = wallets.find((w) => w.walletClientType === 'privy');
+  useEffect(()=>{
+    if(!BNB_PRODUCT||!embedded)return;
+    let active=true;
+    void embedded.getEthereumProvider().then(provider=>{if(active)setBscEmbeddedProvider(provider as BscInjectedProvider);});
+    return()=>{active=false;setBscEmbeddedProvider(null);};
+  },[embedded]);
 
   // Warm the wallet as soon as it exists, so the first quick trade isn't cold: a fresh access token
   // (signing needs one) and the embedded wallet's provider. Nothing is signed.
@@ -65,6 +74,7 @@ function Bridge() {
           twitter: user.twitter?.username ? { username: user.twitter.username, avatar: user.twitter.profilePictureUrl ?? null } : null,
           wallet: ((embedded?.address ?? (user.wallet?.walletClientType === 'privy' ? user.wallet.address : null)) as `0x${string}` | null) ?? null,
           externalWallet: (wallets.find((w) => w.walletClientType !== 'privy')?.address as `0x${string}` | undefined) ?? null,
+          walletKind:'embedded',
         }
       : null;
     setAuthState({ ready, authenticated, user: u });
@@ -78,8 +88,8 @@ function Bridge() {
       async sendTransaction(tx) {
         if (!embedded) throw new Error('No embedded wallet yet');
         const { hash } = await sendTransaction(
-          { to: tx.to, data: tx.data, value: tx.value, gasLimit: tx.gas, chainId: robinhoodChain.id },
-          { address: embedded.address, uiOptions: { showWalletUIs: false } },
+          { to: tx.to, data: tx.data, value: tx.value, gasLimit: tx.gas, chainId: BNB_PRODUCT?56:robinhoodChain.id },
+          { address: embedded.address, uiOptions: { showWalletUIs: BNB_PRODUCT } },
         );
         return hash;
       },

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import {BNB_PRODUCT} from './product';
 
 /**
  * What we last knew about the signed-in user (wallet, display name, member record), kept in this
@@ -10,7 +11,7 @@ import { useEffect, useState } from 'react';
  * cleared when the session turns out to be signed out.
  */
 
-const KEY = 'rushr.session.v1';
+const KEY = BNB_PRODUCT ? 'rushr.session.bnb.v1' : 'rushr.session.v1';
 const MAX_AGE_MS = 14 * 24 * 3600 * 1000;
 
 export interface SessionHint {

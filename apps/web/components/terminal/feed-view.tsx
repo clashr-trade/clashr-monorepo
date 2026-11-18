@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { ArrowUp, MagnifyingGlass, X } from '@phosphor-icons/react';
 import type { TokenCard } from '@/lib/api';
@@ -9,11 +9,12 @@ import { CALL_MAX, mcapNow, postCallout, useFeed, useFollowing, type Callout, ty
 import { countFmt, pctSigned, usd } from '@/lib/format';
 import { getMe, setMe, useMe } from '@/lib/members';
 import { useSuggestions, type Suggestion } from '@/lib/profile';
-import { useTokenSearch } from '@/lib/search';
+import { useTokenSearchState } from '@/lib/search';
 import { useHint } from '@/lib/session-hint';
 import { RiskDot, TokenAvatar } from './bits';
 import { CallCard } from './calls-feed';
 import { MemberAvatar } from './member-avatar';
+import { BNB_PRODUCT } from '@/lib/product';
 
 /** Time-ago labels refresh every 30s (a per-second clock would re-render the whole list). */
 function useClock(serverNow: number) {
@@ -67,6 +68,7 @@ export function FeedView({ serverNow }: { serverNow: number }) {
         <main className="min-w-0">
           <div className="mb-3 flex items-center justify-between">
             <h1 className="text-xl font-semibold tracking-[-0.02em]">Feed</h1>
+            {BNB_PRODUCT && <Link href="/people" className="text-xs font-semibold text-ink underline underline-offset-4">Find people</Link>}
           </div>
           <Composer />
           <div className="sticky top-0 z-10 -mx-1 mt-4 bg-bg/90 px-1 pb-2 pt-1 backdrop-blur-sm" role="tablist">
@@ -104,6 +106,7 @@ export function FeedView({ serverNow }: { serverNow: number }) {
               </div>
             )}
           </div>
+          <div className="mt-3 lg:hidden"><WhoToFollow suggestions={suggestions.state === 'ready' ? suggestions.data : null} canFollow={canFollow} follows={follows} meId={member?.id ?? null} /></div>
 
           {following && !canFollow ? (
             <Empty>
@@ -154,12 +157,12 @@ export function FeedView({ serverNow }: { serverNow: number }) {
 
 /* ------------------------------------------------------------------ composer */
 
-function Composer() {
+export function Composer({initialToken=null}:{initialToken?:Pick<TokenCard,'address'|'symbol'|'name'|'image_url'|'market_cap_usd'>|null}) {
   const session = useAuth();
   const me = useMe();
   const hint = useHint();
   const member = me?.status === 'registered' ? me.member : null;
-  const [token, setToken] = useState<Pick<TokenCard, 'address' | 'symbol' | 'name' | 'image_url' | 'market_cap_usd'> | null>(null);
+  const [token, setToken] = useState<Pick<TokenCard, 'address' | 'symbol' | 'name' | 'image_url' | 'market_cap_usd'> | null>(initialToken);
   const [stance, setStance] = useState<'bullish' | 'bearish'>('bullish');
   const [text, setText] = useState('');
   const [busy, setBusy] = useState(false);
@@ -175,7 +178,7 @@ function Composer() {
     setBusy(false);
     if (r.ok) {
       setText('');
-      setToken(null);
+      setToken(initialToken);
       setMsg({ ok: true, text: 'Posted.' });
     } else setMsg({ ok: false, text: r.message });
   };
@@ -238,12 +241,13 @@ function Composer() {
           type="button"
           onClick={() => void post()}
           disabled={busy || !token || !text.trim() || !live}
-          title={!token ? 'Pick a token first' : live ? undefined : 'Signing you in…'}
+          title={!token ? 'Select a token from the search results first' : !text.trim() ? 'Write your call first' : live ? undefined : 'Signing you in…'}
           className="ml-auto rounded-lg bg-ink px-3 py-1.5 text-xs font-semibold text-bg hover:bg-white disabled:opacity-40"
         >
           {busy ? 'Posting…' : 'Post call'}
         </button>
       </div>
+      {!token && <p className="mt-2 text-[11px] text-muted">Select a token from the search results to enable posting. A ticker alone does not select its contract.</p>}
     </section>
   );
 }
@@ -254,7 +258,11 @@ type PickedToken = Pick<TokenCard, 'address' | 'symbol' | 'name' | 'image_url' |
 function TokenPicker({ value, onChange }: { value: PickedToken | null; onChange: (t: PickedToken | null) => void }) {
   const [q, setQ] = useState('');
   const [open, setOpen] = useState(false);
-  const results = useTokenSearch(q);
+  const search = useTokenSearchState(q);
+  const results = search.tokens;
+  const listId = useId();
+  const [active, setActive] = useState(0);
+  const select = (t: PickedToken) => { onChange(t); setQ(''); setOpen(false); };
   if (value)
     return (
       <span className="inline-flex min-w-0 items-center gap-1.5 rounded-full border border-white/[0.1] py-0.5 pl-0.5 pr-1.5 text-sm">
@@ -274,27 +282,46 @@ function TokenPicker({ value, onChange }: { value: PickedToken | null; onChange:
           value={q}
           onChange={(e) => {
             setQ(e.target.value);
+            setActive(0);
             setOpen(true);
           }}
           onFocus={() => setOpen(true)}
           onBlur={() => setTimeout(() => setOpen(false), 150)}
           placeholder="Token: $SYMBOL or 0x…"
           aria-label="Search the token to call"
+          role="combobox"
+          aria-autocomplete="list"
+          aria-expanded={open && search.status !== 'idle'}
+          aria-controls={open && search.status !== 'idle' ? listId : undefined}
+          aria-activedescendant={open && results[active] ? `${listId}-${active}` : undefined}
+          onKeyDown={(e) => {
+            if (e.key === 'Escape') { setOpen(false); return; }
+            if ((e.key === 'ArrowDown' || e.key === 'ArrowUp') && results.length) {
+              e.preventDefault(); setOpen(true);
+              setActive(i => (i + (e.key === 'ArrowDown' ? 1 : results.length - 1)) % results.length);
+            }
+            if (e.key === 'Enter' && open && results[active]) { e.preventDefault(); select(results[active]!); }
+          }}
           className="w-full min-w-0 bg-transparent text-sm outline-none placeholder:text-muted/80"
         />
       </label>
-      {open && q.trim().length >= 2 && results.length > 0 && (
-        <ul className="absolute left-0 top-full z-30 mt-1.5 max-h-80 w-80 overflow-auto rounded-xl border border-white/10 bg-surface-2 p-1 shadow-2xl">
-          {results.map((t) => (
-            <li key={t.address}>
+      {open && search.status !== 'idle' && (
+        <ul id={listId} role="listbox" aria-label="Matching tokens" className="absolute left-0 top-full z-30 mt-1.5 max-h-80 w-[min(20rem,calc(100vw-3rem))] overflow-auto rounded-xl border border-white/10 bg-surface-2 p-1 shadow-2xl">
+          {search.status === 'loading' && <li role="presentation" className="px-3 py-2 text-xs text-muted">Searching tokens…</li>}
+          {search.status === 'error' && <li role="presentation" className="px-3 py-2 text-xs text-risk-high">Token search is unavailable. Try again shortly.</li>}
+          {search.status === 'ready' && !results.length && <li role="presentation" className="px-3 py-2 text-xs text-muted">No indexed token matches. Try its name or contract address.</li>}
+          {results.map((t, i) => (
+            <li key={t.address} role="presentation">
               <button
                 type="button"
-                onMouseDown={() => {
-                  onChange(t);
-                  setQ('');
-                  setOpen(false);
-                }}
-                className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left hover:bg-white/[0.05]"
+                id={`${listId}-${i}`}
+                role="option"
+                aria-selected={active === i}
+                tabIndex={-1}
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => select(t)}
+                onMouseEnter={() => setActive(i)}
+                className={`flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left hover:bg-white/[0.05] ${active === i ? 'bg-white/[0.05]' : ''}`}
               >
                 <TokenAvatar t={t} size={26} />
                 <span className="min-w-0 flex-1">
@@ -340,17 +367,19 @@ function WhoToFollow({
   meId: string | null;
 }) {
   const list = (suggestions ?? []).filter((s) => s.member.id !== meId).slice(0, 5);
-  if (!list.length) return null;
   return (
     <section className="rounded-2xl border border-white/[0.06] bg-surface p-3">
-      <h2 className="px-1 text-sm font-semibold">Who to follow</h2>
+      <div className="flex items-center justify-between px-1"><h2 className="text-sm font-semibold">Who to follow</h2>{BNB_PRODUCT && <Link href="/people" className="text-xs text-muted underline underline-offset-4">View all</Link>}</div>
+      {!list.length && <p className="mt-3 px-1 text-xs text-muted">{suggestions===null?'Loading member suggestions…':'No new members to suggest yet. Explore member profiles to build your network.'}</p>}
+      {follows.error&&<p role="alert" className="mt-2 text-xs text-risk-high">{follows.error}</p>}
       <ul className="mt-2 space-y-1">
         {list.map((s) => (
           <SuggestionRow
             key={s.member.id}
             s={s}
             following={follows.isFollowing(s.member.id)}
-            onToggle={canFollow ? () => void follows.toggle(s.member.id, !follows.isFollowing(s.member.id)) : () => auth.login()}
+            busy={follows.isPending(s.member.id)}
+            onToggle={canFollow ? () => void follows.toggle(s.member.id, !follows.isFollowing(s.member.id)) : () => {if(auth.state.authenticated)window.location.assign('/me');else auth.login();}}
           />
         ))}
       </ul>
@@ -358,7 +387,7 @@ function WhoToFollow({
   );
 }
 
-function SuggestionRow({ s, following, onToggle }: { s: Suggestion; following: boolean; onToggle: () => void }) {
+export function SuggestionRow({ s, following, onToggle,busy=false }: { s: Suggestion; following: boolean; onToggle: () => void;busy?:boolean }) {
   return (
     <li className="flex items-center gap-2.5 rounded-xl px-1 py-1.5 hover:bg-white/[0.02]">
       <Link href={`/u/${s.member.handle}`} className="flex min-w-0 flex-1 items-center gap-2.5">
@@ -374,9 +403,10 @@ function SuggestionRow({ s, following, onToggle }: { s: Suggestion; following: b
       <button
         type="button"
         onClick={onToggle}
+        disabled={busy}
         className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold ${following ? 'border border-white/[0.12] text-muted' : 'bg-ink text-bg hover:bg-white'}`}
       >
-        {following ? 'Following' : 'Follow'}
+        {busy?'Saving…':following ? 'Following' : 'Follow'}
       </button>
     </li>
   );

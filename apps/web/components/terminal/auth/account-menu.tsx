@@ -11,6 +11,7 @@ import { EXPLORER, short } from '@/lib/format';
 import { MemberAvatar } from '../member-avatar';
 import { useHint } from '@/lib/session-hint';
 import { WalletPanel } from './wallet-panel';
+import {NATIVE_SYMBOL,STABLE_SYMBOL} from '@/lib/product';
 
 /** Top-bar sign-in button, and the account menu once signed in. */
 export function AccountMenu() {
@@ -101,7 +102,7 @@ export function AccountMenu() {
           <WalletRow label="Rushr wallet" address={user.wallet} pending={!user.wallet} />
           <div className="flex items-center justify-between border-b border-white/[0.06] px-4 py-2.5 text-sm">
             <span className="text-muted">Balance</span>
-            <span className="font-mono">{balances ? `${fmtUnits(balances.eth, 18, 4)} ETH` : '…'}</span>
+            <span className="font-mono">{balances ? `${fmtUnits(balances.eth, 18, 4)} ${NATIVE_SYMBOL}` : '…'}</span>
           </div>
           {user.externalWallet && <WalletRow label="Signed in with" address={user.externalWallet} />}
           <div className="p-1.5">
@@ -216,7 +217,7 @@ function BalanceButton({ wallet, onOpen }: { wallet: `0x${string}`; onOpen: () =
     <button
       type="button"
       onClick={onOpen}
-      title="Wallet balance: ETH, USDG and every token you hold"
+      title={`Wallet balance: ${NATIVE_SYMBOL}, ${STABLE_SYMBOL} and every token you hold`}
       aria-label={v == null ? 'Wallet balance' : `Wallet balance ${money.format(v)}`}
       className="rounded-xl border border-white/[0.08] bg-surface px-3 py-2 font-mono text-sm font-semibold tabular-nums transition hover:border-white/20"
     >
