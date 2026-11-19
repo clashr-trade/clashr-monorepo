@@ -45,9 +45,9 @@ import { SHOW_RISK } from '@/lib/risk-labels';
  *
  * One Privy setup: sign-in state and signing come from `lib/auth`. This module never imports
  * Privy. Settings (presets, slippage, per-trade cap) come from `lib/settings`. Nothing is signed by
- * Rushr's servers.
+ * CLASHR's servers.
  *
- * Curve trades (PONS tokens still on their bonding curve) pay the Rushr fee as a second, plain
+ * Curve trades (PONS tokens still on their bonding curve) pay the CLASHR fee as a second, plain
  * transfer to the treasury, signed the same way right after the trade confirms (the next nonce). It is
  * built from the trade's receipt, so a reverted trade pays nothing, and it never delays or fails the
  * trade in the UI: if it can't be sent, the ledger flags the trade `fee_missed`.

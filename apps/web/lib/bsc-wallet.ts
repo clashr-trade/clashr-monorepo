@@ -48,6 +48,12 @@ export function bnbAmountForUsd(value:string,bnbUsd:number):string {
   if(amount<=0n)throw new Error('Budget is too small');
   return formatUnits(amount,18);
 }
+export function assetAmountForUsd(value:string,usdPerAsset:number,decimals:number):string {
+ if(!Number.isInteger(decimals)||decimals<0||decimals>36||!Number.isFinite(usdPerAsset)||usdPerAsset<=0)throw new Error('Asset/USD price unavailable');
+ const rate=parseUnits(usdPerAsset.toFixed(8),8);if(rate<=0n)throw new Error('Asset/USD price unavailable');
+ const amount=parseBscInput(value,2)*10n**BigInt(decimals+6)/rate;
+ if(amount<=0n)throw new Error('Budget is too small');return formatUnits(amount,decimals);
+}
 export function parseBscSlippage(text: string): number {
   const bps = parseBscInput(text, 2);
   if (bps > 500n) throw new Error('Slippage must be between 0.01% and 5%');
@@ -59,7 +65,8 @@ export interface BscActivity {
   status: 'submitted' | 'mined' | 'finalized' | 'reverted' | 'replaced';
   networkFeeWei?: string; createdAt: string;
   expected?: { to: string; data: string; value: string };
-  fill?: { side: 'buy' | 'sell'; tokenAmount: string; nativeAmount: string; tokenDecimals: number;
+  fill?: { side: 'buy' | 'sell'; tokenAmount: string; nativeAmount: string|null; tokenDecimals: number;
+    settlement?:{asset:string;amount:string|null;maximum:string;decimals:number;symbol:string};
     meetsMinimum: boolean; provenance: 'canonical-receipt-events'; platformFeeWei: '0' };
 }
 const activityKey = (account: string) => `rushr.bsc.activity.${account.toLowerCase()}`;
@@ -71,7 +78,8 @@ export function readBscActivity(storage: Pick<Storage, 'getItem'>, account: stri
       && ['approval', 'swap'].includes(row.kind) && ['submitted', 'mined', 'finalized', 'reverted', 'replaced'].includes(row.status)
       && (row.networkFeeWei === undefined || /^[0-9]+$/.test(row.networkFeeWei))
       && (row.fill === undefined || (!!row.fill && ['buy','sell'].includes(row.fill.side)
-        && /^[0-9]+$/.test(row.fill.tokenAmount) && /^[0-9]+$/.test(row.fill.nativeAmount)
+        && /^[0-9]+$/.test(row.fill.tokenAmount) && (row.fill.nativeAmount===null||/^[0-9]+$/.test(row.fill.nativeAmount))
+        && (row.fill.settlement===undefined||(/^0x[0-9a-f]{40}$/i.test(row.fill.settlement.asset)&&(row.fill.settlement.amount===null||/^\d+$/.test(row.fill.settlement.amount))&&/^\d+$/.test(row.fill.settlement.maximum)&&Number.isInteger(row.fill.settlement.decimals)&&row.fill.settlement.decimals>=0&&row.fill.settlement.decimals<=36&&typeof row.fill.settlement.symbol==='string'&&row.fill.settlement.symbol.length<=40))
         && Number.isInteger(row.fill.tokenDecimals) && row.fill.tokenDecimals >= 0 && row.fill.tokenDecimals <= 36
         && typeof row.fill.meetsMinimum === 'boolean' && row.fill.provenance === 'canonical-receipt-events' && row.fill.platformFeeWei === '0'))
       && (row.expected === undefined || (!!row.expected && /^0x[0-9a-f]{40}$/.test(row.expected.to)

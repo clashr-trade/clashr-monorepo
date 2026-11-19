@@ -1,4 +1,5 @@
 'use client';
+import {usePlatformLanguage} from '@/components/landing/language-provider';
 import { useCallback, useEffect, useState } from 'react';
 import { Check, Copy } from '@phosphor-icons/react';
 import type { TokenCard, TokenDetail } from '@/lib/api';
@@ -25,9 +26,10 @@ type Pools = { liquidityUsd: number | null; rows: unknown[] };
 const known = (iso: string | null | undefined) =>
   !!iso && Number.isFinite(Date.parse(iso)) && Date.parse(iso) > 0;
 function Stat({ k, v, big, title }: { k: string; v: string; big?: boolean; title?: string }) {
+ const {t:translateUI}=usePlatformLanguage();
   return (
     <div title={title}>
-      <div className="text-[11px] text-muted">{k}</div>
+      <div className="text-[11px] text-muted">{translateUI(k)}</div>
       <div className={`font-mono ${big ? 'text-lg font-semibold' : 'text-sm'}`}>{v}</div>
     </div>
   );
@@ -55,6 +57,7 @@ export function TokenHeader({
   priceNow: number | null;
   serverNow: number;
 }) {
+  const {t:translateUI}=usePlatformLanguage();
   const [copied, setCopied] = useState(false);
   const now = useNow(serverNow);
   const copy = () => {
@@ -83,7 +86,7 @@ export function TokenHeader({
               type="button"
               onClick={copy}
               className="flex items-center gap-1 font-mono hover:text-ink"
-              title="Copy contract address"
+              title={translateUI("Copy contract address")}
             >
               {short(t.address)}{' '}
               {copied ? <Check size={12} className="text-brand" /> : <Copy size={12} />}
@@ -95,7 +98,7 @@ export function TokenHeader({
               title={known(t.created_at) ? dateTimeUtc(t.created_at) : undefined}
               className="font-mono"
             >
-              {known(t.created_at) ? ageLong(created, now) : 'age —'}
+              {known(t.created_at) ? ageLong(created, now) : translateUI("age —")}
             </span>
             <span>·</span>
             <a
@@ -104,16 +107,14 @@ export function TokenHeader({
               rel="noreferrer"
               className="rounded bg-white/[0.05] px-1.5 py-px hover:text-ink"
             >
-              Explorer
-            </a>
+              {translateUI("Explorer")}</a>
             <a
               href={dexscreenerUrl(t.address)}
               target="_blank"
               rel="noreferrer"
               className="rounded bg-white/[0.05] px-1.5 py-px hover:text-ink"
             >
-              DexScreener
-            </a>
+              {translateUI("DexScreener")}</a>
             <SocialLinks t={t} size={14} />
           </div>
           {t.description && (
@@ -132,7 +133,7 @@ export function TokenHeader({
           title={
             pools.rows.length
               ? `Across ${pools.rows.length} pools`
-              : 'Not reported for this token yet'
+              : translateUI("Not reported for this token yet")
           }
         />
         <Stat k="Holders" v={t.holders_known === false ? '?' : nf.format(t.holders)} />
@@ -205,6 +206,7 @@ export function TokenTabs({
   callsCount: number | null;
   body: React.ReactNode;
 }) {
+  const {t:translateUI}=usePlatformLanguage();
   const tabs: [Tab, string][] = [
     ['trades', 'Trades'],
     ['calls', callsCount ? `Calls ${callsCount}` : 'Calls'],
@@ -224,7 +226,7 @@ export function TokenTabs({
             onClick={() => setTab(id)}
             className={`shrink-0 rounded-lg px-3 py-1.5 text-xs font-medium ${tab === id ? 'bg-white/[0.08] text-ink' : 'text-muted hover:text-ink'} ${id === 'calls' ? 'xl:hidden' : ''}`}
           >
-            {label}
+            {translateUI(label)}
           </button>
         ))}
       </div>

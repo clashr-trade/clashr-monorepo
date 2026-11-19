@@ -1,5 +1,6 @@
 'use client';
 
+import {usePlatformLanguage} from '@/components/landing/language-provider';
 import { useState } from 'react';
 import { CircleNotch, Globe, MagnifyingGlass, TelegramLogo, XLogo } from '@phosphor-icons/react';
 import type { RiskLevel, TokenCard } from '@/lib/api';
@@ -164,12 +165,13 @@ export function RiskDot({ risk }: { risk: RiskLevel | null }) {
 }
 
 export function RiskTag({ risk, className = '' }: { risk: RiskLevel | null; className?: string }) {
+  const {t:translateUI}=usePlatformLanguage();
   if (!SHOW_RISK) return null;
   const r = risk ?? 'unknown';
   // Safety checks still running: a quiet spinner, not a word competing with real verdicts.
   if (r === 'unknown')
     return (
-      <span title="Running safety checks" aria-label="Running safety checks" className={`inline-flex items-center rounded-md bg-white/[0.04] px-1.5 py-0.5 ${className}`}>
+      <span title={translateUI("Running safety checks")} aria-label={translateUI("Running safety checks")} className={`inline-flex items-center rounded-md bg-white/[0.04] px-1.5 py-0.5 ${className}`}>
         <CircleNotch size={11} weight="bold" className="animate-spin text-muted" />
       </span>
     );
@@ -177,7 +179,7 @@ export function RiskTag({ risk, className = '' }: { risk: RiskLevel | null; clas
     <span
       className={`whitespace-nowrap rounded-md px-1.5 py-0.5 text-[10px] font-semibold ${RISK_BG[r]} ${className}`}
     >
-      {r === 'low' ? 'clean' : `${r} risk`}
+      {r === 'low' ? translateUI("clean") : `${r} risk`}
     </span>
   );
 }

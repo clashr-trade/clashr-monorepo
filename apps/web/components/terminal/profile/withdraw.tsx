@@ -1,5 +1,6 @@
 'use client';
 
+import {usePlatformLanguage} from '@/components/landing/language-provider';
 import { useState } from 'react';
 import { encodeFunctionData, erc20Abi, formatUnits, getAddress, isAddress, parseUnits } from 'viem';
 import { ArrowSquareOut, CheckCircle, Warning } from '@phosphor-icons/react';
@@ -18,10 +19,11 @@ const GAS_RESERVE_UNITS = 60_000n;
 type Step = { kind: 'form' } | { kind: 'review' } | { kind: 'sending' } | { kind: 'done'; hash: `0x${string}` } | { kind: 'failed'; message: string };
 
 /**
- * Send ETH or USDG from the Rushr wallet to any address on Robinhood Chain. The user reviews, then
- * their own Privy embedded wallet signs (Rushr never holds the key); we wait for the receipt.
+ * Send ETH or USDG from the CLASHR wallet to any address on Robinhood Chain. The user reviews, then
+ * their own Privy embedded wallet signs (CLASHR never holds the key); we wait for the receipt.
  */
 export function WithdrawPanel({ from, balances, onDone }: { from: `0x${string}`; balances: Balances | null; onDone: () => void }) {
+  const {t:translateUI}=usePlatformLanguage();
   const [asset, setAsset] = useState<Asset>('ETH');
   const [to, setTo] = useState('');
   const [amount, setAmount] = useState('');
@@ -49,7 +51,7 @@ export function WithdrawPanel({ from, balances, onDone }: { from: `0x${string}`;
   const review = () => {
     setError(null);
     if (!toOk) return setError('Enter a valid 0x address.');
-    if (self) return setError('That is your own Rushr wallet.');
+    if (self) return setError('That is your own CLASHR wallet.');
     if (!wei || wei <= 0n) return setError('Enter an amount.');
     if (bal != null && wei > bal) return setError(`More than your ${symbol(asset)} balance.`);
     setStep({ kind: 'review' });
@@ -78,12 +80,12 @@ export function WithdrawPanel({ from, balances, onDone }: { from: `0x${string}`;
     return (
       <div className="text-center">
         <CheckCircle size={40} weight="fill" className="mx-auto text-brand" />
-        <p className="mt-2 font-semibold">Sent</p>
+        <p className="mt-2 font-semibold">{translateUI("Sent")}</p>
         <p className="mt-1 text-sm text-muted">
-          {amount} {symbol(asset)} to {short(to.trim())}
+          {amount} {symbol(asset)}  {translateUI("to")} {short(to.trim())}
         </p>
         <a href={`${EXPLORER}/tx/${step.hash}`} target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-1 text-xs text-muted hover:text-ink">
-          View transaction <ArrowSquareOut size={12} />
+          {translateUI("View transaction")}<ArrowSquareOut size={12} />
         </a>
       </div>
     );
@@ -98,15 +100,13 @@ export function WithdrawPanel({ from, balances, onDone }: { from: `0x${string}`;
         </dl>
         <p className="mt-3 flex items-start gap-1.5 text-[11px] leading-relaxed text-risk-medium">
           <Warning size={13} weight="fill" className="mt-px shrink-0" />
-          Transfers can&apos;t be undone. Make sure the address can receive on {BNB_PRODUCT?'BNB Smart Chain':'Robinhood Chain'} (an exchange deposit address must support this network).
-        </p>
+          {translateUI("Transfers can't be undone. Make sure the address can receive on")}{BNB_PRODUCT?translateUI("BNB Smart Chain"):translateUI("Robinhood Chain")} {translateUI("(an exchange deposit address must support this network).")}</p>
         {step.kind === 'failed' && <p className="mt-2 text-xs text-risk-high">{step.message}</p>}
         <div className="mt-4 grid grid-cols-2 gap-2">
           <button type="button" disabled={step.kind === 'sending'} onClick={() => setStep({ kind: 'form' })} className="rounded-xl border border-white/[0.08] py-2.5 text-sm text-muted hover:text-ink disabled:opacity-40">
-            Back
-          </button>
+            {translateUI("Back")}</button>
           <button type="button" disabled={step.kind === 'sending'} onClick={() => void send()} className="rounded-xl bg-ink py-2.5 text-sm font-semibold text-bg hover:bg-white disabled:opacity-60">
-            {step.kind === 'sending' ? 'Sending…' : 'Confirm & send'}
+            {step.kind === 'sending' ? translateUI("Sending…") : translateUI("Confirm & send")}
           </button>
         </div>
       </div>
@@ -127,7 +127,7 @@ export function WithdrawPanel({ from, balances, onDone }: { from: `0x${string}`;
         ))}
       </div>
       <label className="mt-4 block">
-        <span className="text-xs text-muted">To address ({BNB_PRODUCT?'BNB Smart Chain':'Robinhood Chain'})</span>
+        <span className="text-xs text-muted">{translateUI("To address (")}{BNB_PRODUCT?translateUI("BNB Smart Chain"):translateUI("Robinhood Chain")})</span>
         <input
           value={to}
           onChange={(e) => setTo(e.target.value.trim())}
@@ -138,9 +138,9 @@ export function WithdrawPanel({ from, balances, onDone }: { from: `0x${string}`;
       </label>
       <label className="mt-3 block">
         <span className="flex justify-between text-xs text-muted">
-          <span>Amount</span>
+          <span>{translateUI("Amount")}</span>
           <span>
-            Balance {bal == null ? '…' : `${Number(formatUnits(bal, DECIMALS[asset])).toLocaleString('en-US', { maximumFractionDigits: asset === 'ETH' ? 6 : 2 })} ${asset}`}
+            {translateUI("Balance")}{bal == null ? '…' : `${Number(formatUnits(bal, DECIMALS[asset])).toLocaleString('en-US', { maximumFractionDigits: asset === 'ETH' ? 6 : 2 })} ${asset}`}
           </span>
         </span>
         <div className="mt-1 flex items-center rounded-xl border border-white/[0.08] bg-bg px-3 py-2 focus-within:border-white/25">
@@ -152,22 +152,21 @@ export function WithdrawPanel({ from, balances, onDone }: { from: `0x${string}`;
             className="w-full bg-transparent font-mono text-lg outline-none"
           />
           <button type="button" onClick={() => void max()} className="rounded-lg bg-white/[0.06] px-2 py-1 text-xs text-muted hover:text-ink">
-            Max
-          </button>
+            {translateUI("Max")}</button>
         </div>
       </label>
       {error && <p className="mt-2 text-xs text-risk-high">{error}</p>}
       <button type="submit" className="mt-4 w-full rounded-xl bg-ink py-2.5 text-sm font-semibold text-bg hover:bg-white">
-        Review
-      </button>
+        {translateUI("Review")}</button>
     </form>
   );
 }
 
 function Row({ k, v }: { k: string; v: React.ReactNode }) {
+ const {t:translateUI}=usePlatformLanguage();
   return (
     <div className="flex justify-between gap-3">
-      <dt className="shrink-0 text-muted">{k}</dt>
+      <dt className="shrink-0 text-muted">{translateUI(k)}</dt>
       <dd className="text-right">{v}</dd>
     </div>
   );

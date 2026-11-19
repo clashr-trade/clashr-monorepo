@@ -17,8 +17,8 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
   const handle = (await params).handle.toLowerCase();
   if (!HANDLE_RE.test(handle)) return { title: 'Profile' };
   const range = (await searchParams).card;
-  const card = range && CARD_RANGES.has(range) ? { url: `/card/profile/${handle}?range=${range}`, alt: `@${handle}'s PnL on Rushr` } : undefined;
-  return appShare(`@${handle}`, `/u/${handle}`, `@${handle} on Rushr: calls, PnL and trades on Robinhood Chain.`, {}, card);
+  const card = range && CARD_RANGES.has(range) ? { url: `/card/profile/${handle}?range=${range}`, alt: `@${handle}'s PnL on CLASHR` } : undefined;
+  return appShare(`@${handle}`, `/u/${handle}`, `@${handle} on CLASHR: calls, PnL and trades on Robinhood Chain.`, {}, card);
 }
 
 export default async function UserPage({ params }: Props) {

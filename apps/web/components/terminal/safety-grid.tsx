@@ -1,5 +1,6 @@
 'use client';
 
+import {usePlatformLanguage} from '@/components/landing/language-provider';
 import {
   ChefHat,
   CheckCircle,
@@ -218,20 +219,21 @@ const TONE: Record<Tone, string> = {
 };
 
 export function SafetyGrid({ t, className = '' }: { t: SafetyToken; className?: string }) {
+  const {t:translateUI}=usePlatformLanguage();
   const cells = safetyCells(t);
   return (
-    <dl className={`grid grid-cols-3 gap-1 sm:grid-cols-4 ${className}`} aria-label="Safety indicators">
+    <dl className={`grid grid-cols-3 gap-1 sm:grid-cols-4 ${className}`} aria-label={translateUI("Safety indicators")}>
       {cells.map((c) => {
         const Mark = c.mark === 'ok' ? CheckCircle : XCircle;
         return (
           <div key={c.key} title={c.help} className="min-w-0 cursor-help rounded-lg bg-white/[0.03] px-1.5 py-1.5">
             {/* Label gets the full width; the icon sits with the value, as on other terminals. */}
-            <dt className="truncate text-[10px] text-muted">{c.label}</dt>
+            <dt className="truncate text-[10px] text-muted">{translateUI(c.label)}</dt>
             <dd className={`mt-0.5 flex items-center gap-1 font-mono text-xs font-semibold ${TONE[c.tone]}`}>
               {/* A ✓ / ✗ already says it all; leaving the icon out keeps narrow cells from clipping. */}
               {!c.mark && <c.icon size={12} weight="bold" className="shrink-0 opacity-80" aria-hidden />}
               <span className="truncate">{c.value}</span>
-              {c.mark && <Mark size={12} weight="fill" className="shrink-0" aria-label={c.mark === 'ok' ? 'fine' : 'flagged'} />}
+              {c.mark && <Mark size={12} weight="fill" className="shrink-0" aria-label={c.mark === 'ok' ? translateUI("fine") : translateUI("flagged")} />}
             </dd>
           </div>
         );

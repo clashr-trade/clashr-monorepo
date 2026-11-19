@@ -1,5 +1,6 @@
 'use client';
 
+import {usePlatformLanguage} from '@/components/landing/language-provider';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { ArrowSquareOut } from '@phosphor-icons/react';
@@ -58,6 +59,7 @@ export function TokenPending({
   /** The API's 202 state when the page was rendered ('hydrating' | 'busy'), or null after a 404. */
   fetching?: string | null;
 }) {
+  const {t:translateUI}=usePlatformLanguage();
   const router = useRouter();
   const status = useFeedStatus();
   const [hydration, setHydration] = useState<Hydration | null>(fetching === 'busy' ? { state: 'busy', source: 'chain' } : null);
@@ -139,30 +141,29 @@ export function TokenPending({
         <p className="mt-3 font-mono text-sm">{short(address, 6, 6)}</p>
         {notToken && QUOTE_ASSETS[address] ? (
           <>
-            <h1 className="mt-4 text-lg font-semibold">{QUOTE_ASSETS[address]} is a quote asset</h1>
-            <p className="mt-1 text-sm text-muted">Rushr prices tokens in {QUOTE_ASSETS[address]}, so it doesn&apos;t get a token page of its own.</p>
+            <h1 className="mt-4 text-lg font-semibold">{QUOTE_ASSETS[address]}  {translateUI("is a quote asset")}</h1>
+            <p className="mt-1 text-sm text-muted">{translateUI("CLASHR prices tokens in")} {QUOTE_ASSETS[address]}{translateUI(", so it doesn't get a token page of its own.")}</p>
           </>
         ) : notToken ? (
           <>
-            <h1 className="mt-4 text-lg font-semibold">This address isn&apos;t a token</h1>
-            <p className="mt-1 text-sm text-muted">It isn&apos;t an ERC-20 on Robinhood Chain. Check the address, or open it in the explorer.</p>
+            <h1 className="mt-4 text-lg font-semibold">{translateUI("This address isn't a token")}</h1>
+            <p className="mt-1 text-sm text-muted">{translateUI("It isn't an ERC-20 on Robinhood Chain. Check the address, or open it in the explorer.")}</p>
           </>
         ) : gaveUp && !hydration ? (
           <>
-            <h1 className="mt-4 text-lg font-semibold">Rushr isn&apos;t tracking this token yet</h1>
+            <h1 className="mt-4 text-lg font-semibold">{translateUI("CLASHR isn't tracking this token yet")}</h1>
             <p className="mt-1 text-sm text-muted">
-              It may not be a token on Robinhood Chain, or it launched somewhere we don&apos;t index yet.
-            </p>
+              {translateUI("It may not be a token on Robinhood Chain, or it launched somewhere we don't index yet.")}</p>
           </>
         ) : busy ? (
           <>
-            <h1 className="mt-4 text-lg font-semibold">Rushr is busy fetching other tokens</h1>
-            <p className="mt-1 text-sm text-muted">We&apos;ll try this one again in about a minute; keep the page open.</p>
+            <h1 className="mt-4 text-lg font-semibold">{translateUI("CLASHR is busy fetching other tokens")}</h1>
+            <p className="mt-1 text-sm text-muted">{translateUI("We'll try this one again in about a minute; keep the page open.")}</p>
           </>
         ) : (
           <>
-            <h1 className="mt-4 text-lg font-semibold">Fetching this token from chain…</h1>
-            <p className="mt-1 text-sm text-muted">The page fills in as soon as its first data arrives.</p>
+            <h1 className="mt-4 text-lg font-semibold">{translateUI("Fetching this token from chain…")}</h1>
+            <p className="mt-1 text-sm text-muted">{translateUI("The page fills in as soon as its first data arrives.")}</p>
             <div className="relative mt-4 h-8">
               <HydratingPill hydration={hydration ?? { state: 'hydrating', source: 'chain' }} className="!static mx-auto w-fit" />
             </div>
@@ -174,7 +175,7 @@ export function TokenPending({
           rel="noreferrer"
           className="mt-5 inline-flex items-center gap-1 text-xs text-muted hover:text-ink"
         >
-          View on explorer <ArrowSquareOut size={12} />
+          {translateUI("View on explorer")}<ArrowSquareOut size={12} />
         </a>
       </div>
     </div>

@@ -1,5 +1,6 @@
 'use client';
 
+import {usePlatformLanguage} from '@/components/landing/language-provider';
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { ArrowUp, MagnifyingGlass, X } from '@phosphor-icons/react';
@@ -33,6 +34,7 @@ function useClock(serverNow: number) {
  * as you scroll.
  */
 export function FeedView({ serverNow }: { serverNow: number }) {
+  const {t:translateUI}=usePlatformLanguage();
   const session = useAuth();
   const me = useMe();
   const member = me?.status === 'registered' ? me.member : null;
@@ -67,8 +69,8 @@ export function FeedView({ serverNow }: { serverNow: number }) {
       <div className="mx-auto grid max-w-[1000px] gap-6 px-3 py-4 sm:px-4 lg:grid-cols-[minmax(0,640px)_300px] lg:justify-center">
         <main className="min-w-0">
           <div className="mb-3 flex items-center justify-between">
-            <h1 className="text-xl font-semibold tracking-[-0.02em]">Feed</h1>
-            {BNB_PRODUCT && <Link href="/people" className="text-xs font-semibold text-ink underline underline-offset-4">Find people</Link>}
+            <h1 className="text-xl font-semibold tracking-[-0.02em]">{translateUI("Feed")}</h1>
+            {BNB_PRODUCT && <Link href="/people" className="text-xs font-semibold text-ink underline underline-offset-4">{translateUI("Find people")}</Link>}
           </div>
           <Composer />
           <div className="sticky top-0 z-10 -mx-1 mt-4 bg-bg/90 px-1 pb-2 pt-1 backdrop-blur-sm" role="tablist">
@@ -87,7 +89,7 @@ export function FeedView({ serverNow }: { serverNow: number }) {
                   onClick={() => setTab(id)}
                   className={`-mb-px border-b-2 px-4 pb-2.5 pt-1 text-sm font-semibold transition ${tab === id ? 'border-brand text-ink' : 'border-transparent text-muted hover:text-ink'}`}
                 >
-                  {label}
+                  {translateUI(label)}
                 </button>
               ))}
             </div>
@@ -101,7 +103,7 @@ export function FeedView({ serverNow }: { serverNow: number }) {
                   }}
                   className="pointer-events-auto flex items-center gap-1.5 rounded-full bg-brand px-3.5 py-1.5 text-xs font-semibold text-bg shadow-lg shadow-black/40 hover:brightness-110"
                 >
-                  <ArrowUp size={12} weight="bold" /> {feed.incoming.length} new call{feed.incoming.length > 1 ? 's' : ''}
+                  <ArrowUp size={12} weight="bold" /> {feed.incoming.length}  {translateUI("new call")}{feed.incoming.length > 1 ? 's' : ''}
                 </button>
               </div>
             )}
@@ -110,19 +112,19 @@ export function FeedView({ serverNow }: { serverNow: number }) {
 
           {following && !canFollow ? (
             <Empty>
-              <p>Follow traders and agents to see their calls here.</p>
+              <p>{translateUI("Follow traders and agents to see their calls here.")}</p>
               <SignUpButton />
             </Empty>
           ) : feed.items == null ? (
             feed.failed ? (
-              <Empty>Couldn’t load the feed. It will retry on its own.</Empty>
+              <Empty>{translateUI("Couldn’t load the feed. It will retry on its own.")}</Empty>
             ) : (
               <SkeletonList />
             )
           ) : feed.items.length === 0 ? (
             following ? (
               <Empty>
-                <p>Follow traders and agents to see their calls here.</p>
+                <p>{translateUI("Follow traders and agents to see their calls here.")}</p>
                 {suggestions.state === 'ready' && suggestions.data.length > 0 && (
                   <ul className="mx-auto mt-4 max-w-sm space-y-1 text-left">
                     {suggestions.data.slice(0, 5).map((s) => (
@@ -132,7 +134,7 @@ export function FeedView({ serverNow }: { serverNow: number }) {
                 )}
               </Empty>
             ) : (
-              <Empty>No calls yet. Be the first to post one.</Empty>
+              <Empty>{translateUI("No calls yet. Be the first to post one.")}</Empty>
             )
           ) : (
             <ul className="space-y-2.5">
@@ -143,7 +145,7 @@ export function FeedView({ serverNow }: { serverNow: number }) {
           )}
           <div ref={sentinel} />
           {feed.loadingMore && <SkeletonList n={2} />}
-          {feed.items && feed.items.length > 0 && !feed.hasMore && <p className="py-6 text-center text-xs text-muted">You’re all caught up.</p>}
+          {feed.items && feed.items.length > 0 && !feed.hasMore && <p className="py-6 text-center text-xs text-muted">{translateUI("You’re all caught up.")}</p>}
         </main>
 
         <aside className="hidden space-y-4 lg:block">
@@ -158,6 +160,7 @@ export function FeedView({ serverNow }: { serverNow: number }) {
 /* ------------------------------------------------------------------ composer */
 
 export function Composer({initialToken=null}:{initialToken?:Pick<TokenCard,'address'|'symbol'|'name'|'image_url'|'market_cap_usd'>|null}) {
+  const {t:translateUI}=usePlatformLanguage();
   const session = useAuth();
   const me = useMe();
   const hint = useHint();
@@ -183,20 +186,19 @@ export function Composer({initialToken=null}:{initialToken?:Pick<TokenCard,'addr
     } else setMsg({ ok: false, text: r.message });
   };
 
-  if (loading) return <div className="h-[132px] animate-pulse rounded-2xl border border-white/[0.06] bg-surface" aria-busy aria-label="Loading" />;
+  if (loading) return <div className="h-[132px] animate-pulse rounded-2xl border border-white/[0.06] bg-surface" aria-busy aria-label={translateUI("Loading")} />;
   if (!member)
     return (
       <div className="flex items-center justify-between gap-3 rounded-2xl border border-dashed border-white/[0.08] bg-surface px-4 py-4 text-sm text-muted">
         {session.authenticated && me?.status === 'unavailable' ? (
           <>
-            <span>Couldn’t check your Rushr profile.</span>
+            <span>{translateUI("Couldn’t check your CLASHR profile.")}</span>
             <button type="button" onClick={() => void getMe().then(setMe)} className="rounded-lg bg-white/[0.06] px-3 py-1.5 text-xs font-semibold text-ink hover:bg-white/10">
-              Retry
-            </button>
+              {translateUI("Retry")}</button>
           </>
         ) : (
           <>
-            <span>Sign up to post your call.</span>
+            <span>{translateUI("Sign up to post your call.")}</span>
             <SignUpButton />
           </>
         )}
@@ -204,11 +206,11 @@ export function Composer({initialToken=null}:{initialToken?:Pick<TokenCard,'addr
     );
 
   return (
-    <section className="rounded-2xl border border-white/[0.06] bg-surface p-3" aria-label="Post a call">
+    <section className="rounded-2xl border border-white/[0.06] bg-surface p-3" aria-label={translateUI("Post a call")}>
       <div className="flex items-center gap-2">
         <MemberAvatar member={member} size={32} />
         <TokenPicker value={token} onChange={setToken} />
-        <div className="ml-auto flex shrink-0 rounded-lg bg-white/[0.04] p-0.5 text-[11px]" role="radiogroup" aria-label="Stance">
+        <div className="ml-auto flex shrink-0 rounded-lg bg-white/[0.04] p-0.5 text-[11px]" role="radiogroup" aria-label={translateUI("Stance")}>
           {(['bullish', 'bearish'] as const).map((st) => (
             <button
               key={st}
@@ -226,13 +228,13 @@ export function Composer({initialToken=null}:{initialToken?:Pick<TokenCard,'addr
       <textarea
         value={text}
         onChange={(e) => setText(e.target.value.slice(0, CALL_MAX))}
-        placeholder={token ? `What's your call on $${token.symbol}?` : 'Pick a token, then make your call'}
+        placeholder={token ? `What's your call on $${token.symbol}?` : translateUI("Pick a token, then make your call")}
         rows={3}
-        aria-label="Your call"
+        aria-label={translateUI("Your call")}
         className="mt-2 w-full resize-none rounded-xl border border-white/[0.06] bg-bg px-3 py-2 text-sm outline-none placeholder:text-muted/70 focus:border-white/20"
       />
       <div className="mt-1.5 flex items-center gap-2 text-[11px] text-muted">
-        <span>Visible to everyone</span>
+        <span>{translateUI("Visible to everyone")}</span>
         <span className="font-mono">
           {text.length}/{CALL_MAX}
         </span>
@@ -241,13 +243,13 @@ export function Composer({initialToken=null}:{initialToken?:Pick<TokenCard,'addr
           type="button"
           onClick={() => void post()}
           disabled={busy || !token || !text.trim() || !live}
-          title={!token ? 'Select a token from the search results first' : !text.trim() ? 'Write your call first' : live ? undefined : 'Signing you in…'}
+          title={!token ? translateUI("Select a token from the search results first") : !text.trim() ? translateUI("Write your call first") : live ? undefined : translateUI("Signing you in…")}
           className="ml-auto rounded-lg bg-ink px-3 py-1.5 text-xs font-semibold text-bg hover:bg-white disabled:opacity-40"
         >
-          {busy ? 'Posting…' : 'Post call'}
+          {busy ? translateUI("Posting…") : translateUI("Post call")}
         </button>
       </div>
-      {!token && <p className="mt-2 text-[11px] text-muted">Select a token from the search results to enable posting. A ticker alone does not select its contract.</p>}
+      {!token && <p className="mt-2 text-[11px] text-muted">{translateUI("Select a token from the search results to enable posting. A ticker alone does not select its contract.")}</p>}
     </section>
   );
 }
@@ -256,6 +258,7 @@ type PickedToken = Pick<TokenCard, 'address' | 'symbol' | 'name' | 'image_url' |
 
 /** Token search (same as the top bar's) as a picker: symbol, name or contract. */
 function TokenPicker({ value, onChange }: { value: PickedToken | null; onChange: (t: PickedToken | null) => void }) {
+  const {t:translateUI}=usePlatformLanguage();
   const [q, setQ] = useState('');
   const [open, setOpen] = useState(false);
   const search = useTokenSearchState(q);
@@ -269,7 +272,7 @@ function TokenPicker({ value, onChange }: { value: PickedToken | null; onChange:
         <TokenAvatar t={{ address: value.address, symbol: value.symbol, launchpad: null, image_url: value.image_url }} size={22} />
         <span className="font-semibold">${value.symbol}</span>
         {value.market_cap_usd != null && <span className="font-mono text-xs text-muted">{usd(value.market_cap_usd)}</span>}
-        <button type="button" onClick={() => onChange(null)} aria-label="Change token" className="rounded-full p-0.5 text-muted hover:text-ink">
+        <button type="button" onClick={() => onChange(null)} aria-label={translateUI("Change token")} className="rounded-full p-0.5 text-muted hover:text-ink">
           <X size={12} />
         </button>
       </span>
@@ -287,8 +290,8 @@ function TokenPicker({ value, onChange }: { value: PickedToken | null; onChange:
           }}
           onFocus={() => setOpen(true)}
           onBlur={() => setTimeout(() => setOpen(false), 150)}
-          placeholder="Token: $SYMBOL or 0x…"
-          aria-label="Search the token to call"
+          placeholder={translateUI("Token: $SYMBOL or 0x…")}
+          aria-label={translateUI("Search the token to call")}
           role="combobox"
           aria-autocomplete="list"
           aria-expanded={open && search.status !== 'idle'}
@@ -306,10 +309,10 @@ function TokenPicker({ value, onChange }: { value: PickedToken | null; onChange:
         />
       </label>
       {open && search.status !== 'idle' && (
-        <ul id={listId} role="listbox" aria-label="Matching tokens" className="absolute left-0 top-full z-30 mt-1.5 max-h-80 w-[min(20rem,calc(100vw-3rem))] overflow-auto rounded-xl border border-white/10 bg-surface-2 p-1 shadow-2xl">
-          {search.status === 'loading' && <li role="presentation" className="px-3 py-2 text-xs text-muted">Searching tokens…</li>}
-          {search.status === 'error' && <li role="presentation" className="px-3 py-2 text-xs text-risk-high">Token search is unavailable. Try again shortly.</li>}
-          {search.status === 'ready' && !results.length && <li role="presentation" className="px-3 py-2 text-xs text-muted">No indexed token matches. Try its name or contract address.</li>}
+        <ul id={listId} role="listbox" aria-label={translateUI("Matching tokens")} className="absolute left-0 top-full z-30 mt-1.5 max-h-80 w-[min(20rem,calc(100vw-3rem))] overflow-auto rounded-xl border border-white/10 bg-surface-2 p-1 shadow-2xl">
+          {search.status === 'loading' && <li role="presentation" className="px-3 py-2 text-xs text-muted">{translateUI("Searching tokens…")}</li>}
+          {search.status === 'error' && <li role="presentation" className="px-3 py-2 text-xs text-risk-high">{translateUI("Token search is unavailable. Try again shortly.")}</li>}
+          {search.status === 'ready' && !results.length && <li role="presentation" className="px-3 py-2 text-xs text-muted">{translateUI("No indexed token matches. Try its name or contract address.")}</li>}
           {results.map((t, i) => (
             <li key={t.address} role="presentation">
               <button
@@ -341,15 +344,14 @@ function TokenPicker({ value, onChange }: { value: PickedToken | null; onChange:
 }
 
 function SignUpButton() {
+  const {t:translateUI}=usePlatformLanguage();
   const session = useAuth();
   return session.authenticated ? (
     <Link href="/me" className="mt-3 inline-block rounded-lg bg-white/[0.06] px-3 py-1.5 text-xs font-semibold text-ink hover:bg-white/10">
-      Sign up
-    </Link>
+      {translateUI("Sign up")}</Link>
   ) : (
     <button type="button" onClick={() => auth.login()} className="mt-3 inline-block rounded-lg bg-white/[0.06] px-3 py-1.5 text-xs font-semibold text-ink hover:bg-white/10">
-      Sign up
-    </button>
+      {translateUI("Sign up")}</button>
   );
 }
 
@@ -366,11 +368,12 @@ function WhoToFollow({
   follows: ReturnType<typeof useFollowing>;
   meId: string | null;
 }) {
+  const {t:translateUI}=usePlatformLanguage();
   const list = (suggestions ?? []).filter((s) => s.member.id !== meId).slice(0, 5);
   return (
     <section className="rounded-2xl border border-white/[0.06] bg-surface p-3">
-      <div className="flex items-center justify-between px-1"><h2 className="text-sm font-semibold">Who to follow</h2>{BNB_PRODUCT && <Link href="/people" className="text-xs text-muted underline underline-offset-4">View all</Link>}</div>
-      {!list.length && <p className="mt-3 px-1 text-xs text-muted">{suggestions===null?'Loading member suggestions…':'No new members to suggest yet. Explore member profiles to build your network.'}</p>}
+      <div className="flex items-center justify-between px-1"><h2 className="text-sm font-semibold">{translateUI("Who to follow")}</h2>{BNB_PRODUCT && <Link href="/people" className="text-xs text-muted underline underline-offset-4">{translateUI("View all")}</Link>}</div>
+      {!list.length && <p className="mt-3 px-1 text-xs text-muted">{suggestions===null?translateUI("Loading member suggestions…"):translateUI("No new members to suggest yet. Explore member profiles to build your network.")}</p>}
       {follows.error&&<p role="alert" className="mt-2 text-xs text-risk-high">{follows.error}</p>}
       <ul className="mt-2 space-y-1">
         {list.map((s) => (
@@ -388,6 +391,7 @@ function WhoToFollow({
 }
 
 export function SuggestionRow({ s, following, onToggle,busy=false }: { s: Suggestion; following: boolean; onToggle: () => void;busy?:boolean }) {
+  const {t:translateUI}=usePlatformLanguage();
   return (
     <li className="flex items-center gap-2.5 rounded-xl px-1 py-1.5 hover:bg-white/[0.02]">
       <Link href={`/u/${s.member.handle}`} className="flex min-w-0 flex-1 items-center gap-2.5">
@@ -406,7 +410,7 @@ export function SuggestionRow({ s, following, onToggle,busy=false }: { s: Sugges
         disabled={busy}
         className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold ${following ? 'border border-white/[0.12] text-muted' : 'bg-ink text-bg hover:bg-white'}`}
       >
-        {busy?'Saving…':following ? 'Following' : 'Follow'}
+        {busy?translateUI("Saving…"):following ? translateUI("Following") : translateUI("Follow")}
       </button>
     </li>
   );
@@ -414,6 +418,7 @@ export function SuggestionRow({ s, following, onToggle,busy=false }: { s: Sugges
 
 /** Tokens with the most calls among the loaded ones, with the average move since the calls. */
 function MostCalled({ items }: { items: Callout[] | null }) {
+  const {t:translateUI}=usePlatformLanguage();
   const rows = useMemo(() => {
     const by = new Map<string, { c: Callout; n: number; since: number[] }>();
     for (const c of items ?? []) {
@@ -427,7 +432,7 @@ function MostCalled({ items }: { items: Callout[] | null }) {
   if (!rows.length) return null;
   return (
     <section className="rounded-2xl border border-white/[0.06] bg-surface p-3">
-      <h2 className="px-1 text-sm font-semibold">Most called</h2>
+      <h2 className="px-1 text-sm font-semibold">{translateUI("Most called")}</h2>
       <ul className="mt-2 space-y-1">
         {rows.map(({ c, n, since }) => {
           const avg = since.length ? since.reduce((a, b) => a + b, 0) / since.length : null;
@@ -441,7 +446,7 @@ function MostCalled({ items }: { items: Callout[] | null }) {
                 </span>
                 <span className="text-right text-xs">
                   <span className="block text-muted">
-                    {countFmt(n)} call{n > 1 ? 's' : ''}
+                    {countFmt(n)}  {translateUI("call")}{n > 1 ? 's' : ''}
                   </span>
                   {avg != null && <span className={`block font-mono ${avg >= 0 ? 'text-go' : 'text-risk-high'}`}>{pctSigned(avg, 0)}</span>}
                 </span>
@@ -462,8 +467,9 @@ function Empty({ children }: { children: React.ReactNode }) {
 
 /** Placeholders shaped like call cards. */
 function SkeletonList({ n = 4 }: { n?: number }) {
+  const {t:translateUI}=usePlatformLanguage();
   return (
-    <ul className="space-y-2.5" aria-busy aria-label="Loading calls">
+    <ul className="space-y-2.5" aria-busy aria-label={translateUI("Loading calls")}>
       {Array.from({ length: n }, (_, i) => (
         <li key={i} className="rounded-xl border border-white/[0.06] bg-bg/40 p-3">
           <div className="flex items-center gap-2">

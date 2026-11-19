@@ -1,5 +1,6 @@
 'use client';
 
+import {usePlatformLanguage} from '@/components/landing/language-provider';
 import { useMemo, useState } from 'react';
 import { parseEther } from 'viem';
 import { auth } from '@/lib/auth';
@@ -26,6 +27,7 @@ export function QuickBuyButton({ token, amountEth, amountUsd, variant = 'solid' 
 }
 
 function QuickBuyInner({ token, amountEth, amountUsd, variant }: { token: TradeToken; amountEth?: string; amountUsd?: number; variant: 'solid' | 'subtle' }) {
+  const {t:translateUI}=usePlatformLanguage();
   const q = useQuickTrade(token);
   const [note, setNote] = useState<string | null>(null);
   const ethUsd = useEthUsd();
@@ -73,12 +75,11 @@ function QuickBuyInner({ token, amountEth, amountUsd, variant }: { token: TradeT
           q.status.kind === 'success' ? 'bg-brand/20 text-brand' : q.status.kind === 'pending' ? 'bg-brand/20 text-brand' : q.status.kind === 'failed' || note ? 'bg-risk-high/20 text-risk-high' : variant === 'subtle' ? 'bg-brand/15 text-brand hover:bg-brand/25' : 'bg-go text-bg hover:brightness-110'
         }`}
       >
-        ⚡ {label}
+        ⚡ {translateUI(label)}
       </button>
       {q.status.kind === 'success' && (
         <a href={q.status.url} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} className="ml-1 self-center text-[10px] text-muted underline">
-          tx
-        </a>
+          {translateUI("tx")}</a>
       )}
     </span>
   );

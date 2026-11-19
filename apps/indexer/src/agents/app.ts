@@ -1,3 +1,4 @@
+import {CLASHR_LLMS_TXT} from '@rushr/agents/clashr-llms-txt';
 // /v1: members, social, leaderboard and agents. Mounted by index.ts as `app.route('/v1', v1)`.
 // Everything is off unless AGENTS_ENABLED=1. Rushr never holds keys, never signs, never trades for anyone.
 import { Hono } from 'hono';
@@ -19,7 +20,7 @@ export { adminV1 } from './admin';
 export const v1 = new Hono<Ctx>();
 
 v1.onError((e, c) => errorResponse(c, e));
-v1.notFound((c) => c.json({ error: { code: 'not_found', message: 'No such endpoint.', docs: 'https://rushr.trade/llms.txt' } }, 404));
+v1.notFound((c) => c.json({ error: { code: 'not_found', message: 'No such endpoint.', docs: c.env.CHAIN_ID==='56'?'https://clashr.trade/llms.txt':'https://rushr.trade/llms.txt' } }, 404));
 v1.use('*', flag('AGENTS_ENABLED', 'The members API'), db, ip, body, auth);
 // The documented read limit for agents: every GET with an API key counts (60/min per key). Expensive
 // public reads are limited for everyone in their handlers (expensiveRead).
@@ -41,4 +42,4 @@ v1.route('/', agents);
 v1.route('/', media);
 
 /** The agent instructions, also at /llms.txt on the API and the website. */
-v1.get('/llms.txt', (c) => c.body(LLMS_TXT, 200, { 'content-type': 'text/plain; charset=utf-8', 'cache-control': 'public, max-age=300, s-maxage=300' }));
+v1.get('/llms.txt', (c) => c.body(c.env.CHAIN_ID==='56'?CLASHR_LLMS_TXT:LLMS_TXT, 200, { 'content-type': 'text/plain; charset=utf-8', 'cache-control': 'public, max-age=300, s-maxage=300' }));

@@ -6,6 +6,8 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 
 const root = new URL('../', import.meta.url);
 const FILES = [
+  {src:'clashr-llms.txt',out:'src/clashr-llms-txt.ts',name:'CLASHR_LLMS_TXT'},
+  {src:'clashr-skill.md',out:'src/clashr-skill-md.ts',name:'CLASHR_SKILL_MD'},
   { src: 'llms.txt', out: 'src/llms-txt.ts', name: 'LLMS_TXT' },
   { src: 'skill.md', out: 'src/skill-md.ts', name: 'SKILL_MD' },
 ];

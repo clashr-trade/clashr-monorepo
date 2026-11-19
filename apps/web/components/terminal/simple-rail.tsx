@@ -1,5 +1,6 @@
 'use client';
 
+import {usePlatformLanguage} from '@/components/landing/language-provider';
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { CaretDown, Globe, MagnifyingGlass, ShareNetwork, TelegramLogo, XLogo } from '@phosphor-icons/react';
@@ -31,6 +32,7 @@ const money = (n: number) => `${n < 0 ? '-' : n > 0 ? '+' : ''}${cash(n)}`;
  * so they survive a refresh and move the moment a trade lands.
  */
 export function PositionCard({ t, position: p, supply }: { t: TokenCard; position: LivePosition; supply: number }) {
+  const {t:translateUI}=usePlatformLanguage();
   const [open, setOpen] = useState(false);
   if (!p.loaded || (!p.holding && p.boughtUsd <= 0)) return null;
   const closed = !p.holding;
@@ -49,9 +51,9 @@ export function PositionCard({ t, position: p, supply }: { t: TokenCard; positio
         <span className="min-w-0 flex-1">
           {closed ? (
             <>
-              <span className="block text-[13px] font-medium text-ink/80">Closed</span>
+              <span className="block text-[13px] font-medium text-ink/80">{translateUI("Closed")}</span>
               <span className="block truncate text-[11px] text-muted">
-                bought <span className="font-mono">{cash(p.boughtUsd)}</span> · sold <span className="font-mono">{cash(p.soldUsd)}</span>
+                {translateUI("bought")}<span className="font-mono">{cash(p.boughtUsd)}</span>  {translateUI("· sold")} <span className="font-mono">{cash(p.soldUsd)}</span>
               </span>
             </>
           ) : (
@@ -61,7 +63,7 @@ export function PositionCard({ t, position: p, supply }: { t: TokenCard; positio
               </span>
               {(partly || p.syncing) && (
                 <span className="block truncate text-[11px] text-muted">
-                  {p.syncing ? 'Updating with your latest trade…' : <>Realised <span className="font-mono">{money(p.realizedUsd)}</span></>}
+                  {p.syncing ? translateUI("Updating with your latest trade…") : <>{translateUI("Realised")} <span className="font-mono">{money(p.realizedUsd)}</span></>}
                 </span>
               )}
             </>
@@ -85,7 +87,7 @@ export function PositionCard({ t, position: p, supply }: { t: TokenCard; positio
           </dl>
           {/* Spot for sharing a PnL card to X (not built yet). */}
           <div className="mt-2 flex justify-end">
-            <button type="button" disabled title="Sharing your PnL card is coming soon" aria-label="Share PnL card (coming soon)" className="rounded-lg p-1.5 text-muted/50">
+            <button type="button" disabled title={translateUI("Sharing your PnL card is coming soon")} aria-label={translateUI("Share PnL card (coming soon)")} className="rounded-lg p-1.5 text-muted/50">
               <ShareNetwork size={14} />
             </button>
           </div>
@@ -96,9 +98,10 @@ export function PositionCard({ t, position: p, supply }: { t: TokenCard; positio
 }
 
 function Fig({ k, v }: { k: string; v: string }) {
+ const {t:translateUI}=usePlatformLanguage();
   return (
     <div className="flex justify-between gap-2">
-      <dt className="text-muted">{k}</dt>
+      <dt className="text-muted">{translateUI(k)}</dt>
       <dd className="font-mono text-ink/85">{v}</dd>
     </div>
   );
@@ -112,6 +115,7 @@ function Fig({ k, v }: { k: string; v: string }) {
  * a buy the box offers to share the call. Posting needs a registered member.
  */
 export function ThesisBox({ t, position }: { t: Pick<TokenDetail,'address'|'symbol'>; position: LivePosition }) {
+  const {t:translateUI}=usePlatformLanguage();
   const session = useAuth();
   const me = useMe();
   const member = me?.status === 'registered' ? me.member : null;
@@ -166,9 +170,9 @@ export function ThesisBox({ t, position }: { t: Pick<TokenDetail,'address'|'symb
   return (
     <section
       className={`shrink-0 rounded-2xl border bg-surface p-3 transition ${nudge ? 'border-brand/40 shadow-[0_0_0_3px] shadow-brand/10' : 'border-white/[0.06]'}`}
-      aria-label="Post your call"
+      aria-label={translateUI("Post your call")}
     >
-      {nudge && <p className="mb-2 text-sm font-medium text-brand">Share your call?</p>}
+      {nudge && <p className="mb-2 text-sm font-medium text-brand">{translateUI("Share your call?")}</p>}
       <div className="flex items-center gap-2">
         {member ? (
           <Link href={`/u/${member.handle}`} className="flex min-w-0 items-center gap-2 hover:opacity-90">
@@ -176,10 +180,10 @@ export function ThesisBox({ t, position }: { t: Pick<TokenDetail,'address'|'symb
             <span className="min-w-0 truncate text-sm font-medium">@{member.handle}</span>
           </Link>
         ) : (
-          <span className="text-sm font-medium">Your call</span>
+          <span className="text-sm font-medium">{translateUI("Your call")}</span>
         )}
-        <span className="rounded-md bg-brand/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-brand">Thesis</span>
-        <div className="ml-auto flex rounded-lg bg-white/[0.04] p-0.5 text-[11px]" role="radiogroup" aria-label="Stance">
+        <span className="rounded-md bg-brand/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-brand">{translateUI("Thesis")}</span>
+        <div className="ml-auto flex rounded-lg bg-white/[0.04] p-0.5 text-[11px]" role="radiogroup" aria-label={translateUI("Stance")}>
           {(['bullish', 'bearish'] as const).map((st) => (
             <button
               key={st}
@@ -204,11 +208,11 @@ export function ThesisBox({ t, position }: { t: Pick<TokenDetail,'address'|'symb
             onChange={(e) => setText(e.target.value.slice(0, CALL_MAX))}
             placeholder={`Add a thesis to your trade: why $${t.symbol}?`}
             rows={3}
-            aria-label="Your call"
+            aria-label={translateUI("Your call")}
             className="mt-2 w-full resize-none rounded-xl border border-white/[0.06] bg-bg px-3 py-2 text-sm outline-none placeholder:text-muted/70 focus:border-white/20"
           />
           <div className="mt-1.5 flex items-center gap-2 text-[11px] text-muted">
-            <span>Visible to everyone</span>
+            <span>{translateUI("Visible to everyone")}</span>
             <span className="font-mono">
               {text.length}/{CALL_MAX}
             </span>
@@ -216,33 +220,30 @@ export function ThesisBox({ t, position }: { t: Pick<TokenDetail,'address'|'symb
               type="button"
               onClick={() => void post()}
               disabled={busy || !text.trim() || !live}
-              title={live ? undefined : 'Signing you in…'}
+              title={live ? undefined : translateUI("Signing you in…")}
               className="ml-auto rounded-lg bg-ink px-3 py-1.5 text-xs font-semibold text-bg hover:bg-white disabled:opacity-40"
             >
-              {busy ? 'Posting…' : 'Post call'}
+              {busy ? translateUI("Posting…") : translateUI("Post call")}
             </button>
           </div>
         </>
       ) : loading ? (
-        <div className="mt-2 h-[86px] animate-pulse rounded-xl bg-white/[0.03]" aria-busy aria-label="Loading" />
+        <div className="mt-2 h-[86px] animate-pulse rounded-xl bg-white/[0.03]" aria-busy aria-label={translateUI("Loading")} />
       ) : session.authenticated && me?.status === 'unavailable' ? (
         <div className="mt-2 flex items-center justify-between gap-2 rounded-xl border border-dashed border-white/[0.08] px-3 py-3 text-sm text-muted">
-          <span>Couldn’t check your Rushr profile.</span>
+          <span>{translateUI("Couldn’t check your CLASHR profile.")}</span>
           <button type="button" onClick={() => void getMe().then(setMe)} className="rounded-lg bg-white/[0.06] px-3 py-1.5 text-xs font-semibold text-ink hover:bg-white/10">
-            Retry
-          </button>
+            {translateUI("Retry")}</button>
         </div>
       ) : (
         <div className="mt-2 flex items-center justify-between gap-2 rounded-xl border border-dashed border-white/[0.08] px-3 py-3 text-sm text-muted">
-          <span>Sign up to post your call.</span>
+          <span>{translateUI("Sign up to post your call.")}</span>
           {session.authenticated ? (
             <Link href="/me" className="rounded-lg bg-white/[0.06] px-3 py-1.5 text-xs font-semibold text-ink hover:bg-white/10">
-              Sign up
-            </Link>
+              {translateUI("Sign up")}</Link>
           ) : (
             <button type="button" onClick={() => auth.login()} className="rounded-lg bg-white/[0.06] px-3 py-1.5 text-xs font-semibold text-ink hover:bg-white/10">
-              Sign up
-            </button>
+              {translateUI("Sign up")}</button>
           )}
         </div>
       )}
@@ -276,6 +277,7 @@ export function AboutCard({
   safety?: React.ReactNode;
   more: React.ReactNode;
 }) {
+  const {t:translateUI}=usePlatformLanguage();
   const [w, setW] = useState<WindowId>('h24');
   const [open, setOpen] = useState(false);
   const [full, setFull] = useState(false);
@@ -303,18 +305,17 @@ export function AboutCard({
 
   return (
     <section className="shrink-0 rounded-2xl border border-white/[0.06] bg-surface p-4" aria-label={`About ${t.symbol}`}>
-      <h2 className="text-sm font-semibold">About {t.symbol}</h2>
+      <h2 className="text-sm font-semibold">{translateUI("About")} {t.symbol}</h2>
       {t.description ? (
         <p className={`mt-1.5 whitespace-pre-line text-sm text-ink/80 ${full ? '' : 'line-clamp-3'}`}>
           {t.description}
           {!full && t.description.length > 140 && (
             <button type="button" onClick={() => setFull(true)} className="ml-1 text-muted underline">
-              more
-            </button>
+              {translateUI("more")}</button>
           )}
         </p>
       ) : (
-        <p className="mt-1.5 text-sm text-muted">{t.name} has no description yet.</p>
+        <p className="mt-1.5 text-sm text-muted">{t.name}  {translateUI("has no description yet.")}</p>
       )}
 
       {safety && <div className="mt-3">{safety}</div>}
@@ -346,7 +347,7 @@ export function AboutCard({
             rel="noreferrer noopener"
             className="inline-flex items-center gap-1.5 rounded-full border border-white/[0.08] px-2.5 py-1 text-xs text-ink/80 hover:border-white/20 hover:text-ink"
           >
-            <Icon size={13} /> {label}
+            <Icon size={13} /> {translateUI(label)}
           </a>
         ))}
       </div>
@@ -357,7 +358,7 @@ export function AboutCard({
         aria-expanded={open}
         className="mt-3 flex w-full items-center justify-center gap-1 rounded-xl py-2 text-xs text-muted hover:bg-white/[0.03] hover:text-ink"
       >
-        {open ? 'View less' : 'View more'} <CaretDown size={12} className={`transition ${open ? 'rotate-180' : ''}`} />
+        {open ? translateUI("View less") : translateUI("View more")} <CaretDown size={12} className={`transition ${open ? 'rotate-180' : ''}`} />
       </button>
       {open && <div className="mt-2 space-y-2">{more}</div>}
     </section>
@@ -365,6 +366,7 @@ export function AboutCard({
 }
 
 function Split({ leftLabel, rightLabel, left, right, fmt }: { leftLabel: string; rightLabel: string; left: number | null; right: number | null; fmt: (n: number) => string }) {
+ const {t:translateUI}=usePlatformLanguage();
   const known = left != null && right != null;
   const total = known ? left + right : 0;
   const share = known && total > 0 ? (left / total) * 100 : 50;
@@ -378,11 +380,10 @@ function Split({ leftLabel, rightLabel, left, right, fmt }: { leftLabel: string;
           <span className="font-mono text-risk-high">{right == null ? '—' : fmt(right)}</span> {rightLabel}
         </span>
       </div>
-      <div className="mt-1 flex h-1.5 gap-0.5 overflow-hidden rounded-full" title={known ? undefined : 'Not enough recent trades to tell'}>
+      <div className="mt-1 flex h-1.5 gap-0.5 overflow-hidden rounded-full" title={known ? undefined : translateUI("Not enough recent trades to tell")}>
         <span className={`h-full rounded-full ${known ? 'bg-go' : 'bg-white/[0.08]'}`} style={{ width: `${share}%` }} />
         <span className={`h-full flex-1 rounded-full ${known ? 'bg-risk-high' : 'bg-white/[0.08]'}`} />
       </div>
     </div>
   );
 }
-

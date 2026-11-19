@@ -1,5 +1,6 @@
 'use client';
 
+import {usePlatformLanguage} from '@/components/landing/language-provider';
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { ChatCircle, Heart, Robot } from '@phosphor-icons/react';
@@ -28,6 +29,7 @@ export function CallsFeed({
   onSelect: (id: string | null) => void;
   nowMs: number;
 }) {
+  const {t:translateUI}=usePlatformLanguage();
   if (items == null)
     return (
       <ul className="space-y-2 p-2" aria-busy>
@@ -40,9 +42,8 @@ export function CallsFeed({
     return (
       <div className="grid h-full min-h-40 place-items-center p-6 text-center">
         <p className="text-sm text-muted">
-          No calls yet.
-          <br />
-          Be the first to call ${symbol}.
+          {translateUI("No calls yet.")}<br />
+          {translateUI("Be the first to call $")}{symbol}.
         </p>
       </div>
     );
@@ -74,6 +75,7 @@ export function CallCard({
   showToken?: boolean;
   follow?: { following: boolean; onToggle: () => void } | null;
 }) {
+  const {t:translateUI}=usePlatformLanguage();
   const session = useAuth();
   const me = useMe();
   const member = me?.status === 'registered';
@@ -115,8 +117,7 @@ export function CallCard({
         </Link>
         {c.author.kind === 'agent' && (
           <span className="inline-flex items-center gap-0.5 rounded bg-white/[0.06] px-1 py-px text-[10px] text-muted">
-            <Robot size={10} /> Agent
-          </span>
+            <Robot size={10} /> {translateUI("Agent")}</span>
         )}
         {follow && (
           <button
@@ -129,14 +130,14 @@ export function CallCard({
               follow.following ? 'border border-white/[0.12] text-muted hover:border-risk-high/40 hover:text-risk-high' : 'bg-white/[0.08] text-ink hover:bg-white/[0.14]'
             }`}
           >
-            {follow.following ? 'Following' : 'Follow'}
+            {follow.following ? translateUI("Following") : translateUI("Follow")}
           </button>
         )}
         <span className="ml-auto shrink-0 text-[11px] text-muted">{age(new Date(c.createdAt).getTime(), nowMs)}</span>
       </div>
       <div className="mt-2 flex flex-wrap items-center gap-2">
         <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${bull ? 'bg-go/15 text-go' : 'bg-risk-high/15 text-risk-high'}`}>
-          {bull ? 'Bullish' : 'Bearish'}
+          {bull ? translateUI("Bullish") : translateUI("Bearish")}
         </span>
         {showToken && (
           <Link
@@ -146,19 +147,19 @@ export function CallCard({
           >
             <TokenAvatar t={{ address: c.token.address, symbol: c.token.symbol ?? '?', launchpad: null, image_url: c.token.imageUrl }} size={18} />
             <span className="font-semibold">${c.token.symbol ?? '?'}</span>
-            {mcapNow(c) != null && <span className="font-mono text-muted">{usd(mcapNow(c))} MC</span>}
+            {mcapNow(c) != null && <span className="font-mono text-muted">{usd(mcapNow(c))}  {translateUI("MC")}</span>}
           </Link>
         )}
       </div>
       <p className="mt-1.5 whitespace-pre-line break-words text-sm text-ink/90">{c.body}</p>
       <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-[11px] text-muted">
-        {c.atPost.marketCapUsd != null && <span>called at {usd(c.atPost.marketCapUsd)} MC</span>}
+        {c.atPost.marketCapUsd != null && <span>{translateUI("called at")} {usd(c.atPost.marketCapUsd)}  {translateUI("MC")}</span>}
         {c.atPost.marketCapUsd != null && since != null && <span className="text-muted/50">·</span>}
-        {since != null && <span className={since >= 0 ? 'text-go' : 'text-risk-high'}>{pctSigned(since, 0)} since</span>}
-        {c.entry && <span className="font-sans">{c.entry.when === 'before_post' ? 'Bought before calling' : 'Bought after calling'}</span>}
+        {since != null && <span className={since >= 0 ? 'text-go' : 'text-risk-high'}>{pctSigned(since, 0)}  {translateUI("since")}</span>}
+        {c.entry && <span className="font-sans">{c.entry.when === 'before_post' ? translateUI("Bought before calling") : translateUI("Bought after calling")}</span>}
       </div>
       <div className="mt-2 flex items-center gap-4 text-xs text-muted">
-        <button type="button" onClick={(e) => void like(e)} aria-pressed={liked} title={member || !session.authenticated ? 'Like' : 'Pick a handle to like'} className={`flex items-center gap-1 hover:text-ink ${liked ? 'text-risk-high' : ''}`}>
+        <button type="button" onClick={(e) => void like(e)} aria-pressed={liked} title={member || !session.authenticated ? translateUI("Like") : translateUI("Pick a handle to like")} className={`flex items-center gap-1 hover:text-ink ${liked ? 'text-risk-high' : ''}`}>
           <Heart size={14} weight={liked ? 'fill' : 'regular'} /> {likes}
         </button>
         <button
@@ -179,6 +180,7 @@ export function CallCard({
 }
 
 function Comments({ id, canPost, nowMs }: { id: string; canPost: boolean; nowMs: number }) {
+  const {t:translateUI}=usePlatformLanguage();
   const [items, setItems] = useState<CalloutComment[] | null>(null);
   const [text, setText] = useState('');
   const [busy, setBusy] = useState(false);
@@ -205,7 +207,7 @@ function Comments({ id, canPost, nowMs }: { id: string; canPost: boolean; nowMs:
   return (
     <div onClick={(e) => e.stopPropagation()} className="mt-2 space-y-2 border-t border-white/[0.05] pt-2">
       {items == null ? (
-        <p className="text-xs text-muted">Loading…</p>
+        <p className="text-xs text-muted">{translateUI("Loading…")}</p>
       ) : items.length ? (
         items.map((k) => (
           <div key={k.id} className="flex gap-2 text-xs">
@@ -222,7 +224,7 @@ function Comments({ id, canPost, nowMs }: { id: string; canPost: boolean; nowMs:
           </div>
         ))
       ) : (
-        <p className="text-xs text-muted">No comments yet.</p>
+        <p className="text-xs text-muted">{translateUI("No comments yet.")}</p>
       )}
       {canPost && (
         <div className="flex gap-1.5">
@@ -230,13 +232,12 @@ function Comments({ id, canPost, nowMs }: { id: string; canPost: boolean; nowMs:
             value={text}
             onChange={(e) => setText(e.target.value.slice(0, COMMENT_MAX))}
             onKeyDown={(e) => e.key === 'Enter' && void send()}
-            placeholder="Reply"
-            aria-label="Write a comment"
+            placeholder={translateUI("Reply")}
+            aria-label={translateUI("Write a comment")}
             className="min-w-0 flex-1 rounded-lg border border-white/[0.08] bg-bg px-2 py-1 text-xs outline-none focus:border-white/25"
           />
           <button type="button" onClick={() => void send()} disabled={busy || !text.trim()} className="rounded-lg bg-white/[0.08] px-2 text-xs font-semibold disabled:opacity-40">
-            Send
-          </button>
+            {translateUI("Send")}</button>
         </div>
       )}
       {err && <p className="text-xs text-risk-high">{err}</p>}

@@ -4,7 +4,7 @@ import { BSC_PUBLIC_RPC } from '@rushr/core/chain/bsc-rpc';
 import type { Candle } from './api';
 import { type HolderInfo, type Tx } from './trades';
 import { getPublicBscToken, getPublicBscCandles, type PublicBscDetail } from './bsc-public-market';
-import { getBnbProductToken } from './fourmeme-market';
+import { getBnbProductToken, getFlapTokenInfo, getFlapCandles, getFlapTrades, getFlapHolders } from './flap-market';
 import { BNB_PRODUCT } from './product';
 import { verifyRpcChain } from './rpc-upstream';
 
@@ -67,8 +67,13 @@ export function normalizeFourMemeActivity(
 
 export function candlesFromBscTrades(trades: Tx[], seconds: number): Candle[] {
   const bars = new Map<number, Candle>();
-  for (const t of [...trades].sort((a, b) => a.time - b.time)) {
-    if (t.priceUsd == null || t.priceUsd <= 0) continue;
+  for (const t of [...trades].sort((a, b) => {
+    if(a.block&&b.block&&/^\d+$/.test(a.block)&&/^\d+$/.test(b.block)){
+      const x=BigInt(a.block),y=BigInt(b.block);return x===y?(a.logIndex??0)-(b.logIndex??0):x<y?-1:1;
+    }
+    return a.time-b.time;
+  })) {
+    if (t.priceUsd == null || !Number.isFinite(t.priceUsd) || t.priceUsd <= 0) continue;
     const time = Math.floor(t.time / seconds) * seconds,
       bar = bars.get(time);
     if (bar) {
@@ -146,7 +151,7 @@ export function getBscTokenWorkspace(address: string): Promise<BscTokenWorkspace
   const task = load(key)
     .then((value) => {
       if (cache.size >= 150) cache.delete(cache.keys().next().value!);
-      cache.set(key, { until: Date.now() + 15_000, value });
+      cache.set(key, { until: Date.now() + 3_000, value });
       return value;
     })
     .finally(() => pending.delete(key));
@@ -156,22 +161,10 @@ export function getBscTokenWorkspace(address: string): Promise<BscTokenWorkspace
 async function load(address: string): Promise<BscTokenWorkspace | null> {
   const detail = await (BNB_PRODUCT ? getBnbProductToken(address) : getPublicBscToken(address));
   if (!detail) return null;
-  const infoPromise = BNB_PRODUCT
-    ? fetch(`https://four.meme/meme-api/v1/private/token/get/v2?address=${address}`, {
-        signal: AbortSignal.timeout(6000),
-      })
-        .then(async (r) => {
-          if (!r.ok) throw new Error();
-          const b = (await r.json()) as { code: number; data: Record<string, unknown> };
-          return b.code === 0 &&
-            b.data?.networkCode === 'BSC' &&
-            String(b.data.address).toLowerCase() === address
-            ? b.data
-            : null;
-        })
-        .catch(() => null)
-    : Promise.resolve(null);
+  const infoPromise = BNB_PRODUCT ? getFlapTokenInfo(address).catch(() => null) : Promise.resolve(null);
   const metadata = async () => {
+    const info=await infoPromise;
+    if(detail.source==='flap'&&Number.isInteger(info?.decimals)&&Number(info?.decimals)>=0&&Number(info?.decimals)<=36&&/^\d+$/.test(String(info?.totalSupply??'')))return {decimals:Number(info!.decimals),totalSupply:String(info!.totalSupply)};
     const url = process.env.BSC_RPC_URL || BSC_PUBLIC_RPC;
     await verifyRpcChain(url, 56);
     const client = createPublicClient({
@@ -192,28 +185,7 @@ async function load(address: string): Promise<BscTokenWorkspace | null> {
   };
   const activity = async () => {
     const pools = detail.pools.filter((p) => p.dex === 'v2' || p.dex === 'v3').slice(0, 2);
-    if (!pools.length) {
-      const info = await infoPromise,
-        id = Number(info?.id);
-      if (!info || !Number.isSafeInteger(id) || id <= 0)
-        return { trades: [] as Tx[], activity: 'curve-unindexed' as const };
-      const r = await fetch(
-        `https://four.meme/meme-api/v1/public/fill?tokenId=${id}&pageIndex=1&pageSize=100`,
-        { signal: AbortSignal.timeout(8000) },
-      ).catch(() => null);
-      if (!r?.ok) return { trades: [] as Tx[], activity: 'unavailable' as const };
-      const body = (await r.json()) as { code: number; data: unknown };
-      const rate =
-        info.symbol === 'USDT'
-          ? 1
-          : detail.token.price_native && detail.token.price_usd
-            ? detail.token.price_usd / detail.token.price_native
-            : null;
-      return {
-        trades: body.code === 0 ? normalizeFourMemeActivity(body.data, id, rate) : [],
-        activity: body.code === 0 ? ('available' as const) : ('unavailable' as const),
-      };
-    }
+    if (!pools.length) return detail.source==='flap'?{trades:await getFlapTrades(address),activity:'available' as const}:{trades:[] as Tx[],activity:'curve-unindexed' as const};
     const results = await Promise.allSettled(
       pools.map(async (pool) => {
         const response = await fetch(
@@ -235,58 +207,26 @@ async function load(address: string): Promise<BscTokenWorkspace | null> {
         : ('unavailable' as const),
     };
   };
-  const holders = async () => {
-    const info = await infoPromise,
-      id = Number(info?.id);
-    if (!info || !Number.isSafeInteger(id) || id <= 0) return null;
-    const r = await fetch(`https://four.meme/meme-api/v1/private/token/holder?tokenId=${id}`, {
-      signal: AbortSignal.timeout(8000),
-    });
-    const b = (await r.json()) as {
-      code: number;
-      data?: { tokenHolders?: { address: string; amount: string }[] };
-    };
-    return r.ok && b.code === 0 && Array.isArray(b.data?.tokenHolders) ? b.data.tokenHolders : null;
-  };
+  // Flap holder/trade units are not inferred from Four.meme's unrelated API schema.
+  const holders = async ():Promise<HolderInfo[]|null> => detail.source==='flap'?getFlapHolders(address):null;
   const [meta, candles, rows, holderRows, info] = await Promise.all([
     metadata().catch(() => ({ decimals: detail.token.decimals, totalSupply: null })),
-    getPublicBscCandles(address, '1m').catch(() => []),
+    (detail.source === 'flap' && !detail.pools.length ? getFlapCandles(address, '1m') : getPublicBscCandles(address, '1m')).catch(() => []),
     activity().catch(()=>({trades:[] as Tx[],activity:'unavailable' as const})),
     holders().catch(() => null),
     infoPromise,
   ]);
-  let normalizedHolders: HolderInfo[] | null = null;
-  if (holderRows && meta.decimals !== null && meta.totalSupply && BigInt(meta.totalSupply) > 0n) {
-    normalizedHolders = holderRows
-      .slice(0, 200)
-      .flatMap((h) => {
-        if (!/^0x[0-9a-f]{40}$/i.test(h.address) || !/^\d+(?:\.\d+)?$/.test(h.amount)) return [];
-        const [whole, fraction = ''] = h.amount.split('.');
-        const raw =
-          BigInt(whole!) * 10n ** BigInt(meta.decimals!) +
-          BigInt(fraction.slice(0, meta.decimals!).padEnd(meta.decimals!, '0') || '0');
-        return [
-          {
-            wallet: h.address.toLowerCase(),
-            amount: raw.toString(),
-            pct: (Number(raw) * 100) / Number(meta.totalSupply),
-            tags: [],
-            funder: null,
-          },
-        ];
-      })
-      .sort((a, b) => b.pct - a.pct);
-  }
+  const normalizedHolders=holderRows;
   return {
     chainId: 56,
     detail,
     candles: candles.length ? candles : candlesFromBscTrades(rows.trades, 60),
     ...meta,
     ...rows,
-    description: typeof info?.descr === 'string' ? info.descr.slice(0, 2000) : null,
+    description: info?.metadata && typeof info.metadata === 'object' && typeof (info.metadata as Record<string, unknown>).description === 'string' ? String((info.metadata as Record<string, unknown>).description).trim().slice(0, 2000)||null : null,
     creator:
-      typeof info?.userAddress === 'string' && /^0x[0-9a-f]{40}$/i.test(info.userAddress)
-        ? info.userAddress.toLowerCase()
+      typeof info?.creator === 'string' && /^0x[0-9a-f]{40}$/i.test(info.creator)
+        ? info.creator.toLowerCase()
         : null,
     holders: normalizedHolders,
   };

@@ -1,5 +1,6 @@
 'use client';
 
+import {usePlatformLanguage} from '@/components/landing/language-provider';
 import { useState } from 'react';
 import Link from 'next/link';
 import type { Address } from 'viem';
@@ -35,6 +36,7 @@ export function WalletOverview({
   /** Drawer layout: no card chrome. */
   dense?: boolean;
 }) {
+  const {t:translateUI}=usePlatformLanguage();
   const [modal, setModal] = useState<'deposit' | 'withdraw' | null>(null);
   const [showDust, setShowDust] = useState(false);
   const dust = h.items.filter((x) => !x.cash && (x.valueUsd ?? 0) < DUST_USD);
@@ -44,10 +46,10 @@ export function WalletOverview({
   const usdg = h.items.find((x) => x.symbol === 'USDG');
 
   return (
-    <section className={dense ? '' : 'rounded-2xl border border-white/[0.06] bg-surface p-4'} aria-label="Wallet">
+    <section className={dense ? '' : 'rounded-2xl border border-white/[0.06] bg-surface p-4'} aria-label={translateUI("Wallet")}>
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
-          <div className="text-xs text-muted">Total balance</div>
+          <div className="text-xs text-muted">{translateUI("Total balance")}</div>
           <div className="mt-0.5 font-mono text-3xl font-semibold tracking-tight">{h.totalUsd == null ? <Skel w={120} h={32} /> : usd(h.totalUsd)}</div>
           <div className="mt-1 h-5 font-mono text-sm">
             {h.change24hUsd != null ? (
@@ -58,12 +60,12 @@ export function WalletOverview({
                 <span className="font-sans text-xs text-muted">24h</span>
               </span>
             ) : (
-              <span className="text-xs text-muted">{h.state === 'loading' || !h.totalUsd ? '' : '24h change shows once token prices carry it'}</span>
+              <span className="text-xs text-muted">{h.state === 'loading' || !h.totalUsd ? '' : translateUI("24h change shows once token prices carry it")}</span>
             )}
           </div>
         </div>
         <div className="flex shrink-0 items-center gap-0.5">
-          <button type="button" onClick={h.refresh} aria-label="Refresh balances" title="Refresh" className="rounded-lg p-1.5 text-muted hover:bg-white/[0.05] hover:text-ink">
+          <button type="button" onClick={h.refresh} aria-label={translateUI("Refresh balances")} title={translateUI("Refresh")} className="rounded-lg p-1.5 text-muted hover:bg-white/[0.05] hover:text-ink">
             <ArrowsClockwise size={16} />
           </button>
           {menu}
@@ -72,24 +74,22 @@ export function WalletOverview({
 
       <div className="mt-3 grid grid-cols-2 gap-2">
         <button type="button" onClick={() => setModal('deposit')} disabled={!wallet} className="rounded-xl bg-brand py-2.5 text-sm font-semibold text-bg hover:brightness-110 disabled:opacity-40">
-          Deposit
-        </button>
+          {translateUI("Deposit")}</button>
         <button
           type="button"
           onClick={() => setModal('withdraw')}
           disabled={!wallet}
           className="rounded-xl border border-white/[0.1] py-2.5 text-sm font-semibold hover:border-white/25 disabled:opacity-40"
         >
-          Withdraw
-        </button>
+          {translateUI("Withdraw")}</button>
       </div>
 
       <div className="mt-4 flex items-center justify-between text-[11px] text-muted">
-        <span>Tokens</span>
+        <span>{translateUI("Tokens")}</span>
         {dust.length > 0 && (
           <label className="flex cursor-pointer items-center gap-1.5">
             <input type="checkbox" checked={showDust} onChange={(e) => setShowDust(e.target.checked)} className="accent-[#36d42a]" />
-            Show dust ({dust.length})
+            {translateUI("Show dust (")}{dust.length})
           </label>
         )}
       </div>
@@ -104,16 +104,16 @@ export function WalletOverview({
           : rows.map((x) => <Row key={x.address ?? 'eth'} x={x} onNavigate={onNavigate} />)}
       </ul>
       {h.state === 'ready' && rows.length <= 2 && !dust.length && (cash?.raw ?? 0n) === 0n && (usdg?.raw ?? 0n) === 0n && (
-        <p className="mt-2 rounded-xl bg-white/[0.03] px-3 py-2.5 text-xs text-muted">Your wallet is empty. Deposit ETH or USDG on Robinhood Chain to start trading.</p>
+        <p className="mt-2 rounded-xl bg-white/[0.03] px-3 py-2.5 text-xs text-muted">{translateUI("Your wallet is empty. Deposit ETH or USDG on Robinhood Chain to start trading.")}</p>
       )}
 
       {modal === 'deposit' && (
-        <Modal title="Deposit" onClose={() => setModal(null)} wide>
+        <Modal title={translateUI("Deposit")} onClose={() => setModal(null)} wide>
           <DepositPanel address={wallet} />
         </Modal>
       )}
       {modal === 'withdraw' && wallet && (
-        <Modal title="Withdraw" onClose={() => setModal(null)}>
+        <Modal title={translateUI("Withdraw")} onClose={() => setModal(null)}>
           <WithdrawPanel
             from={wallet}
             balances={cash && usdg ? { eth: cash.raw, usdg: usdg.raw } : null}
@@ -133,6 +133,7 @@ function amountLabel(x: Holding) {
 }
 
 function Row({ x, onNavigate }: { x: Holding; onNavigate?: () => void }) {
+  const {t:translateUI}=usePlatformLanguage();
   const change = x.change24hPct;
   const body = (
     <>
@@ -148,7 +149,7 @@ function Row({ x, onNavigate }: { x: Holding; onNavigate?: () => void }) {
           {change != null && !(x.symbol === 'USDG') && (
             <span className={`ml-1.5 ${change >= 0 ? 'text-go' : 'text-risk-high'}`}>{pctSigned(change, 1)}</span>
           )}
-          {change == null && <span className="ml-1.5 text-muted/60" title="24h change isn't available for this token yet">—</span>}
+          {change == null && <span className="ml-1.5 text-muted/60" title={translateUI("24h change isn't available for this token yet")}>—</span>}
         </span>
       </span>
     </>

@@ -1,5 +1,6 @@
 'use client';
 
+import {usePlatformLanguage} from '@/components/landing/language-provider';
 import { useEffect, useState } from 'react';
 import { Check, Copy, DownloadSimple, Image as ImageIcon, LinkSimple, ShareNetwork, XLogo } from '@phosphor-icons/react';
 import { Modal } from './profile/modal';
@@ -30,6 +31,7 @@ const pngBlob = async (src: string) => {
  * Copy image, Copy link and, on phones, the system share sheet with the image attached.
  */
 export function ShareCard({ target, onClose }: { target: ShareTarget; onClose: () => void }) {
+  const {t:translateUI}=usePlatformLanguage();
   const [range, setRange] = useState(target.defaultRange ?? target.ranges?.[0]?.id ?? '');
   // Which card finished loading (or failed): keyed by URL, so a cached image that loads before any
   // effect runs can't be hidden again by a reset.
@@ -102,7 +104,7 @@ export function ShareCard({ target, onClose }: { target: ShareTarget; onClose: (
               onClick={() => setRange(r.id)}
               className={`rounded-lg px-2.5 py-1 font-mono text-xs ${range === r.id ? 'bg-white/[0.08] text-ink' : 'text-muted hover:text-ink'}`}
             >
-              {r.label}
+              {translateUI(r.label)}
             </button>
           ))}
         </div>
@@ -110,7 +112,7 @@ export function ShareCard({ target, onClose }: { target: ShareTarget; onClose: (
       <div className="relative aspect-[1200/630] w-full overflow-hidden rounded-xl border border-white/[0.06] bg-[#f7f5f2]">
         {!loaded && !failed && <div className="absolute inset-0 animate-pulse bg-white/[0.04]" />}
         {failed ? (
-          <div className="absolute inset-0 grid place-items-center text-sm text-[#5c645b]">Couldn&apos;t draw the card. Try again in a moment.</div>
+          <div className="absolute inset-0 grid place-items-center text-sm text-[#5c645b]">{translateUI("Couldn't draw the card. Try again in a moment.")}</div>
         ) : (
           <img
             key={src}
@@ -129,13 +131,12 @@ export function ShareCard({ target, onClose }: { target: ShareTarget; onClose: (
         rel="noreferrer noopener"
         className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-ink px-4 py-3 text-sm font-semibold text-bg transition hover:opacity-90 active:scale-[0.99]"
       >
-        <XLogo size={16} weight="bold" /> Share on X
-      </a>
+        <XLogo size={16} weight="bold" /> {translateUI("Share on X")}</a>
       <div className={`mt-2 grid gap-2 ${canShareFile ? 'grid-cols-4' : canCopyImage ? 'grid-cols-3' : 'grid-cols-2'}`}>
-        <Action onClick={() => void download()} icon={<DownloadSimple size={16} />} label="Download" />
+        <Action onClick={() => void download()} icon={<DownloadSimple size={16} />} label={translateUI("Download")} />
         {canCopyImage && <Action onClick={() => void copyImage()} icon={done === 'image' ? <Check size={16} /> : <ImageIcon size={16} />} label={done === 'image' ? 'Copied' : 'Copy image'} />}
         <Action onClick={() => void copyLink()} icon={done === 'link' ? <Check size={16} /> : <LinkSimple size={16} />} label={done === 'link' ? 'Copied' : 'Copy link'} />
-        {canShareFile && <Action onClick={() => void shareNative()} icon={<ShareNetwork size={16} />} label="More" />}
+        {canShareFile && <Action onClick={() => void shareNative()} icon={<ShareNetwork size={16} />} label={translateUI("More")} />}
       </div>
       <p className="mt-3 flex items-center gap-1.5 truncate font-mono text-[11px] text-muted">
         <Copy size={11} className="shrink-0" /> {link}
@@ -145,6 +146,7 @@ export function ShareCard({ target, onClose }: { target: ShareTarget; onClose: (
 }
 
 function Action({ onClick, icon, label }: { onClick: () => void; icon: React.ReactNode; label: string }) {
+  const {t:translateUI}=usePlatformLanguage();
   return (
     <button
       type="button"
@@ -152,7 +154,7 @@ function Action({ onClick, icon, label }: { onClick: () => void; icon: React.Rea
       className="flex flex-col items-center gap-1 rounded-xl border border-white/[0.08] px-2 py-2.5 text-xs text-muted transition hover:border-white/20 hover:text-ink active:scale-[0.98]"
     >
       {icon}
-      {label}
+      {translateUI(label)}
     </button>
   );
 }

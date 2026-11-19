@@ -1,11 +1,13 @@
 'use client';
 
+import {usePlatformLanguage} from '@/components/landing/language-provider';
 import { useEffect, useState } from 'react';
 import { Check } from '@phosphor-icons/react';
 import { DEFAULT_SETTINGS, LIMITS, sanitize, updateSettings, useSettings, type TradeSettings } from '@/lib/settings';
 
 /** Buy/sell presets, the trenches quick-buy amount, slippage and the per-trade cap. */
 export function SettingsForm() {
+  const {t:translateUI}=usePlatformLanguage();
   const saved = useSettings();
   const [draft, setDraft] = useState<TradeSettings>(saved);
   // Typed as text so "0." and "1.5" can be entered; parsed on save.
@@ -40,7 +42,7 @@ export function SettingsForm() {
         save();
       }}
     >
-      <Section title="Buy presets" hint="ETH amounts on the token page's one-tap buy buttons.">
+      <Section title={translateUI("Buy presets")} hint="ETH amounts on the token page's one-tap buy buttons.">
         <div className="grid grid-cols-4 gap-2">
           {draft.buyPresets.map((v, i) => (
             <Field
@@ -53,7 +55,7 @@ export function SettingsForm() {
         </div>
       </Section>
 
-      <Section title="Sell presets" hint="Percent of your position.">
+      <Section title={translateUI("Sell presets")} hint="Percent of your position.">
         <div className="grid grid-cols-3 gap-2">
           {sells.map((v, i) => (
             <Field key={i} value={v} suffix="%" onChange={(x) => setSells(sells.map((p, j) => (j === i ? x : p)))} />
@@ -61,7 +63,7 @@ export function SettingsForm() {
         </div>
       </Section>
 
-      <Section title="Trenches quick buy" hint="The two one-tap Buy buttons on every trenches card (P1 and P2), in US dollars, converted to ETH at the live price.">
+      <Section title={translateUI("Trenches quick buy")} hint="The two one-tap Buy buttons on every trenches card (P1 and P2), in US dollars, converted to ETH at the live price.">
         <div className="grid grid-cols-4 gap-2">
           <Field value={String(draft.quickBuyUsd)} suffix="$ P1" onChange={(x) => setDraft({ ...draft, quickBuyUsd: Number(x) })} />
           <Field value={String(draft.quickBuy2Usd)} suffix="$ P2" onChange={(x) => setDraft({ ...draft, quickBuy2Usd: Number(x) })} />
@@ -69,7 +71,7 @@ export function SettingsForm() {
       </Section>
 
       <Section
-        title="Slippage"
+        title={translateUI("Slippage")}
         hint={`How far the price may move before a trade fails. Auto picks 5–15% from the token's age, volatility and price impact, plus its tax. Or fix it (${LIMITS.slippagePct[0]}–${LIMITS.slippagePct[1]}%).`}
       >
         <div className="flex flex-wrap items-center gap-2">
@@ -78,8 +80,7 @@ export function SettingsForm() {
             onClick={() => setSlip('auto')}
             className={`rounded-xl border px-3 py-2 text-sm ${slipValue === 'auto' ? 'border-white/25 text-ink' : 'border-white/[0.06] text-muted hover:text-ink'}`}
           >
-            Auto
-          </button>
+            {translateUI("Auto")}</button>
           {[1, 5, 10, 20].map((v) => (
             <button
               key={v}
@@ -96,19 +97,18 @@ export function SettingsForm() {
         </div>
       </Section>
 
-      <Section title="Per-trade cap" hint={`No single buy above this goes out, whatever the button says (${LIMITS.maxTradeEth[0]}–${LIMITS.maxTradeEth[1]} ETH).`}>
+      <Section title={translateUI("Per-trade cap")} hint={`No single buy above this goes out, whatever the button says (${LIMITS.maxTradeEth[0]}–${LIMITS.maxTradeEth[1]} ETH).`}>
         <div className="w-40">
           <Field value={cap} suffix="ETH" onChange={setCap} />
         </div>
-        {capWarn && <p className="mt-2 text-xs text-risk-medium">Some presets are above your cap; those buttons will be refused.</p>}
+        {capWarn && <p className="mt-2 text-xs text-risk-medium">{translateUI("Some presets are above your cap; those buttons will be refused.")}</p>}
       </Section>
 
       <div className="flex items-center gap-3 pt-2">
         <button type="submit" disabled={!dirty} className="flex items-center gap-1.5 rounded-xl bg-ink px-5 py-2.5 text-sm font-semibold text-bg hover:bg-white disabled:opacity-40">
           {done ? (
             <>
-              <Check size={15} /> Saved
-            </>
+              <Check size={15} /> {translateUI("Saved")}</>
           ) : (
             'Save'
           )}
@@ -123,17 +123,17 @@ export function SettingsForm() {
           }}
           className="text-sm text-muted hover:text-ink"
         >
-          Reset to defaults
-        </button>
+          {translateUI("Reset to defaults")}</button>
       </div>
     </form>
   );
 }
 
 function Section({ title, hint, children }: { title: string; hint: string; children: React.ReactNode }) {
+  const {t:translateUI}=usePlatformLanguage();
   return (
     <section className="rounded-2xl border border-white/[0.06] bg-surface p-4">
-      <h2 className="text-sm font-semibold">{title}</h2>
+      <h2 className="text-sm font-semibold">{translateUI(title)}</h2>
       <p className="mb-3 mt-0.5 text-xs text-muted">{hint}</p>
       {children}
     </section>

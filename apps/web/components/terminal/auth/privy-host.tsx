@@ -3,8 +3,8 @@
 import { useEffect, useRef } from 'react';
 import { PrivyProvider, useExportWallet, usePrivy, useSendTransaction, useSignTransaction, useWallets } from '@privy-io/react-auth';
 import { robinhoodChain } from '@rushr/trade';
-import {bsc} from 'viem/chains';
 import {BNB_PRODUCT} from '@/lib/product';
+import {privyConfig} from '@/lib/privy-config';
 import {setBscEmbeddedProvider,type BscInjectedProvider} from '@/lib/bsc-wallet';
 import { privyAppId, setAuthActions, setAuthState, type AuthUser } from '@/lib/auth';
 
@@ -12,29 +12,14 @@ import { privyAppId, setAuthActions, setAuthState, type AuthUser } from '@/lib/a
  * Privy, loaded lazily by AuthRoot. It wraps only a bridge component (never the page), so loading
  * it doesn't remount anything: the bridge copies Privy's state into lib/auth and exposes its actions.
  *
- * Sign-in: email or an external EVM wallet (no X sign-in for now). Every user gets an embedded wallet on Robinhood Chain
- * at sign-up; Privy's own wallet prompts are off because quick trades must not ask for
- * confirmation, and the trade UI shows status itself.
+ * Sign-in: email OTP or an external EVM wallet. Every user gets an embedded wallet
+ * at sign-up on the configured product chain. BNB trades retain individual confirmation.
  */
 export default function PrivyHost() {
   return (
     <PrivyProvider
       appId={privyAppId()}
-      config={{
-        loginMethods: ['email', 'wallet'],
-        appearance: {
-          theme: 'dark',
-          accentColor: '#36d42a',
-          logo: '/logo-mark-64.png',
-          landingHeader: 'Sign in to Rushr',
-          walletChainType: 'ethereum-only',
-        },
-        embeddedWallets: { ethereum: { createOnLogin: 'all-users' }, showWalletUIs: false },
-        // Privy's modal links Terms and Privacy; the Risk disclosure is linked in our own sign-up step.
-        legal: { termsAndConditionsUrl: `${window.location.origin}/terms`, privacyPolicyUrl: `${window.location.origin}/privacy` },
-        defaultChain: BNB_PRODUCT?bsc:robinhoodChain,
-        supportedChains: [BNB_PRODUCT?bsc:robinhoodChain],
-      }}
+      config={privyConfig(window.location.origin,BNB_PRODUCT)}
     >
       <Bridge />
     </PrivyProvider>
@@ -83,7 +68,14 @@ function Bridge() {
   useEffect(() => {
     setAuthActions({
       login,
-      logout,
+      async logout() {
+        // Do not revive a pre-Privy wallet session after the user signs out.
+        if(BNB_PRODUCT){
+          const response=await fetch('/api/product/v1/auth/wallet/logout',{method:'POST',headers:{'content-type':'application/json'},body:'{}'});
+          if(!response.ok)throw new Error('Could not end the wallet session. Try signing out again.');
+        }
+        await logout();
+      },
       exportWallet: () => exportWallet(embedded ? { address: embedded.address } : undefined),
       async sendTransaction(tx) {
         if (!embedded) throw new Error('No embedded wallet yet');

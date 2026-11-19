@@ -1,5 +1,6 @@
 'use client';
 
+import {usePlatformLanguage} from '@/components/landing/language-provider';
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { ArrowSquareOut, Check, Copy, GearSix, SignOut, User, Wallet } from '@phosphor-icons/react';
@@ -15,6 +16,7 @@ import {NATIVE_SYMBOL,STABLE_SYMBOL} from '@/lib/product';
 
 /** Top-bar sign-in button, and the account menu once signed in. */
 export function AccountMenu() {
+  const {t:translateUI}=usePlatformLanguage();
   const { enabled, ready, authenticated, user } = useAuth();
   const me = useMe();
   // Signed in last time and the SDK is still loading: show who it was, not a Sign in button.
@@ -39,15 +41,15 @@ export function AccountMenu() {
 
   if (!enabled) {
     return (
-      <button type="button" disabled title={process.env.NEXT_PUBLIC_PREVIEW_ONLY === '1' ? 'Sign-in requires your own Privy app and backend' : 'Sign-in opens soon'} className="flex items-center gap-2 rounded-xl bg-ink px-3.5 py-2 text-sm font-semibold text-bg opacity-90">
+      <button type="button" disabled title={process.env.NEXT_PUBLIC_PREVIEW_ONLY === '1' ? translateUI("Sign-in requires your own Privy app and backend") : translateUI("Sign-in opens soon")} className="flex items-center gap-2 rounded-xl bg-ink px-3.5 py-2 text-sm font-semibold text-bg opacity-90">
         <Wallet size={16} weight="bold" />
-        <span className="hidden sm:inline">Sign in</span>
+        <span className="hidden sm:inline">{translateUI("Sign in")}</span>
       </button>
     );
   }
 
   // First paint, before the hint is read: a neutral placeholder rather than a possibly wrong Sign in.
-  if (!ready && hint === undefined) return <span className="block h-9 w-28 animate-pulse rounded-xl bg-white/[0.05]" aria-busy aria-label="Loading account" />;
+  if (!ready && hint === undefined) return <span className="block h-9 w-28 animate-pulse rounded-xl bg-white/[0.05]" aria-busy aria-label={translateUI("Loading account")} />;
 
   if (!ready && hint) {
     const cached = me?.status === 'registered' ? me.member : null;
@@ -70,7 +72,7 @@ export function AccountMenu() {
         className="flex items-center gap-2 rounded-xl bg-ink px-3.5 py-2 text-sm font-semibold text-bg transition hover:bg-white"
       >
         <Wallet size={16} weight="bold" />
-        <span className="hidden sm:inline">Sign in</span>
+        <span className="hidden sm:inline">{translateUI("Sign in")}</span>
       </button>
     );
   }
@@ -99,12 +101,12 @@ export function AccountMenu() {
               {user.email && name !== user.email.split('@')[0] && <div className="truncate text-xs text-muted">{user.email}</div>}
             </div>
           </div>
-          <WalletRow label="Rushr wallet" address={user.wallet} pending={!user.wallet} />
+          <WalletRow label={translateUI("CLASHR wallet")} address={user.wallet} pending={!user.wallet} />
           <div className="flex items-center justify-between border-b border-white/[0.06] px-4 py-2.5 text-sm">
-            <span className="text-muted">Balance</span>
+            <span className="text-muted">{translateUI("Balance")}</span>
             <span className="font-mono">{balances ? `${fmtUnits(balances.eth, 18, 4)} ${NATIVE_SYMBOL}` : '…'}</span>
           </div>
-          {user.externalWallet && <WalletRow label="Signed in with" address={user.externalWallet} />}
+          {user.externalWallet && <WalletRow label={translateUI("Signed in with")} address={user.externalWallet} />}
           <div className="p-1.5">
             <Link
               href="/me"
@@ -112,24 +114,21 @@ export function AccountMenu() {
               onClick={() => setOpen(false)}
               className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm font-medium text-ink hover:bg-white/[0.04]"
             >
-              <User size={15} /> Profile &amp; wallet
-            </Link>
+              <User size={15} /> {translateUI("Profile & wallet")}</Link>
             <MenuButton
               onClick={() => {
                 setOpen(false);
                 setWalletOpen(true);
               }}
             >
-              <Wallet size={15} /> Wallet &amp; deposit
-            </MenuButton>
+              <Wallet size={15} /> {translateUI("Wallet & deposit")}</MenuButton>
             <Link
               href="/settings"
               role="menuitem"
               onClick={() => setOpen(false)}
               className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm text-muted hover:bg-white/[0.04] hover:text-ink"
             >
-              <GearSix size={15} /> Trading settings
-            </Link>
+              <GearSix size={15} /> {translateUI("Trading settings")}</Link>
           </div>
           <div className="border-t border-white/[0.06] p-1.5">
             <button
@@ -141,8 +140,7 @@ export function AccountMenu() {
               }}
               className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm text-muted hover:bg-white/[0.04] hover:text-ink"
             >
-              <SignOut size={15} /> Sign out
-            </button>
+              <SignOut size={15} /> {translateUI("Sign out")}</button>
           </div>
         </div>
       )}
@@ -165,18 +163,19 @@ function MenuButton({ onClick, children }: { onClick: () => void; children: Reac
 }
 
 function WalletRow({ label, address, pending = false }: { label: string; address: `0x${string}` | null; pending?: boolean }) {
+  const {t:translateUI}=usePlatformLanguage();
   const [copied, setCopied] = useState(false);
   return (
     <div className="border-b border-white/[0.06] px-4 py-3">
-      <div className="text-[11px] text-muted">{label}</div>
+      <div className="text-[11px] text-muted">{translateUI(label)}</div>
       {pending || !address ? (
-        <div className="mt-1 text-sm text-muted">Creating your wallet…</div>
+        <div className="mt-1 text-sm text-muted">{translateUI("Creating your wallet…")}</div>
       ) : (
         <div className="mt-1 flex items-center gap-2">
           <span className="font-mono text-sm">{short(address, 6, 6)}</span>
           <button
             type="button"
-            title="Copy address"
+            title={translateUI("Copy address")}
             onClick={() =>
               void navigator.clipboard?.writeText(address).then(() => {
                 setCopied(true);
@@ -187,7 +186,7 @@ function WalletRow({ label, address, pending = false }: { label: string; address
           >
             {copied ? <Check size={14} className="text-brand" /> : <Copy size={14} />}
           </button>
-          <a href={`${EXPLORER}/address/${address}`} target="_blank" rel="noreferrer" title="Open in explorer" className="text-muted hover:text-ink">
+          <a href={`${EXPLORER}/address/${address}`} target="_blank" rel="noreferrer" title={translateUI("Open in explorer")} className="text-muted hover:text-ink">
             <ArrowSquareOut size={14} />
           </a>
         </div>
@@ -211,6 +210,7 @@ const moneyWhole = new Intl.NumberFormat('en-US', { style: 'currency', currency:
  * the live price plus every token held. Opens the wallet panel. Phones drop the cents above $1,000.
  */
 function BalanceButton({ wallet, onOpen }: { wallet: `0x${string}`; onOpen: () => void }) {
+ const {t:translateUI}=usePlatformLanguage();
   const h = useWalletHoldings(wallet);
   const v = h.totalUsd;
   return (
@@ -218,7 +218,7 @@ function BalanceButton({ wallet, onOpen }: { wallet: `0x${string}`; onOpen: () =
       type="button"
       onClick={onOpen}
       title={`Wallet balance: ${NATIVE_SYMBOL}, ${STABLE_SYMBOL} and every token you hold`}
-      aria-label={v == null ? 'Wallet balance' : `Wallet balance ${money.format(v)}`}
+      aria-label={v == null ? translateUI("Wallet balance") : `Wallet balance ${money.format(v)}`}
       className="rounded-xl border border-white/[0.08] bg-surface px-3 py-2 font-mono text-sm font-semibold tabular-nums transition hover:border-white/20"
     >
       {v == null ? (
@@ -234,5 +234,6 @@ function BalanceButton({ wallet, onOpen }: { wallet: `0x${string}`; onOpen: () =
 }
 
 function NameSkeleton() {
-  return <span className="inline-block h-3.5 w-16 animate-pulse rounded bg-white/[0.08] align-middle" aria-label="Loading" />;
+  const {t:translateUI}=usePlatformLanguage();
+  return <span className="inline-block h-3.5 w-16 animate-pulse rounded bg-white/[0.08] align-middle" aria-label={translateUI("Loading")} />;
 }

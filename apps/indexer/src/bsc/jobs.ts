@@ -6,6 +6,7 @@ export interface BscJob {
   /** Scheduled minute: deterministic across delivery retries. */
   minute: number;
   step: number;
+  executionId?: string;
 }
 export function parseBscJob(value: unknown): BscJob {
   if (!value || typeof value !== 'object') throw new Error('Invalid BSC job');
@@ -14,6 +15,7 @@ export function parseBscJob(value: unknown): BscJob {
     || typeof job.configHash !== 'string' || !/^[0-9a-f]{64}$/.test(job.configHash)
     || !Number.isSafeInteger(job.minute) || Number(job.minute) < 0
     || !Number.isInteger(job.step) || Number(job.step) < 0 || Number(job.step) > 19) throw new Error('Invalid BSC job identity');
+  if(job.executionId!==undefined && (typeof job.executionId!=='string'||!/^local-[0-9a-f-]{36}$/.test(job.executionId)))throw new Error('Invalid local execution identity');
   return job as unknown as BscJob;
 }
 /** Untagged historical messages always mean 4663. No v2 job enters legacy SQL. */

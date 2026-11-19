@@ -53,7 +53,7 @@ export function errorResponse(c: C, e: unknown) {
   if (e instanceof ApiError) {
     const headers: Record<string, string> = { 'cache-control': 'no-store' };
     if (typeof e.extra.retryAfter === 'number') headers['retry-after'] = String(e.extra.retryAfter);
-    return c.json({ error: { code: e.code, message: e.message, docs: 'https://rushr.trade/llms.txt', ...e.extra } }, e.status, headers);
+    return c.json({ error: { code: e.code, message: e.message, docs: c.env.CHAIN_ID==='56'?'https://clashr.trade/llms.txt':'https://rushr.trade/llms.txt', ...e.extra } }, e.status, headers);
   }
   // Unique violations surface as 409s with a generic code; everything else is a 500 without details.
   if (e && typeof e === 'object' && (e as { code?: string }).code === '23505') {

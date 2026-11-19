@@ -1,4 +1,5 @@
 'use client';
+import {usePlatformLanguage} from '@/components/landing/language-provider';
 import {useEffect,useState} from 'react';
 import {auth,setAuthActions,setAuthState} from '@/lib/auth';
 import {setMe} from '@/lib/members';
@@ -15,6 +16,7 @@ async function session(path:string,body?:unknown){
 }
 const signedIn=(address:`0x${string}`)=>setAuthState({enabled:true,ready:true,authenticated:true,user:{id:`bnb:${address.toLowerCase()}`,wallet:address,externalWallet:address,walletKind:'external',email:null,twitter:null}});
 export default function BnbAuthHost(){
+  const {t:translateUI}=usePlatformLanguage();
   const [error,setError]=useState('');
   useEffect(()=>{
     let active=true,busy=false;
@@ -49,5 +51,5 @@ export default function BnbAuthHost(){
     provider?.on?.('accountsChanged',changed);provider?.on?.('chainChanged',changed);provider?.on?.('disconnect',changed);
     return()=>{active=false;setAuthActions(null);provider?.removeListener?.('accountsChanged',changed);provider?.removeListener?.('chainChanged',changed);provider?.removeListener?.('disconnect',changed);};
   },[]);
-  return error?<div role="alert" className="fixed bottom-4 right-4 z-[100] max-w-sm rounded-xl border border-risk-high/30 bg-surface p-4 text-xs text-risk-high"><p>{error}</p><button className="mt-2 underline" onClick={()=>setError('')}>Dismiss</button></div>:null;
+  return error?<div role="alert" className="fixed bottom-4 right-4 z-[100] max-w-sm rounded-xl border border-risk-high/30 bg-surface p-4 text-xs text-risk-high"><p>{error}</p><button className="mt-2 underline" onClick={()=>setError('')}>{translateUI("Dismiss")}</button></div>:null;
 }

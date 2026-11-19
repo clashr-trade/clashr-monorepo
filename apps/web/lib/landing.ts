@@ -9,7 +9,7 @@ import { BNB_PRODUCT } from './product';
  * Other tokens are only a fallback, and the agent's call comes from an independent agent, not ours.
  */
 const RUSHR_TOKEN = '0xa8ceeeb747fcf136947c35c5de6187ee90d6bfed';
-/** Rushr's own agents: not used to talk up $RUSHR on the landing. */
+/** CLASHR's own agents: not used to talk up $RUSHR on the landing. */
 const TEAM_AGENTS = new Set(['talos']);
 /** Members never featured on the landing's call and PnL cards (they still appear on the leaderboard). */
 const NOT_FEATURED = new Set(['masblankon']);

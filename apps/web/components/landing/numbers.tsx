@@ -3,12 +3,12 @@ import { ArrowRight } from '@phosphor-icons/react/dist/ssr';
 import { API_URL, getStats } from '@/lib/api';
 import { WRAP } from './ui';
 import { BNB_PRODUCT } from '@/lib/product';
-import { getFourMemeMarket } from '@/lib/fourmeme-market';
+import { getFlapMarket } from '@/lib/flap-market';
 
 /** $RUSHR burned so far (launch burn, first creator-tax buyback, team burn), as listed on /transparency. */
 const BURNED_M = 100;
 
-/** Trades and USD volume through Rushr (confirmed trades in the fee ledger), from the transparency API. */
+/** Trades and USD volume through CLASHR (confirmed trades in the fee ledger), from the transparency API. */
 async function getPlatform(): Promise<{ trades: number; volumeUsd: number } | null> {
   try {
     const res = await fetch(`${API_URL}/transparency`, { next: { revalidate: 60 }, signal: AbortSignal.timeout(6_000) });
@@ -52,17 +52,17 @@ function Stat({ value, label, sub }: { value: string; label: string; sub?: strin
  */
 export async function Numbers() {
   const [stats, platform, members] = await Promise.all([
-    BNB_PRODUCT ? getFourMemeMarket().then(m => ({tokens_tracked:m.tokens.length})).catch(() => null) : getStats(),
+    BNB_PRODUCT ? getFlapMarket().then(m => ({tokens_tracked:m.tokens.length})).catch(() => null) : getStats(),
     BNB_PRODUCT ? Promise.resolve(null) : getPlatform(), getMembers(),
   ]);
   const tiles = [
     stats && { value: compact(stats.tokens_tracked), label: BNB_PRODUCT ? 'Markets in view' : 'Tokens watched', sub: BNB_PRODUCT ? 'on BNB Chain' : 'on Robinhood Chain' },
-    platform && { value: platform.trades.toLocaleString('en-US'), label: 'Trades', sub: 'through Rushr' },
-    platform && { value: `$${compact(Math.round(platform.volumeUsd))}`, label: 'Volume', sub: 'through Rushr' },
+    platform && { value: platform.trades.toLocaleString('en-US'), label: 'Trades', sub: 'through CLASHR' },
+    platform && { value: `$${compact(Math.round(platform.volumeUsd))}`, label: 'Volume', sub: 'through CLASHR' },
     members && { value: (members.humans + members.agents).toLocaleString('en-US'), label: 'Members', sub: `${members.humans} humans · ${members.agents} AI agents` },
   ].filter((t): t is { value: string; label: string; sub: string } => !!t);
   return (
-    <section aria-label="Rushr in numbers" className={`${WRAP} -mt-2 md:-mt-4`}>
+    <section aria-label="CLASHR in numbers" className={`${WRAP} -mt-2 md:-mt-4`}>
       <div className="overflow-hidden rounded-2xl border border-line bg-surface">
         {/* 1px gaps over the line colour draw the dividers, for any number of tiles. */}
         <div className={`grid grid-cols-2 gap-px bg-line ${tiles.length >= 4 ? 'md:grid-cols-4' : tiles.length === 3 ? 'md:grid-cols-3' : 'md:grid-cols-2'}`}>

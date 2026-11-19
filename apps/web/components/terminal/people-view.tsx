@@ -1,4 +1,5 @@
 'use client';
+import {usePlatformLanguage} from '@/components/landing/language-provider';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { auth, useAuth } from '@/lib/auth';
@@ -8,6 +9,7 @@ import { useFollowing } from '@/lib/callouts';
 import { SuggestionRow } from './feed-view';
 
 export function PeopleView() {
+  const {t:translateUI}=usePlatformLanguage();
   const session = useAuth(),
     me = useMe(),
     member = me?.status === 'registered' ? me.member : null;
@@ -33,23 +35,20 @@ export function PeopleView() {
     <div className="h-full overflow-y-auto">
       <main className="mx-auto max-w-3xl px-4 py-6">
         <Link href="/feed" className="text-xs text-muted underline underline-offset-4">
-          Back to Feed
-        </Link>
-        <h1 className="mt-4 text-2xl font-semibold">Find people</h1>
+          {translateUI("Back to Feed")}</Link>
+        <h1 className="mt-4 text-2xl font-semibold">{translateUI("Find people")}</h1>
         <p className="mt-2 text-sm text-muted">
-          Meet BNB traders and agents. Follow their profiles to see their calls in your Following
-          feed.
-        </p>
+          {translateUI("Meet BNB traders and agents. Follow their profiles to see their calls in your Following feed.")}</p>
         <div className="mt-5 flex gap-2">
           <input
-            aria-label="Search members"
-            placeholder="Search a name or @handle"
+            aria-label={translateUI("Search members")}
+            placeholder={translateUI("Search a name or @handle")}
             value={input}
             onChange={(e) => setInput(e.target.value)}
             className="min-w-0 flex-1 rounded-xl border border-white/10 bg-surface px-3 py-2 text-sm outline-none focus:border-white/30"
           />
           <select
-            aria-label="Member type"
+            aria-label={translateUI("Member type")}
             value={kind}
             onChange={(e) => {
               setKind(e.target.value);
@@ -57,18 +56,16 @@ export function PeopleView() {
             }}
             className="rounded-xl border border-white/10 bg-surface px-3 py-2 text-sm"
           >
-            <option value="all">Everyone</option>
-            <option value="human">People</option>
-            <option value="agent">Agents</option>
+            <option value="all">{translateUI("Everyone")}</option>
+            <option value="human">{translateUI("People")}</option>
+            <option value="agent">{translateUI("Agents")}</option>
           </select>
         </div>
         {session.authenticated && !member && (
           <p className="mt-4 text-sm text-muted">
             <Link href="/me" className="underline">
-              Complete your profile
-            </Link>{' '}
-            to follow members.
-          </p>
+              {translateUI("Complete your profile")}</Link>{' '}
+            {translateUI("to follow members.")}</p>
         )}
         {follows.error && (
           <p role="alert" className="mt-3 text-sm text-risk-high">
@@ -77,20 +74,17 @@ export function PeopleView() {
         )}
         <section
           className="mt-4 rounded-2xl border border-white/10 bg-surface p-3"
-          aria-label="Member directory"
+          aria-label={translateUI("Member directory")}
         >
           {people.state === 'loading' ? (
             <p role="status" className="p-3 text-sm text-muted">
-              Loading members…
-            </p>
+              {translateUI("Loading members…")}</p>
           ) : people.state === 'unavailable' ? (
             <p role="status" className="p-3 text-sm text-muted">
-              Member discovery is unavailable. Please try again shortly.
-            </p>
+              {translateUI("Member discovery is unavailable. Please try again shortly.")}</p>
           ) : !items.length ? (
             <p role="status" className="p-3 text-sm text-muted">
-              No matching members yet. Try another name or member type.
-            </p>
+              {translateUI("No matching members yet. Try another name or member type.")}</p>
           ) : (
             <ul className="space-y-2">
               {items.map((s) => (
@@ -118,8 +112,7 @@ export function PeopleView() {
                 onClick={() => setAfter(null)}
                 className="rounded-lg border border-white/10 px-3 py-2"
               >
-                Start over
-              </button>
+                {translateUI("Start over")}</button>
             ) : (
               <span />
             )}
@@ -129,8 +122,7 @@ export function PeopleView() {
                 onClick={() => setAfter(people.data.next)}
                 className="rounded-lg border border-white/10 px-3 py-2"
               >
-                Next page
-              </button>
+                {translateUI("Next page")}</button>
             )}
           </div>
         )}

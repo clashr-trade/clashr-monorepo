@@ -1,5 +1,6 @@
 'use client';
 
+import {usePlatformLanguage} from '@/components/landing/language-provider';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { formatUnits, parseEther, parseUnits } from 'viem';
@@ -51,6 +52,7 @@ function Card({
   /** The page's live position: tells a chain read that lags our own fresh buy apart from a real 0. */
   position?: LivePosition | null;
 }) {
+  const {t:translateUI}=usePlatformLanguage();
   const q = useQuickTrade(token);
   const settings = useSettings();
   const ethUsd = useEthUsd();
@@ -129,7 +131,7 @@ function Card({
   const holdUsd = bal && priceUsd != null ? whole(bal.token, token.decimals) * priceUsd : null;
   const maxBuyUsd = (() => {
     if (!bal || !ethUsd) return null;
-    // Curve trades pay the Rushr fee on top of the amount (a follow-up transfer): leave room for it.
+    // Curve trades pay the CLASHR fee on top of the amount (a follow-up transfer): leave room for it.
     const spendable = maxBuyWei(bal.eth > GAS_RESERVE ? bal.eth - GAS_RESERVE : 0n, q.trade?.feeFollowUp?.feeBps ?? 0);
     const capWei = parseEther(String(settings.maxTradeEth));
     return whole(spendable < capWei ? spendable : capWei, 18) * ethUsd;
@@ -174,13 +176,13 @@ function Card({
             </button>
           ))}
         </div>
-        <button type="button" onClick={() => setGear(true)} aria-label="Trade settings" title="Trade settings" className="rounded-lg p-2 text-muted hover:bg-white/[0.05] hover:text-ink">
+        <button type="button" onClick={() => setGear(true)} aria-label={translateUI("Trade settings")} title={translateUI("Trade settings")} className="rounded-lg p-2 text-muted hover:bg-white/[0.05] hover:text-ink">
           <Gear size={18} />
         </button>
       </div>
 
       <label className="mt-4 block text-center">
-        <span className="sr-only">{side === 'buy' ? 'Amount to spend in US dollars' : 'Amount to sell in US dollars'}</span>
+        <span className="sr-only">{side === 'buy' ? translateUI("Amount to spend in US dollars") : translateUI("Amount to sell in US dollars")}</span>
         <span className="flex items-baseline justify-center font-mono text-[40px] font-semibold leading-none tracking-tight">
           <span className={amount ? 'text-ink' : 'text-muted/50'}>$</span>
           <input
@@ -204,7 +206,7 @@ function Card({
                   ? `≈ ${(dollars / ethUsd).toFixed(5)} ETH`
                   : ' '
               : `${compact(whole(amountIn, token.decimals))} ${token.symbol}`
-            : 'Enter amount'}
+            : translateUI("Enter amount")}
         </span>
       </label>
 
@@ -231,7 +233,7 @@ function Card({
                 onClick={() => pickSell(p)}
                 className={`rounded-xl border py-2 font-mono text-sm transition disabled:opacity-40 ${signedIn && !bal ? 'animate-pulse' : ''} ${sellExact?.pct === p ? 'border-risk-high/60 bg-risk-high/10 text-risk-high' : 'border-white/[0.06] text-ink/85 hover:border-white/20'}`}
               >
-                {p === 100 ? 'Max' : `${p}%`}
+                {p === 100 ? translateUI("Max") : `${p}%`}
               </button>
             ))}
       </div>
@@ -239,9 +241,9 @@ function Card({
       {signedIn && (
         <div className="mt-3 flex items-center justify-between text-xs text-muted">
           <span>
-            {side === 'buy' ? 'Balance' : `Your ${token.symbol}`}{' '}
+            {side === 'buy' ? translateUI("Balance") : `Your ${token.symbol}`}{' '}
             {(side === 'buy' ? ethBalUsd : holdUsd) == null ? (
-              <span className="inline-block h-3 w-12 animate-pulse rounded bg-white/[0.08] align-middle" aria-label="Loading balance" />
+              <span className="inline-block h-3 w-12 animate-pulse rounded bg-white/[0.08] align-middle" aria-label={translateUI("Loading balance")} />
             ) : (
               <span className="font-mono text-ink/85">${cents((side === 'buy' ? ethBalUsd : holdUsd)!)}</span>
             )}
@@ -251,15 +253,14 @@ function Card({
             onClick={() => (side === 'buy' ? maxBuyUsd != null && (setSellExact(null), setAmount(cents(maxBuyUsd))) : pickSell(100))}
             className="font-semibold text-ink/85 hover:text-ink"
           >
-            Max
-          </button>
+            {translateUI("Max")}</button>
         </div>
       )}
 
       {needsAck && (
         <label className="mt-3 flex items-center gap-2 text-xs text-risk-high">
           <input type="checkbox" checked={q.ack} onChange={(e) => q.setAck(e.target.checked)} />
-          <span>I understand this token is high risk and I could lose what I put in.</span>
+          <span>{translateUI("I understand this token is high risk and I could lose what I put in.")}</span>
         </label>
       )}
 
@@ -271,12 +272,12 @@ function Card({
       >
         {!q.session.authenticated
           ? side === 'buy'
-            ? 'Sign in to buy'
-            : 'Sign in to sell'
+            ? translateUI("Sign in to buy")
+            : translateUI("Sign in to sell")
           : busy || armed
             ? side === 'buy'
-              ? 'Buying…'
-              : 'Selling…'
+              ? translateUI("Buying…")
+              : translateUI("Selling…")
             : `${side === 'buy' ? 'Buy' : 'Sell'} ${token.symbol}`}
       </button>
 
@@ -310,10 +311,10 @@ function noteFor({ token, trade, status }: { token: TradeToken; trade: QuickTrad
   const blocker = trade?.blockers.find((b) => b.code !== 'RISK_ACK_REQUIRED');
   if (blocker) return { text: blocker.message, tone: 'text-risk-high' };
   if (!SHOW_RISK) return trade?.warnings[0] ? { text: trade.warnings[0], tone: 'text-risk-medium' } : null;
-  if (token.risk === 'high') return { text: 'High risk token', tone: 'text-risk-high', detail: token.verdict ?? 'Rushr flagged this token. Read the safety notes before buying.' };
-  if (token.risk === 'medium') return { text: 'Trade with care', tone: 'text-risk-medium', detail: token.verdict ?? 'Rushr found some risk signals on this token.' };
+  if (token.risk === 'high') return { text: 'High risk token', tone: 'text-risk-high', detail: token.verdict ?? 'CLASHR flagged this token. Read the safety notes before buying.' };
+  if (token.risk === 'medium') return { text: 'Trade with care', tone: 'text-risk-medium', detail: token.verdict ?? 'CLASHR found some risk signals on this token.' };
   if (!token.risk || token.risk === 'unknown')
-    return { text: 'Unverified token', tone: 'text-muted', detail: "Rushr hasn't finished checking this token's contract and holders yet." };
+    return { text: 'Unverified token', tone: 'text-muted', detail: "CLASHR hasn't finished checking this token's contract and holders yet." };
   if (trade?.warnings[0]) return { text: trade.warnings[0], tone: 'text-risk-medium' };
   return null;
 }
@@ -321,6 +322,7 @@ function noteFor({ token, trade, status }: { token: TradeToken; trade: QuickTrad
 /* ------------------------------------------------------------------ settings behind the gear */
 
 function TradeSettings({ trade, side, token, ethUsd, onClose }: { trade: QuickTrade | null; side: Side; token: TradeToken; ethUsd: number | null; onClose: () => void }) {
+  const {t:translateUI}=usePlatformLanguage();
   const s = useSettings();
   const [slip, setSlip] = useState(s.slippagePct === 'auto' ? '' : String(s.slippagePct));
   const [cap, setCap] = useState(String(s.maxTradeEth));
@@ -334,9 +336,9 @@ function TradeSettings({ trade, side, token, ethUsd, onClose }: { trade: QuickTr
     else setCap(String(s.maxTradeEth));
   };
   return (
-    <Modal title="Trade settings" onClose={onClose}>
+    <Modal title={translateUI("Trade settings")} onClose={onClose}>
       <div className="space-y-5 text-sm">
-        <Field label="Profile" hint="Each profile keeps its own slippage and quick-buy amounts.">
+        <Field label={translateUI("Profile")} hint="Each profile keeps its own slippage and quick-buy amounts.">
           <div className="grid grid-cols-3 rounded-xl bg-white/[0.04] p-1">
             {([0, 1, 2] as const).map((i) => (
               <button
@@ -354,7 +356,7 @@ function TradeSettings({ trade, side, token, ethUsd, onClose }: { trade: QuickTr
             ))}
           </div>
         </Field>
-        <Field label="Slippage" hint="Auto picks 5–15% from the token's age, volatility and price impact, plus its measured tax.">
+        <Field label={translateUI("Slippage")} hint="Auto picks 5–15% from the token's age, volatility and price impact, plus its measured tax.">
           <div className="flex gap-2">
             <button
               type="button"
@@ -364,39 +366,38 @@ function TradeSettings({ trade, side, token, ethUsd, onClose }: { trade: QuickTr
               }}
               className={`rounded-xl border px-4 py-2 text-xs ${s.slippagePct === 'auto' ? 'border-go/60 bg-go/10 text-go' : 'border-white/[0.08] text-muted'}`}
             >
-              Auto
-            </button>
+              {translateUI("Auto")}</button>
             <label className="flex flex-1 items-center rounded-xl border border-white/[0.08] bg-bg px-3 focus-within:border-white/25">
               <input
                 inputMode="decimal"
                 value={slip}
-                placeholder="Custom"
+                placeholder={translateUI("Custom")}
                 onChange={(e) => setSlip(e.target.value.replace(',', '.').replace(/[^\d.]/g, ''))}
                 onBlur={() => {
                   const n = Number(slip);
                   if (slip && Number.isFinite(n) && n > 0) updateSettings({ slippagePct: Math.min(LIMITS.slippagePct[1], Math.max(LIMITS.slippagePct[0], n)) });
                 }}
-                aria-label="Custom slippage percent"
+                aria-label={translateUI("Custom slippage percent")}
                 className="min-w-0 flex-1 bg-transparent py-2 font-mono text-xs outline-none"
               />
               <span className="text-xs text-muted">%</span>
             </label>
           </div>
         </Field>
-        <Field label="Max per trade" hint="Buys above this are refused before anything is signed.">
+        <Field label={translateUI("Max per trade")} hint="Buys above this are refused before anything is signed.">
           <label className="flex items-center rounded-xl border border-white/[0.08] bg-bg px-3 focus-within:border-white/25">
             <input
               inputMode="decimal"
               value={cap}
               onChange={(e) => setCap(e.target.value.replace(',', '.').replace(/[^\d.]/g, ''))}
               onBlur={saveCap}
-              aria-label="Maximum ETH per trade"
+              aria-label={translateUI("Maximum ETH per trade")}
               className="min-w-0 flex-1 bg-transparent py-2 font-mono text-xs outline-none"
             />
-            <span className="text-xs text-muted">ETH{ethUsd ? ` ≈ ${usd(s.maxTradeEth * ethUsd)}` : ''}</span>
+            <span className="text-xs text-muted">{translateUI("ETH")}{ethUsd ? ` ≈ ${usd(s.maxTradeEth * ethUsd)}` : ''}</span>
           </label>
         </Field>
-        <Field label="Quote">
+        <Field label={translateUI("Quote")}>
           {q ? (
             <dl className="space-y-1 rounded-xl bg-white/[0.03] p-3 text-xs">
               <Line k="You receive (est.)" v={`${fmtOut(q.amountOut)} ${outSym}`} />
@@ -408,28 +409,28 @@ function TradeSettings({ trade, side, token, ethUsd, onClose }: { trade: QuickTr
               {trade!.calls.length > 1 && <Line k="Transactions" v={`${trade!.calls.length} (the first sell approves the token)`} />}
             </dl>
           ) : (
-            <p className="text-xs text-muted">Enter an amount to see the route, fees and minimum received. Gas is set automatically.</p>
+            <p className="text-xs text-muted">{translateUI("Enter an amount to see the route, fees and minimum received. Gas is set automatically.")}</p>
           )}
         </Field>
         <label className="flex items-center justify-between gap-3 rounded-xl border border-white/[0.06] px-3 py-2.5">
           <span>
-            <span className="block text-sm">Pro mode</span>
-            <span className="block text-xs text-muted">Full trade panel with presets, PnL strip and every stat.</span>
+            <span className="block text-sm">{translateUI("Pro mode")}</span>
+            <span className="block text-xs text-muted">{translateUI("Full trade panel with presets, PnL strip and every stat.")}</span>
           </span>
-          <Toggle on={s.proMode} onChange={(v) => updateSettings({ proMode: v })} label="Pro mode" />
+          <Toggle on={s.proMode} onChange={(v) => updateSettings({ proMode: v })} label={translateUI("Pro mode")} />
         </label>
         <Link href="/settings" onClick={onClose} className="block text-center text-xs text-muted underline hover:text-ink">
-          All trading settings
-        </Link>
+          {translateUI("All trading settings")}</Link>
       </div>
     </Modal>
   );
 }
 
 function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
+  const {t:translateUI}=usePlatformLanguage();
   return (
     <div>
-      <div className="mb-1.5 text-xs text-muted">{label}</div>
+      <div className="mb-1.5 text-xs text-muted">{translateUI(label)}</div>
       {children}
       {hint && <p className="mt-1 text-[11px] text-muted/80">{hint}</p>}
     </div>
@@ -437,9 +438,10 @@ function Field({ label, hint, children }: { label: string; hint?: string; childr
 }
 
 function Line({ k, v }: { k: string; v: string }) {
+ const {t:translateUI}=usePlatformLanguage();
   return (
     <div className="flex justify-between gap-3">
-      <dt className="text-muted">{k}</dt>
+      <dt className="text-muted">{translateUI(k)}</dt>
       <dd className="min-w-0 truncate text-right font-mono">{v}</dd>
     </div>
   );

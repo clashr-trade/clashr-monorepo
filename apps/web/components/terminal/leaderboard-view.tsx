@@ -1,5 +1,6 @@
 'use client';
 
+import {usePlatformLanguage} from '@/components/landing/language-provider';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Robot, Trophy, User } from '@phosphor-icons/react';
@@ -37,6 +38,7 @@ const UNRANKED: Record<string, string> = {
 };
 
 export function LeaderboardView() {
+  const {t:translateUI}=usePlatformLanguage();
   const [win, setWin] = useState<BoardWindow>(BNB_PRODUCT?'30d':'season');
   const [kind, setKind] = useState<BoardKind>('all');
   const seasons = useV1<{ seasons: Season[] }>('/seasons');
@@ -53,29 +55,29 @@ export function LeaderboardView() {
         <SeasonHeader season={season} />
 
         <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
-          <Tabs items={WINDOWS} value={win} onChange={setWin} label="Time window" />
-          <Tabs items={KINDS} value={kind} onChange={setKind} label="Who" />
+          <Tabs items={WINDOWS} value={win} onChange={setWin} label={translateUI("Time window")} />
+          <Tabs items={KINDS} value={kind} onChange={setKind} label={translateUI("Who")} />
         </div>
 
         <div className="mt-3 overflow-hidden rounded-2xl border border-white/[0.06] bg-surface">
           <div className={`${GRID} border-b border-white/[0.06] px-4 py-3 text-xs text-muted md:px-6`}>
             <span>#</span>
-            <span>Member</span>
-            <span className="hidden md:block">Type</span>
-            <span className="hidden text-right md:block" title="Total PnL as a share of what was put in">PnL %</span>
-            <span className="hidden text-right md:block" title="Share of traded tokens closed in profit">Win rate</span>
-            <span className="hidden text-right md:block">Trades</span>
-            <span className="text-right">PnL</span>
+            <span>{translateUI("Member")}</span>
+            <span className="hidden md:block">{translateUI("Type")}</span>
+            <span className="hidden text-right md:block" title={translateUI("Total PnL as a share of what was put in")}>{translateUI("PnL %")}</span>
+            <span className="hidden text-right md:block" title={translateUI("Share of traded tokens closed in profit")}>{translateUI("Win rate")}</span>
+            <span className="hidden text-right md:block">{translateUI("Trades")}</span>
+            <span className="text-right">{translateUI("PnL")}</span>
           </div>
           {board.state === 'loading' && <Skeleton />}
           {board.state === 'off' && (
-            <Empty title="Opening soon" text="The leaderboard switches on with Season 0. Trades you make now already count." />
+            <Empty title={translateUI("Opening soon")} text={translateUI("The leaderboard switches on with Season 0. Trades you make now already count.")} />
           )}
-          {board.state === 'none' && <Empty title="Season 0 hasn't started yet" text="Ranks appear here once it opens." />}
-          {board.state === 'error' && <Empty title="Couldn't load the leaderboard" text="Check your connection and try again in a moment." />}
+          {board.state === 'none' && <Empty title={translateUI("Season 0 hasn't started yet")} text={translateUI("Ranks appear here once it opens.")} />}
+          {board.state === 'error' && <Empty title={translateUI("Couldn't load the leaderboard")} text={translateUI("Check your connection and try again in a moment.")} />}
           {board.state === 'ready' &&
             (board.data.rows.length === 0 ? (
-              <Empty title="No ranked traders yet." text="Trade during Season 0 to get on the board." />
+              <Empty title={translateUI("No ranked traders yet.")} text={translateUI("Trade during Season 0 to get on the board.")} />
             ) : (
               <ol>
                 {board.data.rows.map((r) => (
@@ -86,9 +88,7 @@ export function LeaderboardView() {
           {board.state === 'ready' && myHandle && !listed && <Pinned handle={myHandle} rank={mine} />}
         </div>
         <p className="mt-3 text-xs text-muted">
-          Ranked on on-chain PnL from trades made through any app, under the same rules for humans and agents. Humans count their own
-          trades plus their best three agents.
-        </p>
+          {translateUI("Ranked on on-chain PnL from trades made through any app, under the same rules for humans and agents. Humans count their own trades plus their best three agents.")}</p>
       </div>
     </div>
   );
@@ -101,6 +101,7 @@ function pickSeason(all: Season[], fromBoard: Season | null): Season | null {
 }
 
 function SeasonHeader({ season }: { season: Season | null }) {
+  const {t:translateUI}=usePlatformLanguage();
   const [now, setNow] = useState<number | null>(null);
   useEffect(() => {
     setNow(Date.now());
@@ -116,13 +117,13 @@ function SeasonHeader({ season }: { season: Season | null }) {
           <Trophy size={22} weight="fill" className="text-brand" /> {season?.name ?? (BNB_PRODUCT?'BNB Leaderboard':'Season 0')}
         </h1>
         <p className="mt-1 text-sm text-muted">
-          {season ? `${day(season.startsAt)} – ${day(season.endsAt)}` : 'One leaderboard for people and agents.'}
+          {season ? `${day(season.startsAt)} – ${day(season.endsAt)}` : translateUI("One leaderboard for people and agents.")}
         </p>
       </div>
       {left != null && (
         <div className="text-right" aria-live="off">
-          <div className="text-xs text-muted">{left > 0 ? 'Ends in' : 'Season'}</div>
-          <div className="font-mono text-lg font-semibold tabular-nums">{left > 0 ? countdown(left) : 'Final'}</div>
+          <div className="text-xs text-muted">{left > 0 ? translateUI("Ends in") : translateUI("Season")}</div>
+          <div className="font-mono text-lg font-semibold tabular-nums">{left > 0 ? countdown(left) : translateUI("Final")}</div>
         </div>
       )}
     </header>
@@ -142,6 +143,7 @@ function countdown(ms: number) {
 }
 
 function Tabs<T extends string>({ items, value, onChange, label }: { items: { id: T; label: string }[]; value: T; onChange: (v: T) => void; label: string }) {
+ const {t:translateUI}=usePlatformLanguage();
   return (
     <div className="flex rounded-xl bg-white/[0.04] p-1" role="tablist" aria-label={label}>
       {items.map((x) => (
@@ -153,7 +155,7 @@ function Tabs<T extends string>({ items, value, onChange, label }: { items: { id
           onClick={() => onChange(x.id)}
           className={`rounded-lg px-3 py-1.5 text-sm transition ${value === x.id ? 'bg-white/[0.08] text-ink' : 'text-muted hover:text-ink'}`}
         >
-          {x.label}
+          {translateUI(x.label)}
         </button>
       ))}
     </div>
@@ -161,10 +163,11 @@ function Tabs<T extends string>({ items, value, onChange, label }: { items: { id
 }
 
 export function KindBadge({ kind }: { kind: 'human' | 'agent' }) {
+  const {t:translateUI}=usePlatformLanguage();
   return (
     <span className="inline-flex shrink-0 items-center gap-1 rounded-md bg-white/[0.06] px-1.5 py-0.5 text-[11px] font-semibold text-muted">
       {kind === 'agent' ? <Robot size={11} weight="bold" /> : <User size={11} weight="bold" />}
-      {kind === 'agent' ? 'Agent' : 'Human'}
+      {kind === 'agent' ? translateUI("Agent") : translateUI("Human")}
     </span>
   );
 }
@@ -174,6 +177,7 @@ const signedUsd = (n: number | null) => (n == null ? '—' : `${n > 0 ? '+' : n 
 const tone = (n: number | null) => (n == null || n === 0 ? 'text-muted' : n > 0 ? 'text-go' : 'text-risk-high');
 
 function Row({ r, me }: { r: BoardRow; me: boolean }) {
+  const {t:translateUI}=usePlatformLanguage();
   return (
     <li className={`${GRID} border-b border-white/[0.04] px-4 py-3 last:border-0 md:px-6 ${me ? 'bg-white/[0.05]' : ''}`}>
       <span className={`font-mono text-sm ${r.rank <= 3 ? 'font-semibold text-ink' : 'text-muted'}`}>{r.rank}</span>
@@ -182,14 +186,14 @@ function Row({ r, me }: { r: BoardRow; me: boolean }) {
         <span className="min-w-0">
           <Link href={`/u/${r.member.handle}`} className="block truncate font-medium hover:underline">
             @{r.member.handle}
-            {me && <span className="ml-1.5 text-xs font-normal text-muted">you</span>}
+            {me && <span className="ml-1.5 text-xs font-normal text-muted">{translateUI("you")}</span>}
           </Link>
           <span className="mt-0.5 flex items-center gap-1.5 text-xs text-muted">
             <span className="md:hidden">
               <KindBadge kind={r.member.kind} />
             </span>
-            {r.member.owner && <span className="truncate">by @{r.member.owner.handle}</span>}
-            {r.inclAgents && r.agents.length > 0 && <span className="truncate">+ {r.agents.length} agent{r.agents.length > 1 ? 's' : ''}</span>}
+            {r.member.owner && <span className="truncate">{translateUI("by @")}{r.member.owner.handle}</span>}
+            {r.inclAgents && r.agents.length > 0 && <span className="truncate">+ {r.agents.length}  {translateUI("agent")}{r.agents.length > 1 ? 's' : ''}</span>}
           </span>
         </span>
       </span>
@@ -208,13 +212,14 @@ function Row({ r, me }: { r: BoardRow; me: boolean }) {
 }
 
 function Pinned({ handle, rank }: { handle: string; rank: Load<MyRank> }) {
+  const {t:translateUI}=usePlatformLanguage();
   const r = rank.state === 'ready' ? rank.data : null;
   return (
     <div className={`${GRID} border-t border-white/[0.08] bg-white/[0.05] px-4 py-3 md:px-6`}>
       <span className="font-mono text-sm text-ink">{r?.rank ?? '–'}</span>
       <span className="min-w-0">
         <Link href={`/u/${handle}`} className="block truncate font-medium hover:underline">
-          @{handle} <span className="text-xs font-normal text-muted">you</span>
+          @{handle} <span className="text-xs font-normal text-muted">{translateUI("you")}</span>
         </Link>
         {r && !r.rank && <span className="block truncate text-xs text-muted">{UNRANKED[r.unranked ?? 'ineligible'] ?? UNRANKED.ineligible}</span>}
       </span>
@@ -228,17 +233,19 @@ function Pinned({ handle, rank }: { handle: string; rank: Load<MyRank> }) {
 }
 
 function Empty({ title, text }: { title: string; text: string }) {
+  const {t:translateUI}=usePlatformLanguage();
   return (
     <div className="px-6 py-16 text-center">
-      <p className="font-medium">{title}</p>
-      <p className="mt-1 text-sm text-muted">{text}</p>
+      <p className="font-medium">{translateUI(title)}</p>
+      <p className="mt-1 text-sm text-muted">{translateUI(text)}</p>
     </div>
   );
 }
 
 function Skeleton() {
+  const {t:translateUI}=usePlatformLanguage();
   return (
-    <ol aria-label="Loading">
+    <ol aria-label={translateUI("Loading")}>
       {Array.from({ length: 6 }, (_, i) => (
         <li key={i} className="flex items-center gap-3 border-b border-white/[0.04] px-4 py-3 last:border-0 md:px-6">
           <span className="h-3 w-4 animate-pulse rounded bg-white/[0.06]" />

@@ -1,3 +1,4 @@
+import {UIText} from '@/components/landing/language-provider';
 import Link from 'next/link';
 import { ChatCircleText, Trophy, Rocket } from '@phosphor-icons/react/dist/ssr';
 
@@ -25,21 +26,21 @@ export function BscFeatureState({ feature }: { feature: keyof typeof FEATURES })
   return <main className="h-full overflow-y-auto">
     <div className="mx-auto max-w-5xl px-4 pb-16 pt-6 md:px-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
-        <span className="rounded-full border border-amber-300/20 bg-amber-300/5 px-3 py-1 text-[11px] text-amber-200">BNB Smart Chain</span>
+        <h1 className="text-2xl font-semibold tracking-tight"><UIText text={title}/></h1>
+        <span className="rounded-full border border-amber-300/20 bg-amber-300/5 px-3 py-1 text-[11px] text-amber-200"><UIText text={"BNB Smart Chain"}/></span>
       </div>
       <section aria-labelledby="bsc-feature-heading" className="mt-6 rounded-2xl border border-white/[0.07] bg-surface px-5 py-12 text-center sm:px-10 sm:py-16">
         <div className="mx-auto grid size-14 place-items-center rounded-2xl border border-white/10 bg-white/[0.03] text-amber-200"><Icon size={26} /></div>
-        <p className="mt-5 font-mono text-[10px] uppercase tracking-wider text-muted">Not available on BNB</p>
+        <p className="mt-5 font-mono text-[10px] uppercase tracking-wider text-muted"><UIText text={"Not available on BNB"}/></p>
         <h2 id="bsc-feature-heading" className="mt-2 text-lg font-medium">{heading}</h2>
-        <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-muted">{description}</p>
+        <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-muted"><UIText text={description}/></p>
         <p className="mx-auto mt-3 max-w-xl text-xs leading-relaxed text-muted">{detail}</p>
         <div className="mt-7 flex flex-wrap justify-center gap-3">
-          <Link href="/bsc" className="rounded-xl bg-brand/15 px-4 py-2.5 text-xs font-medium text-brand">Explore BNB markets</Link>
-          <Link href="/bsc/agents" className="rounded-xl border border-white/10 px-4 py-2.5 text-xs">Shared agent directory</Link>
+          <Link href="/bsc" className="rounded-xl bg-brand/15 px-4 py-2.5 text-xs font-medium text-brand"><UIText text={"Explore BNB markets"}/></Link>
+          <Link href="/bsc/agents" className="rounded-xl border border-white/10 px-4 py-2.5 text-xs"><UIText text={"Shared agent directory"}/></Link>
         </div>
       </section>
-      <p className="mt-4 text-xs leading-relaxed text-muted">BNB markets and direct PancakeSwap v2/v3 wallet trading are available independently of this service.</p>
+      <p className="mt-4 text-xs leading-relaxed text-muted"><UIText text={"BNB markets and direct PancakeSwap v2/v3 wallet trading are available independently of this service."}/></p>
     </div>
   </main>;
 }

@@ -1,5 +1,6 @@
 'use client';
 
+import {usePlatformLanguage} from '@/components/landing/language-provider';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
@@ -10,13 +11,14 @@ import { WalletOverview } from '../wallet-overview';
 import { EXPLORER } from '@/lib/format';
 
 /**
- * The user's Rushr wallet: total balance, tokens held, deposit and withdraw, key export and a link to
+ * The user's CLASHR wallet: total balance, tokens held, deposit and withdraw, key export and a link to
  * trading settings.
  * Opens as a drawer from the account menu. Rendered into document.body: the top bar has a
  * backdrop-filter, which makes it the containing block for `position: fixed` children, so a drawer
  * rendered inside it would be clipped to the bar's 56px height.
  */
 export function WalletPanel({ onClose }: { onClose: () => void }) {
+  const {t:translateUI}=usePlatformLanguage();
   const { user } = useAuth();
   const address = user?.wallet ?? null;
   const holdings = useWalletHoldings(address);
@@ -31,12 +33,12 @@ export function WalletPanel({ onClose }: { onClose: () => void }) {
   }, [onClose]);
 
   return createPortal(
-    <div className="fixed inset-0 z-[60] flex justify-end" role="dialog" aria-modal="true" aria-label="Your wallet">
-      <button type="button" aria-label="Close" onClick={onClose} className="absolute inset-0 bg-black/60 backdrop-blur-[2px]" />
+    <div className="fixed inset-0 z-[60] flex justify-end" role="dialog" aria-modal="true" aria-label={translateUI("Your wallet")}>
+      <button type="button" aria-label={translateUI("Close")} onClick={onClose} className="absolute inset-0 bg-black/60 backdrop-blur-[2px]" />
       <div className="relative flex h-full w-full max-w-sm flex-col overflow-y-auto border-l border-white/[0.08] bg-surface p-5 shadow-2xl">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Your wallet</h2>
-          <button type="button" onClick={onClose} aria-label="Close" className="rounded-lg p-1.5 text-muted hover:bg-white/[0.05] hover:text-ink">
+          <h2 className="text-lg font-semibold">{translateUI("Your wallet")}</h2>
+          <button type="button" onClick={onClose} aria-label={translateUI("Close")} className="rounded-lg p-1.5 text-muted hover:bg-white/[0.05] hover:text-ink">
             <X size={18} />
           </button>
         </div>
@@ -55,25 +57,22 @@ export function WalletPanel({ onClose }: { onClose: () => void }) {
                   setTimeout(() => setCopied(false), 1500);
                 })
               }
-              aria-label="Copy address"
+              aria-label={translateUI("Copy address")}
               className="shrink-0 hover:text-ink"
             >
               {copied ? <Check size={14} /> : <Copy size={14} />}
             </button>
-            <a href={`${EXPLORER}/address/${address}`} target="_blank" rel="noreferrer" aria-label="View on explorer" className="shrink-0 hover:text-ink">
+            <a href={`${EXPLORER}/address/${address}`} target="_blank" rel="noreferrer" aria-label={translateUI("View on explorer")} className="shrink-0 hover:text-ink">
               <ArrowSquareOut size={14} />
             </a>
           </div>
         )}
 
-        {user?.walletKind==='external'?<section className="mt-4 rounded-2xl border border-white/[0.06] bg-bg p-4"><h3 className="text-sm font-semibold">External wallet</h3><p className="mt-2 text-xs leading-relaxed text-muted">Manage keys and recovery in your wallet application. Rushr does not hold or export this wallet&apos;s private key.</p></section>:<section className="mt-4 rounded-2xl border border-white/[0.06] bg-bg p-4">
+        {user?.walletKind==='external'?<section className="mt-4 rounded-2xl border border-white/[0.06] bg-bg p-4"><h3 className="text-sm font-semibold">{translateUI("External wallet")}</h3><p className="mt-2 text-xs leading-relaxed text-muted">{translateUI("Manage keys and recovery in your wallet application. CLASHR does not hold or export this wallet's private key.")}</p></section>:<section className="mt-4 rounded-2xl border border-white/[0.06] bg-bg p-4">
           <h3 className="flex items-center gap-1.5 text-sm font-semibold">
-            <Key size={15} /> Export private key
-          </h3>
+            <Key size={15} /> {translateUI("Export private key")}</h3>
           <p className="mt-1 text-xs leading-relaxed text-muted">
-            Your wallet is yours: export the key to use it in MetaMask or any other wallet. Privy shows it in a secure window Rushr can&apos;t
-            read. Never share it with anyone.
-          </p>
+            {translateUI("Your wallet is yours: export the key to use it in MetaMask or any other wallet. Privy shows it in a secure window CLASHR can't read. Never share it with anyone.")}</p>
           <button
             type="button"
             disabled={!address || exporting}
@@ -87,7 +86,7 @@ export function WalletPanel({ onClose }: { onClose: () => void }) {
             }}
             className="mt-3 w-full rounded-xl border border-risk-medium/30 py-2 text-sm font-semibold text-risk-medium hover:bg-risk-medium/10 disabled:opacity-50"
           >
-            {exporting ? 'Opening…' : 'Export key'}
+            {exporting ? translateUI("Opening…") : translateUI("Export key")}
           </button>
           {exportError && (
             <p className="mt-2 flex items-center gap-1 text-xs text-risk-high">
@@ -102,9 +101,8 @@ export function WalletPanel({ onClose }: { onClose: () => void }) {
           className="mt-4 flex items-center justify-between rounded-2xl border border-white/[0.06] bg-bg px-4 py-3 text-sm hover:border-white/15"
         >
           <span className="flex items-center gap-2">
-            <GearSix size={16} /> Trading settings
-          </span>
-          <span className="text-xs text-muted">Presets, slippage, caps</span>
+            <GearSix size={16} /> {translateUI("Trading settings")}</span>
+          <span className="text-xs text-muted">{translateUI("Presets, slippage, caps")}</span>
         </Link>
       </div>
     </div>,

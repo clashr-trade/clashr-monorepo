@@ -14,8 +14,11 @@ export async function proxyProduct(request:Request,parts:string[],base:string|un
   target.pathname=`/${parts.join('/')}`;target.search=own.search;
   const forwarded=new Headers({'accept':'application/json'});
   const token=request.headers.get('cookie')?.split(';').map(v=>v.trim()).find(v=>v.startsWith(`${COOKIE}=`))?.slice(COOKIE.length+1);
-  if(token&&/^ws_[0-9a-f]{64}$/.test(token)&&!['v1/auth/wallet/nonce','v1/auth/wallet/verify'].includes(parts.join('/')))forwarded.set('authorization',`Bearer ${token}`);
-  else {const authorization=request.headers.get('authorization');if(authorization?.startsWith('Bearer ')&&authorization.length<=4103)forwarded.set('authorization',authorization);}
+  // An explicit current identity (Privy or an agent key) must win over an older
+  // wallet cookie, otherwise email login silently operates as the previous user.
+  const authorization=request.headers.get('authorization');
+  if(authorization?.startsWith('Bearer ')&&authorization.length<=4103)forwarded.set('authorization',authorization);
+  else if(token&&/^ws_[0-9a-f]{64}$/.test(token)&&!['v1/auth/wallet/nonce','v1/auth/wallet/verify'].includes(parts.join('/')))forwarded.set('authorization',`Bearer ${token}`);
   if(origin)forwarded.set('origin',origin);
   if(request.headers.has('content-type'))forwarded.set('content-type',request.headers.get('content-type')!);
   try{

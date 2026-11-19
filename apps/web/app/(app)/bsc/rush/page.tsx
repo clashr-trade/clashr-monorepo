@@ -1,3 +1,4 @@
-import { BscFeatureState } from '@/components/terminal/bsc-feature-state';
-export const metadata = { title: 'BNB Rush' };
-export default function BscRushPage() { return <BscFeatureState feature="rush" />; }
+import { redirect } from 'next/navigation';
+export default function BscRushPage() {
+  redirect('/bsc/clash');
+}

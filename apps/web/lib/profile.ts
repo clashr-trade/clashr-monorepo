@@ -314,7 +314,7 @@ function loadEth(): Promise<EthQuote | null> {
 }
 
 /**
- * ETH/USD and its 24h change. The Rushr API doesn't expose one yet, so this
+ * ETH/USD and its 24h change. The CLASHR API doesn't expose one yet, so this
  * reads the deepest WETH pool on DexScreener (already allowed by the CSP), cached for a minute.
  */
 export function useEthQuote(enabled = true): EthQuote | null {

@@ -7,11 +7,11 @@ export async function syncProductMarket(sql:Sql,origin:string,rpcUrl=BSC_PUBLIC_
   const response=await fetch(`${origin}/api/bsc/market`,{signal:AbortSignal.timeout(20_000)});
   if(!response.ok)throw new Error('BNB market source unavailable');
   const market=await response.json() as {chainId:number;source:string;tokens:Record<string,unknown>[]};
-  if(market.chainId!==56||!['fourmeme','geckoterminal'].includes(market.source)||!Array.isArray(market.tokens))throw new Error('Wrong market source');
+  if(market.chainId!==56||!['flap','geckoterminal'].includes(market.source)||!Array.isArray(market.tokens))throw new Error('Wrong market source');
   const client=createPublicClient({chain:bsc,transport:http(rpcUrl)});
   if(await client.getChainId()!==56)throw new Error('Wrong provider chain');
   const groups=['new','almost','migrated'].map(column=>market.tokens.filter(token=>token.market_column===column));
-  const fair=Array.from({length:60},(_,index)=>groups.flatMap(group=>group[index]?[group[index]!]:[])).flat().slice(0,150);
+  const fair=Array.from({length:60},(_,index)=>groups.flatMap(group=>group[index]?[group[index]!]:[])).flat().filter(token=>Number.isFinite(Date.parse(String(token.created_at)))).slice(0,150);
   if(!fair.length)return {chainId:56,updated:0,source:market.source,metadataOnly:true};
   const knownRows=await sql`select address,decimals,total_supply from tokens where address in ${sql(fair.map(t=>String(t.address)))}`;
   const knownByAddress=new Map(knownRows.map(row=>[row.address,row]));

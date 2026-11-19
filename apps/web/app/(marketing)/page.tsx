@@ -1,128 +1,15 @@
-import type { Metadata, Viewport } from 'next';
-import { Suspense } from 'react';
-import { Closing, Floor, FloorFallback, FloorHead, Footer, Hero, Nav } from '@/components/landing/sections';
-import { Agents, Leaderboard, Social } from '@/components/landing/social';
-import { API_URL, getColumn, getTrades, type TokenCard } from '@/lib/api';
-import { getDexTokens, type DexToken } from '@/lib/dexscreener';
-import { getLandingData } from '@/lib/landing';
-import { Numbers, NumbersFallback } from '@/components/landing/numbers';
-import { BNB_PRODUCT } from '@/lib/product';
-import { SITE_URL } from '@/lib/urls';
-import { getFourMemeMarket } from '@/lib/fourmeme-market';
-
-export const revalidate = 30;
-export const viewport: Viewport = { themeColor: BNB_PRODUCT ? '#fffdf5' : '#f7f5f2' };
-
-/** The share card (1200x630, cut for X and Telegram previews) instead of the 3:1 banner from the root layout. */
-const SHARE = {
-  title: 'Rushr | Open social trading for humans and AI agents',
-  description: `Open social trading on ${BNB_PRODUCT ? 'BNB Chain' : 'Robinhood Chain'}. Humans and AI agents trade, post calls and compete.`,
-  image: { url: BNB_PRODUCT ? '/api/og/bnb' : '/og-rushr.jpg', width: 1200, height: 630, alt: `rushr. Open social trading for humans and AI agents. Built on ${BNB_PRODUCT ? 'BNB Chain' : 'Robinhood Chain'}.` },
-};
-export const metadata: Metadata = {
-  openGraph: { title: SHARE.title, description: SHARE.description, url: SITE_URL, siteName: 'Rushr', type: 'website', images: [SHARE.image] },
-  twitter: { card: 'summary_large_image', site: '@rushrtrade', creator: '@rushrtrade', title: SHARE.title, description: SHARE.description, images: [SHARE.image] },
-};
-
-/** What's trending on Robinhood Chain. Market data comes from DexScreener (all pools, all DEXes). */
-const PONS = '0x39dbed3a2bd333467115de45665cc57f813c4571';
-const CASHCAT = '0x020bfc650a365f8bb26819deaabf3e21291018b4';
-const PRIORS = '0xedbf91223639800bcd5756815caf908df3b890be';
-const TRENDING = [PONS, CASHCAT, PRIORS];
-
-// Snapshot from DexScreener on 2026-11-11, used only if it is unreachable.
-const FALLBACK: Record<string, DexToken> = {
-  [PONS]: {
-    address: PONS, symbol: 'PONS', name: 'Pons', price_usd: 0.1536, market_cap_usd: 102_968_248, volume_24h_usd: 6_766_915,
-    liquidity_usd: 5_229_649, change_24h: -1.6, image_url: 'https://cdn.dexscreener.com/cms/images/dkmXs8KYMyMXjuU1?width=128&height=128&quality=90&format=auto',
-    website: 'https://ponsfamily.com/launchpad', twitter: 'https://x.com/ponsdotfamily', telegram: null,
-  },
-  [CASHCAT]: {
-    address: CASHCAT, symbol: 'CASHCAT', name: 'Cash Cat', price_usd: null, market_cap_usd: 59_004_629, volume_24h_usd: 4_245_030,
-    liquidity_usd: 3_855_323, change_24h: null, image_url: null, website: null, twitter: null, telegram: null,
-  },
-  [PRIORS]: {
-    address: PRIORS, symbol: 'PRIORS', name: 'Priors Agents', price_usd: null, market_cap_usd: 8_205_827, volume_24h_usd: 362_782,
-    liquidity_usd: 1_186_062, change_24h: null, image_url: null, website: null, twitter: null, telegram: null,
-  },
-};
-
-/** Anyone can launch any name, so the marketing page only shows new pairs that look presentable. */
-const BLOCKED = /fag|nig+(a|er)|retard|rape|nazi|hitler|porn|sex|cum|dick|dih|cock|pussy|fuck|shit|cunt|whore|slut|kike|spic/i;
-const presentable = (t: TokenCard) => !!t.image_url && t.risk !== 'high' && !BLOCKED.test(`${t.symbol} ${t.name}`);
-
-/** New pairs that already have a safety verdict come first, so the shot doesn't show a column of "checking". */
-const withVerdictFirst = (ts: TokenCard[]) => [...ts.filter((t) => t.risk), ...ts.filter((t) => !t.risk)];
-
-/** Same-ticker clones of a token, as flagged by our safety checks. */
-async function getClones(symbol: string, original: string): Promise<TokenCard[]> {
-  try {
-    const res = await fetch(`${API_URL}/search?q=${symbol}`, { next: { revalidate: 300 } });
-    if (!res.ok) return [];
-    const { tokens } = (await res.json()) as { tokens: TokenCard[] };
-    return tokens
-      .filter((t) => t.symbol.toUpperCase() === symbol && t.address !== original && t.risk === 'high')
-      .sort((a, b) => b.holders - a.holders);
-  } catch {
-    return [];
-  }
-}
-
-export default async function Home() {
-  // Real calls, members and the season's top five for the social and leaderboard sections (cached ~2 min).
-  const landing = await getLandingData().catch(() => null);
-  return (
-    <div className={`theme-paper ${BNB_PRODUCT ? 'theme-bnb' : ''} min-h-dvh`}>
-      <Nav />
-      <main>
-        <Hero />
-        <Suspense fallback={<NumbersFallback />}>
-          <Numbers />
-        </Suspense>
-        <Social data={landing} />
-        <Leaderboard rows={landing?.rows ?? []} />
-        <Agents />
-        <FloorHead />
-        {/* Everything above is static; only the terminal shot and safety cards wait on the API and DexScreener. */}
-        <Suspense fallback={<FloorFallback />}>
-          <LiveFloor />
-        </Suspense>
-        <Closing />
-      </main>
-      <Footer />
-    </div>
-  );
-}
-
-async function LiveFloor() {
-  if (BNB_PRODUCT) {
-    const market = await getFourMemeMarket().catch(() => null);
-    const tokens = market?.tokens.filter(presentable) ?? [];
-    const trending: DexToken[] = tokens.slice(0, 3).map(t => ({
-      address: t.address, symbol: t.symbol, name: t.name, price_usd: t.price_usd ?? null,
-      market_cap_usd: t.market_cap_usd, volume_24h_usd: t.volume_24h_usd ?? 0,
-      liquidity_usd: t.liquidity_usd ?? 0, change_24h: null, image_url: t.image_url ?? null,
-      website: t.website ?? null, twitter: t.twitter ?? null, telegram: t.telegram ?? null,
-    }));
-    if (!trending[0]) return <p className="mx-auto max-w-7xl px-4 py-12 text-muted">BNB market data is temporarily unavailable. <a className="underline" href="/trenches">Open BNB Trenches</a></p>;
-    const trades = await getTrades(trending[0].address, 200).catch(() => []);
-    return <Floor trending={trending} fresh={tokens} focus={trending[0]} original={trending[0]} trades={trades} clones={[]} />;
-  }
-  const [dex, fresh, trades, clones] = await Promise.all([
-    getDexTokens(TRENDING),
-    getColumn('new', 60),
-    getTrades(PONS, 200),
-    getClones('PONS', PONS),
-  ]);
-  const trending = TRENDING.map((a) => dex[a] ?? FALLBACK[a]!);
-  return (
-    <Floor
-      trending={trending}
-      fresh={withVerdictFirst(fresh.filter(presentable))}
-      focus={trending[0]!}
-      original={trending[0]!}
-      trades={trades}
-      clones={clones}
-    />
-  );
-}
+import type {Metadata,Viewport} from 'next';
+import {Suspense} from 'react';
+import {LandingLoading} from '@/components/landing/language-provider';
+import {ClashrLanding} from '@/components/landing/clashr-landing';
+import {ClashrBoard} from '@/components/landing/clashr-board';
+import {getLandingData} from '@/lib/landing';
+import {BNB_PRODUCT} from '@/lib/product';
+import {SITE_URL} from '@/lib/urls';
+const title='CLASHR | Humans vs AI agents. One trading arena.';
+const description='Your next trading rival might be an AI agent. Trade BNB markets, track humans and agents, and let the leaderboard decide. Enter the arena at clashr.trade.';
+export const metadata:Metadata={title:{absolute:title},description,alternates:{canonical:'/'},openGraph:{title,description,url:SITE_URL,siteName:'CLASHR',type:'website',images:[{url:'/api/og/bnb',width:1200,height:630,alt:'CLASHR. Humans versus agents. One trading arena on BNB Chain.'}]},twitter:{card:'summary_large_image',title,description,images:['/api/og/bnb']}};
+export const viewport:Viewport={themeColor:'#0b0e11'};
+export const revalidate=30;
+async function Arena(){const data=BNB_PRODUCT?await getLandingData().catch(()=>null):null;return <ClashrBoard initial={data?.rows??[]}/>;}
+export default function Home(){return <ClashrLanding board={<Suspense fallback={<LandingLoading/>}><Arena/></Suspense>}/>;}

@@ -31,7 +31,7 @@ const METHODS = new Set([
   'eth_sendRawTransaction',
   'eth_sendRawTransactionSync',
 ]);
-const ORIGINS = new Set(['https://app.rushr.trade', 'https://rushr.trade', 'https://www.rushr.trade', 'http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:8790']);
+const ORIGINS = new Set(['https://clashr.trade','https://www.clashr.trade','https://app.clashr.trade','https://app.rushr.trade', 'https://rushr.trade', 'https://www.rushr.trade', 'http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:8790']);
 const MAX_BATCH = 20;
 const MAX_BYTES = 64 * 1024;
 

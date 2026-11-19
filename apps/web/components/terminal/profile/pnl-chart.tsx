@@ -1,5 +1,6 @@
 'use client';
 
+import {usePlatformLanguage} from '@/components/landing/language-provider';
 import { useMemo, useState } from 'react';
 import { usdSigned } from '@/lib/format';
 import type { PnlHistory } from '@/lib/profile';
@@ -18,6 +19,7 @@ const when = (t: number) =>
  * start to now. Hovering shows the running total after the nearest sell.
  */
 export function PnlChart({ history, loading, label }: { history: PnlHistory | null; loading: boolean; label: string }) {
+  const {t:translateUI}=usePlatformLanguage();
   const [hover, setHover] = useState<number | null>(null);
   const chart = useMemo(() => {
     if (!history) return null;
@@ -80,10 +82,10 @@ export function PnlChart({ history, loading, label }: { history: PnlHistory | nu
           <span className="ml-2 text-muted">{when(tip.t)}</span>
         </span>
       ) : (
-        <span className="pointer-events-none absolute left-3 top-2 text-[10px] uppercase tracking-wider text-muted">{label}</span>
+        <span className="pointer-events-none absolute left-3 top-2 text-[10px] uppercase tracking-wider text-muted">{translateUI(label)}</span>
       )}
       {history && !pts.length && !loading && (
-        <span className="absolute bottom-2 right-3 text-[11px] text-muted">No closed trades in this range yet</span>
+        <span className="absolute bottom-2 right-3 text-[11px] text-muted">{translateUI("No closed trades in this range yet")}</span>
       )}
     </div>
   );

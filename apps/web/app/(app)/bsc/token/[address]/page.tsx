@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 import { BscTokenView } from '@/components/terminal/bsc-token-view';
 import { getPublicBscToken,getPublicBscCandles } from '@/lib/bsc-public-market';
-export const metadata = { title: 'BNB Token · Rushr' };
+export const metadata = { title: 'BNB Token · CLASHR' };
 export const dynamic='force-dynamic';
 export default async function BscTokenPage({ params }: { params: Promise<{ address: string }> }) {
   const { address } = await params;

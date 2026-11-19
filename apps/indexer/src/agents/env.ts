@@ -5,6 +5,7 @@ export interface AgentsEnv extends Env {
   /** Owned BNB product web origin; never inferred from untrusted Host headers. */
   PRODUCT_ORIGIN?: string;
   BSC_RPC_URL?: string;
+  BSC_INDEX_DATABASE_URL?: string;
   /** Mounts /v1 at all. */
   AGENTS_ENABLED?: string;
   /** /v1/leaderboard. */

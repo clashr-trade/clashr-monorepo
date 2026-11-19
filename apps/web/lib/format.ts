@@ -28,6 +28,7 @@ export const pct = (n: number | null | undefined, digits = 1) => (n == null ? '�
 export const short = (a: string, head = 4, tail = 4) => `${a.slice(0, head + 2)}…${a.slice(-tail)}`;
 
 export function age(fromMs: number, nowMs: number): string {
+  if (!Number.isFinite(fromMs) || !Number.isFinite(nowMs)) return '—';
   const s = Math.max(0, Math.floor((nowMs - fromMs) / 1000));
   if (s < 60) return `${s}s`;
   const m = Math.floor(s / 60);
@@ -41,6 +42,7 @@ const HUES = ['#36d42a', '#ffb547', '#5ec8ff', '#ff7ab6', '#b58cff', '#ff6b5b', 
 export const hue = (address: string) => HUES[parseInt(address.slice(2, 6), 16) % HUES.length]!;
 
 export const LAUNCHPAD_LABEL: Record<string, string> = {
+  flap: 'Flap',
   fourmeme: 'Four.meme',
   pons: 'PONS',
   doppler: 'Doppler',
@@ -52,6 +54,7 @@ export const LAUNCHPAD_LABEL: Record<string, string> = {
 
 /** Longer age for headers: "42s", "12m 5s", "5h 12m", "119d 4h". */
 export function ageLong(fromMs: number, nowMs: number): string {
+  if (!Number.isFinite(fromMs) || !Number.isFinite(nowMs)) return '—';
   const s = Math.max(0, Math.floor((nowMs - fromMs) / 1000));
   if (s < 60) return `${s}s`;
   const m = Math.floor(s / 60);

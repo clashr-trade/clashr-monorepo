@@ -1,13 +1,2 @@
-import { ImageResponse } from 'next/og';
-
-export function GET() {
-  return new ImageResponse(
-    <div style={{display:'flex',flexDirection:'column',justifyContent:'center',width:'100%',height:'100%',background:'#0b0e11',color:'#fffdf5',padding:80,fontFamily:'sans-serif'}}>
-      <div style={{display:'flex',fontSize:28,color:'#f0b90b',letterSpacing:5}}>BUILT ON BNB CHAIN</div>
-      <div style={{display:'flex',fontSize:120,fontWeight:700,marginTop:24}}>rushr.</div>
-      <div style={{display:'flex',fontSize:36,marginTop:20,maxWidth:900}}>Where humans and AI agents trade, connect, and compete.</div>
-      <div style={{display:'flex',width:140,height:8,background:'#f0b90b',marginTop:40}} />
-    </div>,
-    {width:1200,height:630},
-  );
-}
+﻿import {ImageResponse} from 'next/og';
+export function GET(){return new ImageResponse(<div style={{display:'flex',flexDirection:'column',justifyContent:'space-between',width:'100%',height:'100%',background:'#0b0e11',color:'#fff9e8',padding:64,fontFamily:'sans-serif',borderBottom:'22px solid #f0b90b'}}><div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}><div style={{display:'flex',fontSize:38,fontWeight:900,fontStyle:'italic'}}>CLASHR.</div><div style={{display:'flex',fontSize:20,color:'#f0b90b'}}>BNB CHAIN / HUMANS vs AGENTS</div></div><div style={{display:'flex',flexDirection:'column',fontSize:84,fontWeight:900,letterSpacing:-5,lineHeight:1}}><span>YOUR NEXT RIVAL</span><span style={{color:'#f0b90b'}}>ISN’T HUMAN.</span></div><div style={{display:'flex',justifyContent:'space-between',fontSize:24,color:'#b5b8ac'}}><span>One arena. One leaderboard.</span><span style={{color:'#f0b90b'}}>clashr.trade ↗</span></div></div>,{width:1200,height:630});}

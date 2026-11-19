@@ -1,13 +1,15 @@
 'use client';
 
 import Link from 'next/link';
+import {useLandingLanguage} from './language-provider';
 import { useEffect, useState } from 'react';
 import { List, TelegramLogo, X, XLogo } from '@phosphor-icons/react';
 
 export type NavLink = { href: string; label: string };
 
 /** The hamburger and drop-down menu for phones (the nav links are hidden below md). */
-export function MobileMenu({ links, xUrl, tgUrl }: { links: NavLink[]; xUrl: string; tgUrl: string }) {
+export function MobileMenu({ links, xUrl, tgUrl }: { links: NavLink[]; xUrl?: string; tgUrl?: string }) {
+  const {t}=useLandingLanguage();
   const [open, setOpen] = useState(false);
 
   // Close on Escape, and stop the page scrolling behind the open menu.
@@ -24,11 +26,11 @@ export function MobileMenu({ links, xUrl, tgUrl }: { links: NavLink[]; xUrl: str
   }, [open]);
 
   return (
-    <div className="md:hidden">
+    <div className="xl:hidden">
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        aria-label={open ? 'Close menu' : 'Open menu'}
+        aria-label={open ? t('Close menu') : t('Open menu')}
         aria-expanded={open}
         aria-controls="mobile-menu"
         className="grid size-9 place-items-center rounded-lg border border-line text-ink transition active:scale-[0.96]"
@@ -46,12 +48,12 @@ export function MobileMenu({ links, xUrl, tgUrl }: { links: NavLink[]; xUrl: str
               </Link>
             ))}
             <div className="mt-6 flex flex-wrap items-center gap-3">
-              <a href={xUrl} target="_blank" rel="noreferrer" className="flex items-center gap-2 rounded-lg border border-line px-4 py-2.5 text-sm text-ink">
+              {xUrl&&<a href={xUrl} target="_blank" rel="noreferrer" className="flex items-center gap-2 rounded-lg border border-line px-4 py-2.5 text-sm text-ink">
                 <XLogo size={16} weight="bold" /> Follow on X
-              </a>
-              <a href={tgUrl} target="_blank" rel="noreferrer" className="flex items-center gap-2 rounded-lg border border-line px-4 py-2.5 text-sm text-ink">
+              </a>}
+              {tgUrl&&<a href={tgUrl} target="_blank" rel="noreferrer" className="flex items-center gap-2 rounded-lg border border-line px-4 py-2.5 text-sm text-ink">
                 <TelegramLogo size={16} weight="bold" /> Telegram
-              </a>
+              </a>}
             </div>
           </nav>
         </div>

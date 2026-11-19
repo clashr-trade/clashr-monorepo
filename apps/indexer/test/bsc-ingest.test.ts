@@ -151,6 +151,38 @@ describe.skipIf(!pg)('BSC finalized ingestion (real PostgreSQL)', () => {
   });
   afterAll(async () => { await db?.drop(); });
 
+  it('keeps live Flap and historical checkpoints independent', async () => {
+    rpc.logsFixture=[];
+    const historical={...config,source:'flap' as const};
+    const live={...historical,live:true,startBlock:11n,hash:'b'.repeat(64)};
+    await ingestBscBatch(db.sql,rpc,live,{...job(),configHash:live.hash});
+    expect(await db.sql`select 1 from chain_v2.market_cursors`).toHaveLength(0);
+    expect((await db.sql`select block::text from chain_v2.flap_live_cursors`)[0]?.block).toBe('11');
+    await ingestBscBatch(db.sql,rpc,historical,job());
+    expect((await db.sql`select start_block::text from chain_v2.market_cursors`)[0]?.start_block).toBe('10');
+    expect((await db.sql`select start_block::text from chain_v2.flap_live_cursors`)[0]?.start_block).toBe('11');
+  });
+
+  it('allows live progress while the backfill advisory lock is held', async () => {
+    rpc.logsFixture=[];
+    await db.sql`truncate chain_v2.flap_live_cursors`;
+    const live={...config,source:'flap' as const,live:true,hash:'c'.repeat(64)};
+    await db.sql.begin(async tx=>{
+      await tx`select pg_advisory_xact_lock(56,130013)`;
+      const result=await ingestBscBatch(db.sql,rpc,live,{...job(),configHash:live.hash});
+      expect(result.phase).toBe('indexed');
+    });
+  });
+
+  it('processes successive local runs within the same scheduled minute', async () => {
+    rpc.logsFixture=[];
+    const cfg={...config,source:'flap' as const};
+    await ingestBscBatch(db.sql,rpc,cfg,{...job(),executionId:'local-'+crypto.randomUUID()});
+    rpc.head=12n;
+    const result=await ingestBscBatch(db.sql,rpc,cfg,{...job(),executionId:'local-'+crypto.randomUUID()});
+    expect(result).toMatchObject({phase:'indexed',through:'12'});
+  });
+
   it('atomically discovers both protocols, stores canonical raw facts and exact BNB execution ratios', async () => {
     const result = await ingestBscBatch(db.sql,rpc,config,job());
     expect(result).toMatchObject({phase:'indexed',blocks:2,pools:2,swaps:2,continueIndexing:false});

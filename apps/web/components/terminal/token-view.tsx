@@ -1,5 +1,6 @@
 'use client';
 
+import {usePlatformLanguage} from '@/components/landing/language-provider';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { CaretLeft, CaretRight, Check, CheckCircle, Copy, Info, Lightning, Warning, WarningOctagon } from '@phosphor-icons/react';
@@ -62,6 +63,7 @@ export function TokenView({
   candlesP: Promise<Candle[]>;
   serverNow: number;
 }) {
+  const {t:translateUI}=usePlatformLanguage();
   // Header data from the server render, then the feed: snapshot (the streamed trade list today,
   // a socket snapshot on v2) plus live deltas.
   const live = useTopic<TokenState>(`token:${detail.address}`, () => tokenSpec(detail, tradesP));
@@ -186,9 +188,9 @@ export function TokenView({
             {callsOpen ? (
               <>
                 <div className="flex items-center gap-2 border-b border-white/[0.05] px-3 py-2.5">
-                  <h2 className="text-sm font-semibold">Calls on ${t.symbol}</h2>
+                  <h2 className="text-sm font-semibold">{translateUI("Calls on $")}{t.symbol}</h2>
                   {calls.items && <span className="font-mono text-xs text-muted">{calls.items.length}</span>}
-                  <button type="button" onClick={() => setCallsOpen(false)} aria-label="Hide calls" title="Hide calls" className="ml-auto rounded-md p-1 text-muted hover:bg-white/[0.05] hover:text-ink">
+                  <button type="button" onClick={() => setCallsOpen(false)} aria-label={translateUI("Hide calls")} title={translateUI("Hide calls")} className="ml-auto rounded-md p-1 text-muted hover:bg-white/[0.05] hover:text-ink">
                     <CaretLeft size={14} />
                   </button>
                 </div>
@@ -197,9 +199,9 @@ export function TokenView({
                 </div>
               </>
             ) : (
-              <button type="button" onClick={() => setCallsOpen(true)} aria-label="Show calls" className="flex h-full flex-col items-center gap-2 py-3 text-xs text-muted hover:text-ink">
+              <button type="button" onClick={() => setCallsOpen(true)} aria-label={translateUI("Show calls")} className="flex h-full flex-col items-center gap-2 py-3 text-xs text-muted hover:text-ink">
                 <CaretRight size={14} />
-                <span className="[writing-mode:vertical-rl]">Calls{calls.items?.length ? ` · ${calls.items.length}` : ''}</span>
+                <span className="[writing-mode:vertical-rl]">{translateUI("Calls")}{calls.items?.length ? ` · ${calls.items.length}` : ''}</span>
               </button>
             )}
           </section>
@@ -210,9 +212,7 @@ export function TokenView({
             <div role="status" className="flex items-center gap-2 rounded-xl border border-brand/20 bg-brand/[0.06] px-3 py-2 text-xs text-ink/85">
               <span className="size-1.5 shrink-0 animate-pulse rounded-full bg-brand" />
               <span>
-                Rushr is reading this token&apos;s history {live.hydration.source === 'index' ? 'from its index' : live.hydration.source === 'mixed' ? 'from chain and its index' : 'from chain'}.
-                Trades, holders and stats fill in as blocks are read; live trades already stream.
-              </span>
+                {translateUI("CLASHR is reading this token's history")}{live.hydration.source === 'index' ? translateUI("from its index") : live.hydration.source === 'mixed' ? translateUI("from chain and its index") : translateUI("from chain")}{translateUI(". Trades, holders and stats fill in as blocks are read; live trades already stream.")}</span>
               {hydrationLabel(live.hydration).detail && <span className="ml-auto shrink-0 font-mono text-muted">{hydrationLabel(live.hydration).detail}</span>}
             </div>
           )}
@@ -279,11 +279,9 @@ export function TokenView({
         <div className="fixed inset-x-0 bottom-0 z-40 border-t border-white/[0.08] bg-bg/95 p-3 backdrop-blur-sm [padding-bottom:max(0.75rem,env(safe-area-inset-bottom))] lg:hidden">
           <div className="grid grid-cols-2 gap-2">
             <button type="button" onClick={() => setSheet('buy')} className="rounded-xl bg-go py-3 text-[15px] font-semibold text-bg">
-              Buy
-            </button>
+              {translateUI("Buy")}</button>
             <button type="button" onClick={() => setSheet('sell')} className="rounded-xl bg-risk-high py-3 text-[15px] font-semibold text-bg">
-              Sell
-            </button>
+              {translateUI("Sell")}</button>
           </div>
         </div>
       )}
@@ -322,6 +320,7 @@ function About({
 /** Desktop breakpoint, read after mount (false during server render). */
 /** Bottom sheet for the trade card on phones. */
 function Sheet({ onClose, children }: { onClose: () => void; children: React.ReactNode }) {
+  const {t:translateUI}=usePlatformLanguage();
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
     document.addEventListener('keydown', onKey);
@@ -333,8 +332,8 @@ function Sheet({ onClose, children }: { onClose: () => void; children: React.Rea
     };
   }, [onClose]);
   return createPortal(
-    <div className="fixed inset-0 z-[70] flex flex-col justify-end" role="dialog" aria-modal="true" aria-label="Trade">
-      <button type="button" aria-label="Close" onClick={onClose} className="absolute inset-0 bg-black/60" />
+    <div className="fixed inset-0 z-[70] flex flex-col justify-end" role="dialog" aria-modal="true" aria-label={translateUI("Trade")}>
+      <button type="button" aria-label={translateUI("Close")} onClick={onClose} className="absolute inset-0 bg-black/60" />
       <div className="relative max-h-[92vh] overflow-y-auto rounded-t-3xl bg-bg p-2 [padding-bottom:max(0.5rem,env(safe-area-inset-bottom))]">
         <div className="mx-auto mb-2 h-1 w-10 rounded-full bg-white/15" />
         {children}
@@ -346,12 +345,12 @@ function Sheet({ onClose, children }: { onClose: () => void; children: React.Rea
 
 /** Back to the simple rail from Pro mode. */
 function ModeSwitch() {
+  const {t:translateUI}=usePlatformLanguage();
   return (
     <div className="flex shrink-0 items-center justify-between rounded-xl border border-white/[0.06] bg-surface px-3 py-2 text-xs">
-      <span className="text-muted">Pro mode</span>
+      <span className="text-muted">{translateUI("Pro mode")}</span>
       <button type="button" onClick={() => updateSettings({ proMode: false })} className="font-semibold text-ink/85 hover:text-ink">
-        Switch to simple
-      </button>
+        {translateUI("Switch to simple")}</button>
     </div>
   );
 }
@@ -359,9 +358,10 @@ function ModeSwitch() {
 /* ------------------------------------------------------------------ header */
 
 function Stat({ k, v, big, title }: { k: string; v: string; big?: boolean; title?: string }) {
+ const {t:translateUI}=usePlatformLanguage();
   return (
     <div title={title}>
-      <div className="text-[11px] text-muted">{k}</div>
+      <div className="text-[11px] text-muted">{translateUI(k)}</div>
       <div className={`font-mono ${big ? 'text-lg font-semibold' : 'text-sm'}`}>{v}</div>
     </div>
   );
@@ -370,7 +370,7 @@ function Stat({ k, v, big, title }: { k: string; v: string; big?: boolean; title
 /* ------------------------------------------------------------------ rolling windows */
 
 /**
- * 5m/1h/6h/24h tiles like GMGN. Rushr's own numbers update with every trade; when DexScreener
+ * 5m/1h/6h/24h tiles like GMGN. CLASHR's own numbers update with every trade; when DexScreener
  * knows the token's pools, "All pools" adds the venues our indexer doesn't cover yet.
  */
 const SERVER_WINDOW: Record<WindowId, '5m' | '1h' | '6h' | '24h'> = { m5: '5m', h1: '1h', h6: '6h', h24: '24h' };
@@ -424,10 +424,11 @@ function WindowStats({
   priceNow: number | null;
   serverNow: number;
 }) {
+  const {t:translateUI}=usePlatformLanguage();
   const [w, setW] = useState<WindowId>('h24');
   const [chosen, setSource] = useState<'rushr' | 'all' | null>(null);
   const hasPairs = !!pairs?.length;
-  // Until the user picks: Rushr when the server sends exact stats (v2 indexes every venue), else
+  // Until the user picks: CLASHR when the server sends exact stats (v2 indexes every venue), else
   // "all pools" for plain-pool tokens DexScreener knows (venues the old index doesn't cover).
   const source = chosen ?? (!server && hasPairs && t.launchpad === 'uniswap-v4' ? 'all' : 'rushr');
   const ours = useWindows(server, trades, candles, priceNow, serverNow);
@@ -455,7 +456,7 @@ function WindowStats({
               onClick={() => setW(x.id)}
               className={`rounded-xl px-1 py-1.5 text-center transition ${w === x.id ? 'bg-white/[0.07] ring-1 ring-white/10' : 'hover:bg-white/[0.03]'}`}
             >
-              <div className="text-[11px] text-muted">{x.label}</div>
+              <div className="text-[11px] text-muted">{translateUI(x.label)}</div>
               <div className={`font-mono text-[13px] font-semibold ${ch == null ? 'text-muted' : ch >= 0 ? 'text-brand' : 'text-risk-high'}`}>
                 {ch == null ? (ours || useAll ? '—' : '…') : pctSigned(ch, Math.abs(ch) >= 100 ? 0 : 1)}
               </div>
@@ -477,8 +478,8 @@ function WindowStats({
           {usdTotal > 0 && <Ratio left={usdShare} label={`${usd(cur.buyUsd)} / ${usd(cur.sellUsd)}`} />}
           <div className="flex items-center justify-between text-[10px] text-muted">
             <span>
-              {cur.makers != null && <>{nf.format(cur.makers)} makers · </>}
-              {useAll ? `${pairs!.length} pools via DexScreener` : cur.complete ? 'Rushr index' : 'Buy/sell split from recent trades'}
+              {cur.makers != null && <>{nf.format(cur.makers)}  {translateUI("makers ·")} </>}
+              {useAll ? `${pairs!.length} pools via DexScreener` : cur.complete ? translateUI("CLASHR index") : translateUI("Buy/sell split from recent trades")}
             </span>
             {hasPairs && (
               <span className="flex rounded-md bg-white/[0.04] p-px">
@@ -489,7 +490,7 @@ function WindowStats({
                     onClick={() => setSource(s)}
                     className={`rounded px-1.5 py-px ${source === s ? 'bg-white/[0.1] text-ink' : 'hover:text-ink'}`}
                   >
-                    {s === 'rushr' ? 'Rushr' : 'All pools'}
+                    {s === 'rushr' ? translateUI("CLASHR") : translateUI("All pools")}
                   </button>
                 ))}
               </span>
@@ -502,21 +503,23 @@ function WindowStats({
 }
 
 function Mini({ k, v, tone = '' }: { k: string; v: string; tone?: string }) {
+ const {t:translateUI}=usePlatformLanguage();
   return (
     <div>
-      <div className="text-muted">{k}</div>
+      <div className="text-muted">{translateUI(k)}</div>
       <div className={`font-mono text-xs ${tone}`}>{v}</div>
     </div>
   );
 }
 
 function Ratio({ left, label }: { left: number; label: string }) {
+  const {t:translateUI}=usePlatformLanguage();
   return (
     <div>
       <div className="flex h-1 overflow-hidden rounded-full bg-risk-high/70">
         <span className="h-full bg-brand transition-[width] duration-500" style={{ width: `${left}%` }} />
       </div>
-      <div className="mt-0.5 font-mono text-[10px] text-muted">{label}</div>
+      <div className="mt-0.5 font-mono text-[10px] text-muted">{translateUI(label)}</div>
     </div>
   );
 }
@@ -525,6 +528,7 @@ function Ratio({ left, label }: { left: number; label: string }) {
 
 /** Shown while trading is off (NEXT_PUBLIC_SWAP_ENABLED unset): what the trade box will do. */
 function TradeSoon({ symbol }: { symbol: string }) {
+  const {t:translateUI}=usePlatformLanguage();
   const [side, setSide] = useState<'buy' | 'sell'>('buy');
   const [amount, setAmount] = useState('0.1');
   return (
@@ -546,10 +550,10 @@ function TradeSoon({ symbol }: { symbol: string }) {
           value={amount}
           onChange={(e) => setAmount(e.target.value.replace(/[^0-9.]/g, ''))}
           inputMode="decimal"
-          aria-label="Amount"
+          aria-label={translateUI("Amount")}
           className="w-full bg-transparent font-mono text-lg outline-none"
         />
-        <span className="font-mono text-sm text-muted">{side === 'buy' ? 'ETH' : '%'}</span>
+        <span className="font-mono text-sm text-muted">{side === 'buy' ? translateUI("ETH") : '%'}</span>
       </div>
       <div className="mt-2 grid grid-cols-4 gap-1.5">
         {(side === 'buy' ? ['0.01', '0.05', '0.1', '0.5'] : ['25', '50', '75', '100']).map((v) => (
@@ -569,11 +573,9 @@ function TradeSoon({ symbol }: { symbol: string }) {
         disabled
         className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-white/[0.06] py-3 text-sm font-semibold text-muted"
       >
-        <Lightning size={14} weight="fill" /> Trading opens soon
-      </button>
+        <Lightning size={14} weight="fill" /> {translateUI("Trading opens soon")}</button>
       <p className="mt-2 text-center text-[11px] text-muted">
-        {side === 'buy' ? 'Buy' : 'Sell'} ${symbol} non-custodially, from this screen.
-      </p>
+        {side === 'buy' ? translateUI("Buy") : translateUI("Sell")} ${symbol} {translateUI("non-custodially, from this screen.")}</p>
     </div>
   );
 }
@@ -582,12 +584,13 @@ const DEX_LABEL: Record<string, string> = {
   uniswap: 'Uniswap', ramses: 'Ramses', aero: 'Aero', metric: 'Metric', topaz: 'Topaz', nami: 'Nami', pons: 'PONS curve', curve: 'Curve',
 };
 const SOURCE_NOTE = {
-  rushr: 'Liquidity from Rushr’s index.',
+  rushr: 'Liquidity from CLASHR’s index.',
   dexscreener: 'Liquidity via DexScreener.',
-  mixed: 'Liquidity from Rushr’s index; DexScreener fills pools we don’t measure yet.',
+  mixed: 'Liquidity from CLASHR’s index; DexScreener fills pools we don’t measure yet.',
 } as const;
 
 function PoolPanel({ t, pools, supply, serverNow }: { t: TokenDetail; pools: Pools; supply: number; serverNow: number }) {
+  const {t:translateUI}=usePlatformLanguage();
   const [all, setAll] = useState(false);
   const now = useNow(serverNow);
   const [copied, setCopied] = useState(false);
@@ -598,7 +601,7 @@ function PoolPanel({ t, pools, supply, serverNow }: { t: TokenDetail; pools: Poo
   return (
     <div className="rounded-2xl border border-white/[0.06] bg-surface p-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold">Pools & liquidity</h2>
+        <h2 className="text-sm font-semibold">{translateUI("Pools & liquidity")}</h2>
         {pools.liquidityUsd != null && <span className="font-mono text-sm">{usd(pools.liquidityUsd)}</span>}
       </div>
       <dl className="mt-3 space-y-2 text-[13px]">
@@ -606,7 +609,7 @@ function PoolPanel({ t, pools, supply, serverNow }: { t: TokenDetail; pools: Poo
         <Row k="Venue" v={LAUNCHPAD_LABEL[t.launchpad ?? ''] ?? t.launchpad ?? '—'} />
         {pool && (
           <div className="flex justify-between gap-3">
-            <dt className="text-muted">Main pool</dt>
+            <dt className="text-muted">{translateUI("Main pool")}</dt>
             <dd>
               <button
                 type="button"
@@ -617,7 +620,7 @@ function PoolPanel({ t, pools, supply, serverNow }: { t: TokenDetail; pools: Poo
                     setTimeout(() => setCopied(false), 1200);
                   })
                 }
-                title="Copy pool id"
+                title={translateUI("Copy pool id")}
               >
                 {short(pool)} {copied ? <Check size={11} className="text-brand" /> : <Copy size={11} />}
               </button>
@@ -629,7 +632,7 @@ function PoolPanel({ t, pools, supply, serverNow }: { t: TokenDetail; pools: Poo
         {t.status !== 'migrated' && t.bonding_progress != null && (
           <div>
             <div className="flex justify-between">
-              <dt className="text-muted">Bonding curve</dt>
+              <dt className="text-muted">{translateUI("Bonding curve")}</dt>
               <dd className="font-mono">{pct(t.bonding_progress * 100, 1)}</dd>
             </div>
             <div className="mt-1 h-1 overflow-hidden rounded-full bg-white/[0.06]">
@@ -643,8 +646,8 @@ function PoolPanel({ t, pools, supply, serverNow }: { t: TokenDetail; pools: Poo
       ) : rows.length ? (
         <div className="mt-3 border-t border-white/[0.05] pt-3">
           <div className="mb-1.5 flex justify-between text-[10px] uppercase tracking-wider text-muted">
-            <span>{rows.length} pools</span>
-            <span>Liquidity · 24h vol</span>
+            <span>{rows.length}  {translateUI("pools")}</span>
+            <span>{translateUI("Liquidity · 24h vol")}</span>
           </div>
           <ul className="space-y-1">
             {list.map((p) => (
@@ -653,7 +656,7 @@ function PoolPanel({ t, pools, supply, serverNow }: { t: TokenDetail; pools: Poo
                   href={p.url}
                   target="_blank"
                   rel="noreferrer"
-                  title={p.liquidityFrom === 'dexscreener' ? 'Liquidity via DexScreener' : undefined}
+                  title={p.liquidityFrom === 'dexscreener' ? translateUI("Liquidity via DexScreener") : undefined}
                   className="flex items-center gap-2 rounded-lg px-1.5 py-1 text-xs hover:bg-white/[0.03]"
                 >
                   <span className="min-w-0 flex-1 truncate">
@@ -671,14 +674,14 @@ function PoolPanel({ t, pools, supply, serverNow }: { t: TokenDetail; pools: Poo
           </ul>
           {rows.length > 4 && (
             <button type="button" onClick={() => setAll((a) => !a)} className="mt-1 px-1.5 text-[11px] text-muted hover:text-ink">
-              {all ? 'Show fewer' : `Show all ${rows.length}`}
+              {all ? translateUI("Show fewer") : `Show all ${rows.length}`}
             </button>
           )}
           {pools.source && <p className="mt-2 px-1.5 text-[10px] text-muted">{SOURCE_NOTE[pools.source]}</p>}
         </div>
       ) : (
         <p className="mt-3 border-t border-white/[0.05] pt-3 text-[11px] text-muted">
-          {t.status === 'migrated' || t.launchpad === 'uniswap-v4' ? 'Liquidity figures for this pool are coming soon.' : 'Still on its bonding curve: liquidity is the curve itself.'}
+          {t.status === 'migrated' || t.launchpad === 'uniswap-v4' ? translateUI("Liquidity figures for this pool are coming soon.") : translateUI("Still on its bonding curve: liquidity is the curve itself.")}
         </p>
       )}
     </div>
@@ -686,9 +689,10 @@ function PoolPanel({ t, pools, supply, serverNow }: { t: TokenDetail; pools: Poo
 }
 
 function Row({ k, v }: { k: string; v: string }) {
+ const {t:translateUI}=usePlatformLanguage();
   return (
     <div className="flex justify-between gap-3">
-      <dt className="text-muted">{k}</dt>
+      <dt className="text-muted">{translateUI(k)}</dt>
       <dd className="truncate font-mono">{v}</dd>
     </div>
   );
@@ -702,19 +706,20 @@ const REASON_COLOR = { high: 'text-risk-high', medium: 'text-risk-medium', low: 
  * the simple rail's About card) and the reasons behind the verdict.
  */
 function Safety({ t, grid = true }: { t: TokenDetail; grid?: boolean }) {
+  const {t:translateUI}=usePlatformLanguage();
   const reasons: SignalReason[] = t.signals?.reasons ?? [];
   return (
     <div className="rounded-2xl border border-white/[0.06] bg-surface p-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold">Safety check</h2>
+        <h2 className="text-sm font-semibold">{translateUI("Safety check")}</h2>
         <RiskTag risk={t.risk} />
       </div>
       {grid && <SafetyGrid t={t} className="mt-3" />}
       {SHOW_RISK && t.verdict && <p className={`mt-3 text-sm leading-relaxed ${riskText(t.risk)}`}>{t.verdict}</p>}
-      {!t.launch_indexed && <p className="mt-2 text-xs text-muted">Found after launch. Launch-time checks fill in once its first blocks are indexed.</p>}
+      {!t.launch_indexed && <p className="mt-2 text-xs text-muted">{translateUI("Found after launch. Launch-time checks fill in once its first blocks are indexed.")}</p>}
       {(t.airdropped ?? 0) > 0 && (
         <div className="mt-3 flex justify-between text-[13px]">
-          <span className="text-muted">Airdropped holders</span>
+          <span className="text-muted">{translateUI("Airdropped holders")}</span>
           <span className={`font-mono ${(t.airdropped ?? 0) > 10 ? 'text-risk-high' : ''}`}>{nf.format(t.airdropped!)}</span>
         </div>
       )}
@@ -736,12 +741,13 @@ function Safety({ t, grid = true }: { t: TokenDetail; grid?: boolean }) {
 }
 
 function DevRecord({ t }: { t: TokenDetail }) {
+  const {t:translateUI}=usePlatformLanguage();
   const d = t.dev;
   return (
     <div className="rounded-2xl border border-white/[0.06] bg-surface p-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold">Dev record</h2>
-        {t.serial_launcher && <span className="rounded-md bg-risk-high/15 px-1.5 py-0.5 text-[10px] font-semibold text-risk-high">serial launcher</span>}
+        <h2 className="text-sm font-semibold">{translateUI("Dev record")}</h2>
+        {t.serial_launcher && <span className="rounded-md bg-risk-high/15 px-1.5 py-0.5 text-[10px] font-semibold text-risk-high">{translateUI("serial launcher")}</span>}
       </div>
       <a href={`${EXPLORER}/address/${t.deployer}`} target="_blank" rel="noreferrer" className="mt-1 block font-mono text-xs text-muted hover:text-ink">
         {short(t.deployer)}
@@ -755,16 +761,17 @@ function DevRecord({ t }: { t: TokenDetail }) {
           <DevStat k="Best peak" v={usd(d.best_peak_mcap_usd ? Number(d.best_peak_mcap_usd) : null)} />
         </div>
       ) : (
-        <p className="mt-3 text-xs text-muted">No history yet.</p>
+        <p className="mt-3 text-xs text-muted">{translateUI("No history yet.")}</p>
       )}
     </div>
   );
 }
 
 function DevStat({ k, v, bad, good }: { k: string; v: string; bad?: boolean; good?: boolean }) {
+ const {t:translateUI}=usePlatformLanguage();
   return (
     <div>
-      <div className="text-[11px] text-muted">{k}</div>
+      <div className="text-[11px] text-muted">{translateUI(k)}</div>
       <div className={`font-mono ${bad ? 'text-risk-high' : good ? 'text-brand' : ''}`}>{v}</div>
     </div>
   );

@@ -1,5 +1,6 @@
 'use client';
 
+import {usePlatformLanguage} from '@/components/landing/language-provider';
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { CheckCircle, Warning, XLogo } from '@phosphor-icons/react';
@@ -22,27 +23,25 @@ function suggestHandle(u: AuthUser | null): string {
 
 /** "By signing up you agree to …": the legal pages from the landing. */
 export function LegalLine({ className = '' }: { className?: string }) {
+  const {t:translateUI}=usePlatformLanguage();
   return (
     <p className={`text-[11px] leading-relaxed text-muted ${className}`}>
-      By signing up you agree to the{' '}
+      {translateUI("By signing up you agree to the")}{' '}
       <Link href="/terms" target="_blank" className="text-ink/80 underline decoration-white/20 underline-offset-2 hover:text-ink">
-        Terms
-      </Link>
+        {translateUI("Terms")}</Link>
       ,{' '}
       <Link href="/risk" target="_blank" className="text-ink/80 underline decoration-white/20 underline-offset-2 hover:text-ink">
-        Risk disclosure
-      </Link>{' '}
-      and{' '}
+        {translateUI("Risk disclosure")}</Link>{' '}
+      {translateUI("and")}{' '}
       <Link href="/privacy" target="_blank" className="text-ink/80 underline decoration-white/20 underline-offset-2 hover:text-ink">
-        Privacy policy
-      </Link>
+        {translateUI("Privacy policy")}</Link>
       .
     </p>
   );
 }
 
 /**
- * Keeps the invite code from the URL, loads the signed-in user's Rushr member, and asks new users
+ * Keeps the invite code from the URL, loads the signed-in user's CLASHR member, and asks new users
  * to finish sign-up (handle + invite) before they use the terminal as a member.
  */
 export function MemberGate() {
@@ -70,6 +69,7 @@ export function MemberGate() {
 }
 
 function Onboarding({ user, invitesRequired }: { user: AuthUser; invitesRequired: boolean }) {
+  const {t:translateUI}=usePlatformLanguage();
   const [handle, setHandle] = useState(() => suggestHandle(user));
   const [invite, setInvite] = useState(() => storedInvite() ?? '');
   const [inviteStatus, setInviteStatus] = useState<InviteStatus | null>(null);
@@ -113,7 +113,7 @@ function Onboarding({ user, invitesRequired }: { user: AuthUser; invitesRequired
   };
 
   return (
-    <div className="fixed inset-0 z-[70] grid place-items-center bg-black/70 p-4 backdrop-blur-[2px]" role="dialog" aria-modal="true" aria-label="Finish signing up">
+    <div className="fixed inset-0 z-[70] grid place-items-center bg-black/70 p-4 backdrop-blur-[2px]" role="dialog" aria-modal="true" aria-label={translateUI("Finish signing up")}>
       <form
         className="w-full max-w-sm rounded-2xl border border-white/[0.08] bg-surface p-6 shadow-2xl"
         onSubmit={(e) => {
@@ -124,37 +124,36 @@ function Onboarding({ user, invitesRequired }: { user: AuthUser; invitesRequired
         <div className="flex items-center gap-3">
           <UserAvatar user={user} size={44} />
           <div>
-            <h2 className="text-lg font-semibold">Welcome to Rushr</h2>
-            <p className="text-xs text-muted">Pick your handle to finish signing up.</p>
+            <h2 className="text-lg font-semibold">{translateUI("Welcome to CLASHR")}</h2>
+            <p className="text-xs text-muted">{translateUI("Pick your handle to finish signing up.")}</p>
           </div>
         </div>
 
         <label className="mt-5 block">
-          <span className="text-xs text-muted">Handle</span>
+          <span className="text-xs text-muted">{translateUI("Handle")}</span>
           <div className="mt-1 flex items-center rounded-xl border border-white/[0.08] bg-bg px-3 py-2.5 focus-within:border-white/25">
             <span className="text-muted">@</span>
             <input
               autoFocus
               value={handle}
               onChange={(e) => setHandle(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '').slice(0, 20))}
-              placeholder="yourname"
+              placeholder={translateUI("yourname")}
               className="ml-0.5 w-full bg-transparent outline-none"
               aria-describedby="handle-hint"
             />
           </div>
           <span id="handle-hint" className={`mt-1 block text-[11px] ${handle && !handleOk ? 'text-risk-medium' : 'text-muted'}`}>
-            3–20 characters: letters, numbers and _. Shown on your trades and calls.
-          </span>
+            {translateUI("3–20 characters: letters, numbers and _. Shown on your trades and calls.")}</span>
         </label>
 
         {/* Without the invite gate the field is hidden; a code from an invite link is still sent, to record where people came from. */}
         {invitesRequired && (
         <label className="mt-4 block">
-          <span className="text-xs text-muted">Invite code</span>
+          <span className="text-xs text-muted">{translateUI("Invite code")}</span>
           <input
             value={invite}
             onChange={(e) => setInvite(e.target.value.replace(/[^A-Za-z0-9-]/g, '').slice(0, 32))}
-            placeholder="RUSHR-XXXXXXXX"
+            placeholder={translateUI("RUSHR-XXXXXXXX")}
             className="mt-1 w-full rounded-xl border border-white/[0.08] bg-bg px-3 py-2.5 font-mono text-sm uppercase outline-none focus:border-white/25"
           />
           {inviteStatus && !full && (
@@ -168,11 +167,10 @@ function Onboarding({ user, invitesRequired }: { user: AuthUser; invitesRequired
 
         {invitesRequired && full && (
           <div role="alert" className="mt-4 rounded-xl border border-white/[0.08] bg-bg px-3 py-3 text-xs">
-            <p className="font-semibold text-ink">Beta is full</p>
+            <p className="font-semibold text-ink">{translateUI("Beta is full")}</p>
             <p className="mt-1 text-muted">{FULL_TEXT}</p>
             <a href={X_URL} target="_blank" rel="noreferrer" className="mt-2 inline-flex items-center gap-1.5 font-semibold text-ink hover:text-brand">
-              <XLogo size={12} weight="bold" /> Follow @rushrtrade
-            </a>
+              <XLogo size={12} weight="bold" /> {translateUI("Follow @rushrtrade")}</a>
           </div>
         )}
 
@@ -187,7 +185,7 @@ function Onboarding({ user, invitesRequired }: { user: AuthUser; invitesRequired
           disabled={!handleOk || !inviteOk || busy || full}
           className="mt-5 w-full rounded-xl bg-brand py-3 text-sm font-semibold text-bg transition hover:brightness-110 disabled:opacity-40"
         >
-          {busy ? 'Creating your profile…' : 'Join Rushr'}
+          {busy ? translateUI("Creating your profile…") : translateUI("Join CLASHR")}
         </button>
         <LegalLine className="mt-3 text-center" />
         <button
@@ -195,9 +193,8 @@ function Onboarding({ user, invitesRequired }: { user: AuthUser; invitesRequired
           onClick={() => void auth.logout()}
           className={full ? 'mt-3 w-full rounded-xl border border-white/[0.12] py-2.5 text-sm font-semibold text-ink transition hover:border-white/25' : 'mt-3 w-full text-center text-xs text-muted hover:text-ink'}
         >
-          Browse without an account
-        </button>
-        <p className="mt-1 text-center text-[11px] text-muted">Signs you out. Charts, trenches and safety checks stay open to everyone.</p>
+          {translateUI("Browse without an account")}</button>
+        <p className="mt-1 text-center text-[11px] text-muted">{translateUI("Signs you out. Charts, trenches and safety checks stay open to everyone.")}</p>
       </form>
     </div>
   );

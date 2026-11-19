@@ -1,5 +1,6 @@
 'use client';
 
+import {usePlatformLanguage} from '@/components/landing/language-provider';
 import Link from 'next/link';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
@@ -53,7 +54,7 @@ function columnOf(t: TokenCard): Column {
   return almost ? 'almost' : 'new';
 }
 
-const ts = (s: string | null | undefined) => (s ? new Date(s).getTime() : 0);
+const ts = (s: string | null | undefined) => (s ? new Date(s).getTime() : Number.NaN);
 const SORT: Record<Column, (a: TokenCard, b: TokenCard) => number> = {
   new: (a, b) => ts(b.created_at) - ts(a.created_at),
   almost: (a, b) =>
@@ -139,6 +140,7 @@ function loadFilters(chainId = 4663): Record<Column, Filters> {
 /* ------------------------------------------------------------------ main */
 
 export function Trenches({ initial, serverNow, chainId = 4663 }: { initial: TokenCard[]; serverNow: number; chainId?: 56 | 4663 }) {
+ const {t:translateUI}=usePlatformLanguage();
   const legacyEnabled = chainId === 4663;
   const columns = legacyEnabled || BNB_PRODUCT ? COLUMNS : BSC_COLUMNS;
   const sortsKey = legacyEnabled ? SORTS_KEY : `${SORTS_KEY}.56`;
@@ -269,7 +271,7 @@ export function Trenches({ initial, serverNow, chainId = 4663 }: { initial: Toke
             onClick={() => setMobileCol(c.id)}
             className={`flex-1 rounded-lg py-2 text-xs font-semibold ${mobileCol === c.id ? 'bg-white/[0.08] text-ink' : 'text-muted'}`}
           >
-            {c.title}
+            {translateUI(c.title)}
           </button>
         ))}
       </div>
@@ -331,38 +333,37 @@ function Toolbar({
   quick: number;
   onQuick: (v: number) => void;
 }) {
+  const {t:translateUI}=usePlatformLanguage();
   // Local text so partial input ("12.") can be typed; valid amounts are saved as they're entered.
   const [quickText, setQuickText] = useState(String(quick));
   useEffect(() => setQuickText(String(quick)), [quick]);
   return (
     <div className="flex flex-wrap items-center gap-x-3 gap-y-2 px-3 py-2.5">
-      <h1 className="text-lg font-semibold tracking-[-0.03em]">Trenches</h1>
-      <span className="rounded-md bg-white/[0.06] px-2 py-0.5 text-xs text-muted">{chainId === 56 ? 'BNB Smart Chain' : 'Robinhood Chain'}</span>
+      <h1 className="text-lg font-semibold tracking-[-0.03em]">{translateUI("Trenches")}</h1>
+      {chainId !== 56 && <span className="rounded-md bg-white/[0.06] px-2 py-0.5 text-xs text-muted">{translateUI("Robinhood Chain")}</span>}
       {/* Hidden with the risk labels: spam clones and plain pools stay filtered out by default. */}
       {SHOW_RISK && chainId === 4663 && (
         <>
       <label
         className="ml-2 flex cursor-pointer items-center gap-1.5 text-xs text-muted hover:text-ink"
-        title="Airdrop-farm clones: plain pools whose holder count was padded with mass airdrops"
+        title={translateUI("Airdrop-farm clones: plain pools whose holder count was padded with mass airdrops")}
       >
         <input type="checkbox" checked={showSpam} onChange={(e) => onShowSpam(e.target.checked)} className="accent-[var(--color-brand)]" />
-        Show spam clones
-      </label>
+        {translateUI("Show spam clones")}</label>
       <label
         className="flex cursor-pointer items-center gap-1.5 text-xs text-muted hover:text-ink"
-        title="Tokens launched straight into a Uniswap pool, without a launchpad."
+        title={translateUI("Tokens launched straight into a Uniswap pool, without a launchpad.")}
       >
         <input type="checkbox" checked={showPlain} onChange={(e) => onShowPlain(e.target.checked)} className="accent-[var(--color-brand)]" />
-        Plain pools
-      </label>
+        {translateUI("Plain pools")}</label>
         </>
       )}
       <div
         className="ml-auto flex items-center gap-1.5 rounded-xl border border-white/[0.06] bg-surface py-1 pl-3 pr-1 text-xs"
-        title={chainId === 56 ? 'BNB quick trading is not enabled yet' : 'The first Buy amount on every card, in US dollars (converted to ETH at the live price)'}
+        title={chainId === 56 ? translateUI("BNB quick trading is not enabled yet") : translateUI("The first Buy amount on every card, in US dollars (converted to ETH at the live price)")}
       >
         <Lightning size={14} weight="fill" className="text-brand" />
-        <span className="hidden text-muted sm:inline">Quick buy</span>
+        <span className="hidden text-muted sm:inline">{translateUI("Quick buy")}</span>
         <span className="ml-1 hidden gap-0.5 sm:flex">
           {QUICK_USD_PRESETS.map((v) => (
             <button
@@ -377,7 +378,7 @@ function Toolbar({
         </span>
         <label
           className={`flex items-center rounded-lg px-1.5 py-0.5 font-mono ${(QUICK_USD_PRESETS as readonly number[]).includes(quick) ? '' : 'sm:bg-white/[0.1]'}`}
-          title="Custom amount"
+          title={translateUI("Custom amount")}
         >
           <span className="text-muted">$</span>
           <input
@@ -390,7 +391,7 @@ function Toolbar({
             onBlur={() => setQuickText(String(quick))}
             className="w-11 bg-transparent font-mono text-sm text-ink outline-none"
             inputMode="decimal"
-            aria-label="Quick buy amount in US dollars"
+            aria-label={translateUI("Quick buy amount in US dollars")}
           />
         </label>
       </div>
@@ -437,6 +438,7 @@ function ColumnPanel({
   onPause: (on: boolean) => void;
   className: string;
 }) {
+  const {t:translateUI}=usePlatformLanguage();
   const [showFilters, setShowFilters] = useState(false);
   const Icon = col.icon;
   const n = activeCount(filters);
@@ -444,18 +446,18 @@ function ColumnPanel({
     <section className={`flex min-h-0 flex-col overflow-hidden rounded-2xl border border-white/[0.07] bg-surface ${className}`}>
       <header className="flex items-center gap-2 border-b border-white/[0.05] px-4 py-3">
         <Icon size={16} weight="fill" className="text-brand" />
-        <h2 className="text-sm font-semibold">{col.title}</h2>
+        <h2 className="text-sm font-semibold">{translateUI(col.title)}</h2>
         <span className="font-mono text-xs text-muted">{total}</span>
         <div className="ml-auto flex items-center gap-1.5">
-          {paused ? (
+          {chainId !== 56 && (paused ? (
             <span className="flex items-center gap-1 rounded-md bg-risk-medium/15 px-2 py-0.5 text-[11px] font-medium text-risk-medium">
-              <PauseCircle size={12} weight="fill" /> Paused{waiting ? ` · ${waiting} new` : ''}
+              <PauseCircle size={12} weight="fill" />  {translateUI("Paused")}{waiting ? ` · ${waiting} new` : ''}
             </span>
           ) : (
             <span className="flex items-center gap-1.5 text-[11px] text-muted">
-              <span className="size-1.5 animate-pulse rounded-full bg-brand" /> {chainId === 56 ? '30s updates' : 'Live'}
+              <span className="size-1.5 animate-pulse rounded-full bg-brand" /> {translateUI("Live")}
             </span>
-          )}
+          ))}
           <button
             type="button"
             onClick={() => setShowFilters((s) => !s)}
@@ -463,7 +465,7 @@ function ColumnPanel({
               showFilters || n ? 'border-white/20 bg-white/[0.06] text-ink' : 'border-white/[0.08] text-muted hover:border-white/15 hover:text-ink'
             }`}
           >
-            <Funnel size={12} weight={n ? 'fill' : 'regular'} /> Filter{n ? ` (${n})` : ''}
+            <Funnel size={12} weight={n ? 'fill' : 'regular'} />  {translateUI("Filter")}{n ? ` (${n})` : ''}
           </button>
         </div>
       </header>
@@ -473,12 +475,12 @@ function ColumnPanel({
           <input
             value={filters.keyword}
             onChange={(e) => onFilters({ ...filters, keyword: e.target.value.slice(0, 42) })}
-            placeholder="Keyword, symbol or 0x…"
+            placeholder={translateUI("Keyword, symbol or 0x…")}
             aria-label={`Filter ${col.title} by keyword`}
             className="w-full min-w-0 bg-transparent text-[11px] outline-none placeholder:text-muted/70"
           />
           {filters.keyword && (
-            <button type="button" onClick={() => onFilters({ ...filters, keyword: '' })} aria-label="Clear keyword" className="text-muted hover:text-ink">
+            <button type="button" onClick={() => onFilters({ ...filters, keyword: '' })} aria-label={translateUI("Clear keyword")} className="text-muted hover:text-ink">
               <X size={11} />
             </button>
           )}
@@ -491,7 +493,7 @@ function ColumnPanel({
         >
           {(Object.keys(SORT_LABEL) as SortKey[]).map((k) => (
             <option key={k} value={k}>
-              {k === 'default' ? 'Sort' : SORT_LABEL[k]}
+              {k === 'default' ? translateUI("Sort") : SORT_LABEL[k]}
             </option>
           ))}
         </select>
@@ -517,7 +519,7 @@ function ColumnPanel({
         ))}
         {!tokens.length && (
           <li className="grid h-40 place-items-center px-6 text-center text-sm text-muted">
-            {total ? 'Nothing matches these filters.' : 'Waiting for the next one…'}
+            {total ? translateUI("Nothing matches these filters.") : translateUI("Waiting for the next one…")}
           </li>
         )}
       </ul>
@@ -526,15 +528,16 @@ function ColumnPanel({
 }
 
 function FilterBar({ value, onChange, chainId }: { value: Filters; onChange: (f: Filters) => void; chainId:56|4663 }) {
+  const {t:translateUI}=usePlatformLanguage();
   const toggle = (k: 'hideHighRisk' | 'hideCopycat' | 'hasSocial', label: string) => (
     <label className="flex items-center gap-2 text-xs">
       <input type="checkbox" checked={value[k]} onChange={(e) => onChange({ ...value, [k]: e.target.checked })} className="accent-[var(--color-brand)]" />
-      {label}
+      {translateUI(label)}
     </label>
   );
   const num = (k: keyof Filters, label: string, placeholder: string) => (
     <label className="flex flex-col gap-1">
-      <span className="text-[10px] uppercase tracking-wider text-muted">{label}</span>
+      <span className="text-[10px] uppercase tracking-wider text-muted">{translateUI(label)}</span>
       <input
         inputMode="numeric"
         placeholder={placeholder}
@@ -554,13 +557,13 @@ function FilterBar({ value, onChange, chainId }: { value: Filters; onChange: (f:
       {num('maxTop10', 'Max top 10 %', 'any')}
       {num('maxDev', 'Max dev %', 'any')}
       <label className="col-span-2 flex flex-col gap-1">
-        <span className="text-[10px] uppercase tracking-wider text-muted">Launchpad</span>
+        <span className="text-[10px] uppercase tracking-wider text-muted">{translateUI("Launchpad")}</span>
         <select
           value={value.launchpad}
           onChange={(e) => onChange({ ...value, launchpad: e.target.value })}
           className="rounded-lg border border-white/[0.06] bg-black/30 px-2 py-1.5 text-xs outline-none"
         >
-          <option value="">All</option>
+          <option value="">{translateUI("All")}</option>
           {(chainId === 56 ? [] : ['pons', 'doppler', 'lift.fun', 'uniswap-v4']).map((l) => (
             <option key={l} value={l}>
               {LAUNCHPAD_LABEL[l] ?? l}
@@ -574,8 +577,7 @@ function FilterBar({ value, onChange, chainId }: { value: Filters; onChange: (f:
         {toggle('hasSocial', 'Has socials')}
       </div>
       <button type="button" onClick={() => onChange(NO_FILTERS)} className="col-span-2 text-left text-[11px] text-muted hover:text-ink lg:col-span-4">
-        Reset filters
-      </button>
+        {translateUI("Reset filters")}</button>
     </div>
   );
 }
@@ -657,6 +659,7 @@ const Row = memo(function Row({
   quick: number;
   quick2: number;
 }) {
+  const {t:translateUI}=usePlatformLanguage();
   const created = ts(t.created_at);
   const ref = useRef<HTMLLIElement>(null);
   useEffect(() => {
@@ -722,27 +725,25 @@ const Row = memo(function Row({
             )}
             {SHOW_RISK && !flags.length && t.risk === 'medium' && (
               <>
-                <span className="shrink-0 font-medium text-risk-medium">Medium risk</span>
+                <span className="shrink-0 font-medium text-risk-medium">{translateUI("Medium risk")}</span>
                 <Dot />
               </>
             )}
             <Age created={created} serverNow={serverNow} />
             <Dot />
             <span>
-              <span className="font-mono text-ink/75">{t.holders_known === false ? '—' : t.holders < 1000 ? t.holders : compact(t.holders)}</span> holders
-            </span>
+              <span className="font-mono text-ink/75">{t.holders_known === false ? '—' : t.holders < 1000 ? t.holders : compact(t.holders)}</span> {translateUI("holders")}</span>
             {txns != null && (
               <>
                 <Dot />
-                <span title={split ? `${buys ?? 0} buys / ${sells ?? 0} sells, 24h` : 'Trades, 24h'}>
-                  <span className="font-mono text-ink/75">{txns < 1000 ? txns : compact(txns)}</span> txs
-                </span>
+                <span title={split ? `${buys ?? 0} buys / ${sells ?? 0} sells, 24h` : translateUI("Trades, 24h")}>
+                  <span className="font-mono text-ink/75">{txns < 1000 ? txns : compact(txns)}</span> {translateUI("txs")}</span>
               </>
             )}
             {quote && (
               <>
                 <Dot />
-                <span title="Quote asset">{quote}</span>
+                <span title={translateUI("Quote asset")}>{quote}</span>
               </>
             )}
             {handle && (
@@ -754,7 +755,7 @@ const Row = memo(function Row({
                   rel="noreferrer noopener"
                   onClick={(e) => e.stopPropagation()}
                   className="relative z-10 hover:text-ink"
-                  title="Creator on X"
+                  title={translateUI("Creator on X")}
                 >
                   @{handle}
                 </a>
@@ -764,11 +765,11 @@ const Row = memo(function Row({
         </div>
         {/* Right-aligned stack: small muted labels right before each value. */}
         <div className="flex shrink-0 flex-col items-end gap-0.5 font-mono">
-          <div className="flex items-baseline gap-1" title={t.market_cap_usd == null && mcap != null ? 'Market cap at launch' : 'Market cap'}>
-            <span className="text-[10px] text-muted">MC</span>
+          <div className="flex items-baseline gap-1" title={t.market_cap_usd == null && mcap != null ? translateUI("Market cap at launch") : translateUI("Market cap")}>
+            <span className="text-[10px] text-muted">{translateUI("MC")}</span>
             <span className={`text-[14px] font-semibold leading-tight ${moveTone || (t.market_cap_usd == null && mcap != null ? 'text-ink/70' : '')}`}>{usd(mcap)}</span>
           </div>
-          <div className="flex items-baseline gap-1" title="Volume, 24h">
+          <div className="flex items-baseline gap-1" title={translateUI("Volume, 24h")}>
             <span className="text-[10px] text-muted">V</span>
             <span className={`text-[14px] font-semibold leading-tight ${moveTone}`}>{usd(t.volume_24h_usd)}</span>
           </div>
@@ -780,20 +781,21 @@ const Row = memo(function Row({
         </div>
         </div>
         <div className="mt-2 flex items-center gap-1 font-mono text-[10px]">
+          {chainId===56&&t.safety_status&&<span className="shrink-0 text-[9px] text-muted" title={translateUI('Safety data coverage; this is not a safety verdict.')}>{translateUI(t.safety_status==='ready'?'Safety data':t.safety_status==='partial'?'Partial safety':t.safety_status==='retrying'?'Safety retrying':t.safety_status==='history-unavailable'?'History unavailable':'Checking safety')}</span>}
           <span className="flex min-w-0 items-center gap-1 overflow-hidden">
-            <Pill icon={Crown} value={t.top10_pct} bad={30} title="Top 10 holders" />
-            <Pill icon={ChefHat} value={t.dev_pct} bad={10} title="Dev holds" />
-            <Pill icon={Crosshair} value={t.snipers_pct} bad={20} title="Snipers bought" />
-            <Pill icon={Detective} value={t.insiders_pct} bad={20} title="Insiders hold" />
-            <Pill icon={Package} value={t.bundled_pct} bad={20} title="Launch bundle" />
+            <Pill icon={Crown} value={t.top10_pct} bad={30} title={translateUI("Top 10 holders")} />
+            <Pill icon={ChefHat} value={t.dev_pct} bad={10} title={translateUI("Dev holds")} />
+            <Pill icon={Crosshair} value={t.snipers_pct} bad={20} title={translateUI("Snipers bought")} />
+            <Pill icon={Detective} value={t.insiders_pct} bad={20} title={translateUI("Insiders hold")} />
+            <Pill icon={Package} value={t.bundled_pct} bad={20} title={translateUI("Launch bundle")} />
             {tax != null && tax > 0 && (
-              <span className={`shrink-0 rounded-md px-1.5 py-px font-semibold ${tax >= 10 ? 'bg-risk-high/15 text-risk-high' : 'bg-white/[0.07] text-ink/80'}`} title="Transfer tax">
-                Tax {pct(tax, 1)}
+              <span className={`shrink-0 rounded-md px-1.5 py-px font-semibold ${tax >= 10 ? 'bg-risk-high/15 text-risk-high' : 'bg-white/[0.07] text-ink/80'}`} title={translateUI("Transfer tax")}>
+                {translateUI("Tax")}{pct(tax, 1)}
               </span>
             )}
           </span>
           <span className="relative z-10 ml-auto flex shrink-0 items-center gap-1">
-            {chainId===56 && BNB_PRODUCT ? <><BscQuickBuyButton token={t.address as `0x${string}`} symbol={t.symbol} amountUsd={quick}/><BscQuickBuyButton token={t.address as `0x${string}`} symbol={t.symbol} amountUsd={quick2}/></> : chainId === 4663 && tradingAvailable() ? (
+            {chainId===56 && BNB_PRODUCT ? <><BscQuickBuyButton venue={t.launchpad==='flap'&&t.status!=='migrated'?'flap':'pancake'} token={t.address as `0x${string}`} symbol={t.symbol} amountUsd={quick}/><BscQuickBuyButton venue={t.launchpad==='flap'&&t.status!=='migrated'?'flap':'pancake'} token={t.address as `0x${string}`} symbol={t.symbol} amountUsd={quick2}/></> : chainId === 4663 && tradingAvailable() ? (
               <>
                 <QuickBuyButton token={tradeToken} amountUsd={quick} variant="subtle" />
                 <QuickBuyButton token={tradeToken} amountUsd={quick2} variant="subtle" />

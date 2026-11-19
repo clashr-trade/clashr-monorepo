@@ -200,3 +200,51 @@ deployments remain prerequisites for production execution.
 Rollback: disable `CHAIN_V2_READS`, stop the mirror worker and keep legacy readers/writers on 4663.
 Retain change capture if migration will resume; monitor queue growth. BSC secrets can remain unset.
 No legacy identities or native amount units have been rewritten.
+
+
+## CLASHR identity and competition landing ? 2026-11-19
+
+- Replaced the landing with a BNB gold/charcoal human-versus-agent arena, original comic assets, responsive layout, reduced-motion animations and a real chain-56 leaderboard preview with human/agent filters.
+- Added the CLASHR wordmark, angular C/lightning mark and token coin; canonical domain is clashr.trade. Internal package/env/storage identifiers retain compatibility.
+- Rewrote the whitepaper and BNB agent docs around competing, following and comparing humans and agents. Archived the historical Robinhood references. BNB skill.md/llms.txt now serve the CLASHR guide; the legacy MCP remains pending migration.
+- BNB token status explicitly has no published contract or launch economics. Historical RUSHR addresses and burns are not presented as CLASHR facts. No DNS, production deploy or token deployment was performed.
+- Verified workspace typecheck, 55 web tests, 11 agent-core tests and generated-document parity. Local desktop/mobile browser checks: no runtime exceptions or horizontal overflow, loaded artwork, filter empty states, mobile menu/Escape, reduced motion, canonical URL and no GitHub links. Whitepaper, agent-docs, skill.md, llms.txt, token status, icon and OG image returned HTTP 200.
+- Artwork source, served assets and final built-in imagegen prompts: docs/clashr-asset-prompts.md.
+
+
+## Contest presentation ? 2026-11-19
+
+- Renamed public Rush navigation to Contest and added /contest, with legacy /rush and chain-scoped aliases retained through redirects. Internal event API and section identifiers remain compatible.
+- Replaced the inherited artwork with original black-and-white anime human-versus-agent trading rivals, responsive desktop/mobile layouts and localized copy.
+- Contest is explicitly coming soon. The historical local template no longer appears as a live, funded contest; this page makes no event API requests and displays no countdown or prize amounts. Backend historical records and configuration were not changed.
+- Artwork source, served path and final built-in imagegen prompt are documented in docs/clashr-contest.md.
+
+## Finalized Flap safety snapshots - 2026-11-19
+
+- Added migration 0019 and a separate bounded safety worker using Rushr's snapshot and signal maths. Concentration excludes BSC protocol pools, burns and contracts; creator holdings, sniper count/share, funding-linked bundles, insiders and fresh-wallet metrics carry explicit coverage requirements.
+- Fixed the initial funding probe incompatibility by using an explicit finalized block number instead of the `finalized` tag for the transfer-history method. The configured local provider returned real funding records. Unsupported/missing history remains unknown and is retried with backoff.
+- The API serves fresh cached snapshots and holder tags without adding RPC work to feed requests. The UI displays safety checkpoint/time and no longer computes Top 10 from raw protocol reserve balances. No honeypot, explorer verification, renunciation or overall risk pass is invented.
+- Applied the additive migration only to the dedicated local Flap index database and started its worker. Production deployment/scheduling remains unchanged. Setup, budgets, coverage limits and rollback are in docs/flap-safety.md.
+- Verified RSA and a new live launch using real finalized data. Browser check retained priced candles and rendered safety fields without runtime exceptions. Both typechecks passed; 40 targeted indexer tests and all 70 web tests passed. No funded transactions were sent.
+
+## Feed-wide safety queue and holder catch-up - 2026-11-19
+
+- Fixed a coverage gap: only detail-page tokens were previously enrolled. Feed reads now automatically enrol returned tokens, preserve detail priority, throttle writes and expose safety coverage states.
+- Replaced serial per-token log backfills with shared contiguous scans plus a fast sparse-token path. Transfer-history API responses discover addresses only; actual amounts come from pinned on-chain balanceOf calls and must sum exactly to totalSupply before publication. Missing candidates, RPC failures, noncanonical checkpoints or failed accounting never become measured zeroes.
+- Added fair retry cooldowns so an unavailable, actively viewed launch cannot monopolize the queue. Free RPC log scans are paced and back off on throttling. Migration 0020 was applied only to the local index database.
+- Verified the exact reported GTA6 token with populated concentration, creator holdings, one sniper, 0.8% sniper buys and a 5.2% bundle. Isolated browser checks showed measured safety chips on 17 of 60 feed tokens during catch-up, working coverage labels, a populated GTA6 grid, no horizontal overflow and no runtime errors. Coverage continues to change as the worker catches up; unsupported/incomplete fields remain unknown.
+- Both typechecks, 40 targeted indexer tests and all 70 web tests passed. Production deployment remains unchanged.
+
+## ERC20-quoted Flap curve trading - 2026-11-19
+
+- Removed the blanket ERC20-quote rejection. Native buys use Portal's internal conversion only when enabled; direct quote-asset buys use exact/reset approvals, and sells receive the curve's actual quote token.
+- Quotes bind payment/output addresses, quote decimals, symbol and native-conversion capability. Build/simulation rechecks settlement and measures native, traded-token and quote-token wallet deltas. Receipt accounting never treats ERC20 Portal event amounts as BNB. Native-hop receipts retain an unknown actual native spend and show the reviewed maximum; direct quote settlement uses wallet Transfer logs.
+- Updated terminal and quick-buy payment selection, raw asset inputs, USD conversion, balances, receive amounts and compatible local activity storage. Input/gas checks still block unfunded wallets; Flap ranking ingestion remains separate.
+- Verified the reported Golden Kitty token with real native-hop quoting and stateful simulation. Read-only browser tests passed native and GMEB buy quotes plus GMEB sell presentation, without a send/sign capability. No funded transaction was broadcast. Full SDK tests: 150 passed, 10 skipped; web tests: 71 passed.
+
+## Original landing and Clash presentation - 2026-11-19
+
+- Restored the original centered cream landing hero and classical forum artwork with the CLASHR wordmark, gold logo/banner and BNB Chain attribution. Restored the classical automaton illustration in the follow-trader section. The remaining landing content and token anchor remain in place.
+- Renamed Contest navigation to Clash at /clash and /bsc/clash. Rush and Contest aliases redirect to those routes. The page reuses the original Rush layout and /art/rush.jpg background with Clash wording and existing BNB event data; schedules/prizes were not changed.
+- Added server-loaded initial event data and a stable initial countdown timestamp; client refreshes retain the original event API contract. Restarted only the stalled local Next development server during verification.
+- Verified desktop/mobile landing layouts, original event sections, background loading, active Clash navigation and Contest redirect in an isolated browser. No horizontal overflow or runtime exceptions; web typecheck and all 71 web tests passed. No deployment was performed.

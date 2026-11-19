@@ -1,5 +1,6 @@
 'use client';
 
+import {usePlatformLanguage} from '@/components/landing/language-provider';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createPublicClient, formatUnits, http, isAddress, parseUnits, type Address, type PublicClient } from 'viem';
 import {
@@ -63,6 +64,7 @@ function fmt(v: bigint, decimals: number, max = 6): string {
 const bps = (n: number | null | undefined) => (n == null ? '—' : `${(n / 100).toFixed(2)}%`);
 
 export function SwapPanel({ initialToken }: { initialToken: string }) {
+  const {t:translateUI}=usePlatformLanguage();
   const wallets = useInjectedWallets();
   const [account, setAccount] = useState<{ address: Address; chainId: number; wallet: string } | null>(null);
   const [walletError, setWalletError] = useState<string | null>(null);
@@ -90,7 +92,7 @@ export function SwapPanel({ initialToken }: { initialToken: string }) {
   const tokenAddress = isAddress(tokenInput) ? (tokenInput.toLowerCase() as Address) : null;
   const trader = account?.address ?? SIM_TRADER;
 
-  // Token metadata from the Rushr API (decimals, main pool hint).
+  // Token metadata from the CLASHR API (decimals, main pool hint).
   useEffect(() => {
     setToken(null);
     if (!tokenAddress) return;
@@ -211,19 +213,18 @@ export function SwapPanel({ initialToken }: { initialToken: string }) {
     <div className="mx-auto grid max-w-5xl grid-cols-1 gap-4 px-4 py-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
       <header className="lg:col-span-2">
         <div className="flex flex-wrap items-center gap-2">
-          <h1 className="text-xl font-semibold tracking-tight">Swap</h1>
-          <span className="rounded-md bg-risk-medium/15 px-2 py-0.5 text-[11px] font-medium text-risk-medium">Test bed · simulation only</span>
+          <h1 className="text-xl font-semibold tracking-tight">{translateUI("Swap")}</h1>
+          <span className="rounded-md bg-risk-medium/15 px-2 py-0.5 text-[11px] font-medium text-risk-medium">{translateUI("Test bed · simulation only")}</span>
         </div>
         <p className="mt-1 text-sm text-muted">
-          Quotes and simulations run against Robinhood Chain with <code className="font-mono text-ink/80">eth_call</code> and{' '}
-          <code className="font-mono text-ink/80">eth_simulateV1</code>. Nothing is signed or sent.
-        </p>
+          {translateUI("Quotes and simulations run against Robinhood Chain with")}<code className="font-mono text-ink/80">{translateUI("eth_call")}</code>  {translateUI("and")}{' '}
+          <code className="font-mono text-ink/80">{translateUI("eth_simulateV1")}</code>{translateUI(". Nothing is signed or sent.")}</p>
       </header>
 
       {/* Left: inputs */}
       <section className="min-w-0 rounded-2xl border border-line bg-surface p-4">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-          <div className="flex rounded-xl bg-surface-2 p-1 text-sm" role="tablist" aria-label="Side">
+          <div className="flex rounded-xl bg-surface-2 p-1 text-sm" role="tablist" aria-label={translateUI("Side")}>
             {(['buy', 'sell'] as const).map((s) => (
               <button
                 key={s}
@@ -246,12 +247,11 @@ export function SwapPanel({ initialToken }: { initialToken: string }) {
         </div>
         {walletError && <p className="mb-3 text-xs text-risk-high">{walletError}</p>}
         {account && account.chainId !== TRADE_ADDRESSES.chainId && (
-          <p className="mb-3 text-xs text-risk-medium">Wallet is on chain {account.chainId}; Robinhood Chain is {TRADE_ADDRESSES.chainId}. Simulation still works.</p>
+          <p className="mb-3 text-xs text-risk-medium">{translateUI("Wallet is on chain")} {account.chainId}{translateUI("; Robinhood Chain is")} {TRADE_ADDRESSES.chainId}{translateUI(". Simulation still works.")}</p>
         )}
 
         <label className="block text-xs text-muted" htmlFor="swap-token">
-          Token
-        </label>
+          {translateUI("Token")}</label>
         <input
           id="swap-token"
           value={tokenInput}
@@ -261,13 +261,13 @@ export function SwapPanel({ initialToken }: { initialToken: string }) {
           placeholder="0x…"
         />
         <p className="mt-1 h-4 truncate text-xs text-muted">
-          {tokenAddress ? (token ? `${token.symbol}${token.name ? ` · ${token.name}` : ''}${token.launchpad ? ` · ${token.launchpad}` : ''}` : 'Loading…') : 'Paste a token address'}
+          {tokenAddress ? (token ? `${token.symbol}${token.name ? ` · ${token.name}` : ''}${token.launchpad ? ` · ${token.launchpad}` : ''}` : 'Loading…') : translateUI("Paste a token address")}
         </p>
 
         <div className="mt-3 grid grid-cols-[minmax(0,1fr)_auto] gap-2">
           <div>
             <label className="block text-xs text-muted" htmlFor="swap-amount">
-              {side === 'buy' ? 'You pay' : 'You sell'} ({inSymbol})
+              {side === 'buy' ? translateUI("You pay") : translateUI("You sell")} ({inSymbol})
             </label>
             <input
               id="swap-amount"
@@ -278,7 +278,7 @@ export function SwapPanel({ initialToken }: { initialToken: string }) {
             />
           </div>
           <div>
-            <span className="block text-xs text-muted">Quote asset</span>
+            <span className="block text-xs text-muted">{translateUI("Quote asset")}</span>
             <div className="mt-1 flex rounded-xl bg-surface-2 p-1 text-sm">
               {(['ETH', 'USDG'] as const).map((q) => (
                 <button
@@ -300,7 +300,7 @@ export function SwapPanel({ initialToken }: { initialToken: string }) {
         </div>
 
         <div className="mt-3 flex items-center gap-2 text-xs text-muted">
-          <label htmlFor="swap-slippage">Slippage</label>
+          <label htmlFor="swap-slippage">{translateUI("Slippage")}</label>
           <input
             id="swap-slippage"
             inputMode="decimal"
@@ -309,18 +309,17 @@ export function SwapPanel({ initialToken }: { initialToken: string }) {
             className="w-16 rounded-lg border border-line bg-surface-2 px-2 py-1 text-right font-mono text-ink outline-none"
           />
           <span>%</span>
-          <span className="ml-auto">Trader: {account ? short(account.address) : 'simulated wallet'}</span>
+          <span className="ml-auto">{translateUI("Trader:")} {account ? short(account.address) : translateUI("simulated wallet")}</span>
         </div>
         <div className="mt-2 flex items-center gap-2 text-xs text-muted">
           <label htmlFor="swap-referrer" className="shrink-0">
-            Referred by
-          </label>
+            {translateUI("Referred by")}</label>
           <input
             id="swap-referrer"
             value={referrer}
             onChange={(e) => setReferrer(e.target.value.trim())}
             spellCheck={false}
-            placeholder="referrer address (optional, test only)"
+            placeholder={translateUI("referrer address (optional, test only)")}
             className="min-w-0 flex-1 rounded-lg border border-line bg-surface-2 px-2 py-1 font-mono text-ink outline-none"
           />
         </div>
@@ -331,13 +330,13 @@ export function SwapPanel({ initialToken }: { initialToken: string }) {
           disabled={!tokenAddress || !amountIn || !token || quoting}
           className="mt-4 w-full rounded-xl bg-ink py-2.5 text-sm font-semibold text-bg transition hover:bg-ink/90 disabled:opacity-40"
         >
-          {quoting ? 'Finding routes…' : 'Get quote'}
+          {quoting ? translateUI("Finding routes…") : translateUI("Get quote")}
         </button>
 
         {route && (
           <div className="mt-4">
             <p className="mb-1.5 text-xs text-muted">
-              Routes ({route.quotes.length} quoted{route.failures.length ? `, ${route.failures.length} failed` : ''})
+              {translateUI("Routes (")}{route.quotes.length}  {translateUI("quoted")}{route.failures.length ? `, ${route.failures.length} failed` : ''})
             </p>
             <ul className="space-y-1">
               {route.quotes.map((q, i) => (
@@ -354,11 +353,11 @@ export function SwapPanel({ initialToken }: { initialToken: string }) {
                     <span className="min-w-0">
                       <span className="block truncate text-ink">{q.pool.venueFeeLabel}</span>
                       <span className="font-mono text-muted">{short(q.pool.id, 6, 4)}</span>
-                      {!isBuildable(q.pool, cfg) && <span className="ml-2 text-risk-medium">needs RushrPonsRouter</span>}
+                      {!isBuildable(q.pool, cfg) && <span className="ml-2 text-risk-medium">{translateUI("needs RushrPonsRouter")}</span>}
                     </span>
                     <span className="shrink-0 text-right font-mono tabular-nums">
                       {fmt(q.amountOut, outDecimals, 4)} <span className="text-muted">{outSymbol}</span>
-                      <span className="block text-muted">impact {bps(q.priceImpactBps)}</span>
+                      <span className="block text-muted">{translateUI("impact")} {bps(q.priceImpactBps)}</span>
                     </span>
                   </button>
                 </li>
@@ -387,12 +386,12 @@ export function SwapPanel({ initialToken }: { initialToken: string }) {
           />
         )}
         <div className="rounded-2xl border border-line bg-surface p-4">
-          <h2 className="mb-3 text-sm font-semibold">Fee breakdown</h2>
+          <h2 className="mb-3 text-sm font-semibold">{translateUI("Fee breakdown")}</h2>
           {quote ? (
             <dl className="space-y-2 text-sm">
               <Row label={side === 'buy' ? 'You pay' : 'You sell'} value={`${fmt(quote.amountIn, inDecimals)} ${inSymbol}`} />
               <Row
-                label={`Rushr fee (${bps(quote.fee.feeBps)}, from ${side === 'buy' ? 'input' : 'output'})`}
+                label={`CLASHR fee (${bps(quote.fee.feeBps)}, from ${side === 'buy' ? 'input' : 'output'})`}
                 value={`${fmt(quote.fee.feeAmount, QUOTE_DECIMALS[quoteAsset])} ${quoteAsset}`}
                 strong
               />
@@ -405,11 +404,11 @@ export function SwapPanel({ initialToken }: { initialToken: string }) {
               {quote.fee.referrerAccrual > 0n && (
                 <Row label={`Referrer accrues (${bps(cfg.referrerShareBps)} of fee, off-chain)`} value={`${fmt(quote.fee.referrerAccrual, QUOTE_DECIMALS[quoteAsset])} ${quoteAsset}`} />
               )}
-              <Row label="Venue fees (paid to the pool or curve)" value={quote.pool.venueFeeLabel.split(' · ').slice(1).join(' · ') || bps(quote.fee.venueFeeBps)} />
-              <Row label="Price impact" value={bps(quote.priceImpactBps)} />
-              <Row label="You receive (estimated)" value={`${fmt(quote.amountOut, outDecimals)} ${outSymbol}`} strong />
+              <Row label={translateUI("Venue fees (paid to the pool or curve)")} value={quote.pool.venueFeeLabel.split(' · ').slice(1).join(' · ') || bps(quote.fee.venueFeeBps)} />
+              <Row label={translateUI("Price impact")} value={bps(quote.priceImpactBps)} />
+              <Row label={translateUI("You receive (estimated)")} value={`${fmt(quote.amountOut, outDecimals)} ${outSymbol}`} strong />
               <Row label={`Minimum received (${bps(quote.slippageBps)} slippage)`} value={`${fmt(quote.minAmountOut, outDecimals)} ${outSymbol}`} />
-              {quote.expectedRefund > 0n && <Row label="Refunded (curve graduates)" value={`${fmt(quote.expectedRefund, QUOTE_DECIMALS[quoteAsset])} ${quoteAsset}`} />}
+              {quote.expectedRefund > 0n && <Row label={translateUI("Refunded (curve graduates)")} value={`${fmt(quote.expectedRefund, QUOTE_DECIMALS[quoteAsset])} ${quoteAsset}`} />}
               {quote.warnings.map((w) => (
                 <p key={w} className="rounded-lg bg-risk-medium/10 px-2.5 py-1.5 text-xs text-risk-medium">
                   {w}
@@ -417,52 +416,52 @@ export function SwapPanel({ initialToken }: { initialToken: string }) {
               ))}
             </dl>
           ) : (
-            <p className="text-sm text-muted">Get a quote to see the fee breakdown.</p>
+            <p className="text-sm text-muted">{translateUI("Get a quote to see the fee breakdown.")}</p>
           )}
-          {isPlaceholderRecipient(cfg) && <p className="mt-3 text-[11px] text-muted">Fee recipient is a placeholder until the treasury address is set.</p>}
+          {isPlaceholderRecipient(cfg) && <p className="mt-3 text-[11px] text-muted">{translateUI("Fee recipient is a placeholder until the treasury address is set.")}</p>}
         </div>
 
         <div className="rounded-2xl border border-line bg-surface p-4">
           <div className="flex items-center justify-between gap-2">
-            <h2 className="text-sm font-semibold">Simulation</h2>
+            <h2 className="text-sm font-semibold">{translateUI("Simulation")}</h2>
             <button
               type="button"
               onClick={simulate}
               disabled={!quote || !buildable || simulating}
               className="rounded-lg bg-go px-3 py-1.5 text-xs font-semibold text-bg transition disabled:opacity-40"
             >
-              {simulating ? 'Simulating…' : 'Simulate'}
+              {simulating ? translateUI("Simulating…") : translateUI("Simulate")}
             </button>
           </div>
-          {quote && !buildable && <p className="mt-2 text-xs text-risk-medium">PONS curve routes need RushrPonsRouter, which is not deployed. Pick another route.</p>}
+          {quote && !buildable && <p className="mt-2 text-xs text-risk-medium">{translateUI("PONS curve routes need RushrPonsRouter, which is not deployed. Pick another route.")}</p>}
           {sim ? (
             <div className="mt-3 space-y-2 text-sm">
-              <p className={sim.result.ok ? 'text-brand' : 'text-risk-high'}>{sim.result.ok ? 'Swap succeeds' : `Reverts: ${sim.result.error}`}</p>
+              <p className={sim.result.ok ? 'text-brand' : 'text-risk-high'}>{sim.result.ok ? translateUI("Swap succeeds") : `Reverts: ${sim.result.error}`}</p>
               <dl className="space-y-2">
-                <Row label="Received" value={`${fmt(sim.result.received, outDecimals)} ${outSymbol}`} />
-                <Row label="Treasury received" value={`${fmt(sim.result.feePaid, QUOTE_DECIMALS[quoteAsset])} ${quoteAsset}`} />
-                <Row label="Measured token tax" value={bps(sim.result.tokenTaxBps)} />
-                <Row label="Gas (swap call)" value={sim.result.gasUsed.toLocaleString('en-US')} />
+                <Row label={translateUI("Received")} value={`${fmt(sim.result.received, outDecimals)} ${outSymbol}`} />
+                <Row label={translateUI("Treasury received")} value={`${fmt(sim.result.feePaid, QUOTE_DECIMALS[quoteAsset])} ${quoteAsset}`} />
+                <Row label={translateUI("Measured token tax")} value={bps(sim.result.tokenTaxBps)} />
+                <Row label={translateUI("Gas (swap call)")} value={sim.result.gasUsed.toLocaleString('en-US')} />
               </dl>
-              {sim.funded && <p className="text-[11px] text-muted">The trader's ETH balance was topped up inside the simulation only.</p>}
+              {sim.funded && <p className="text-[11px] text-muted">{translateUI("The trader's ETH balance was topped up inside the simulation only.")}</p>}
               <ol className="mt-2 space-y-1 text-xs">
                 {sim.result.calls.map((c, i) => (
                   <li key={i} className="flex justify-between gap-2 font-mono">
-                    <span className="truncate text-muted">{c.label}</span>
-                    <span className={c.ok ? 'text-brand' : 'text-risk-high'}>{c.ok ? 'ok' : 'revert'}</span>
+                    <span className="truncate text-muted">{translateUI(c.label)}</span>
+                    <span className={c.ok ? 'text-brand' : 'text-risk-high'}>{c.ok ? translateUI("ok") : translateUI("revert")}</span>
                   </li>
                 ))}
               </ol>
             </div>
           ) : (
-            <p className="mt-2 text-sm text-muted">Runs the approvals and the swap in one simulated block.</p>
+            <p className="mt-2 text-sm text-muted">{translateUI("Runs the approvals and the swap in one simulated block.")}</p>
           )}
           {safety && (
             <div className="mt-3 rounded-lg bg-surface-2 p-2.5 text-xs">
-              <p className="font-medium">Buy → sell probe</p>
+              <p className="font-medium">{translateUI("Buy → sell probe")}</p>
               <p className="mt-1 text-muted">
-                {safety.honeypot ? <span className="text-risk-high">Cannot sell after buying (honeypot)</span> : safety.sellOk ? 'Sells back' : 'Probe failed'} · buy tax{' '}
-                {bps(safety.buyTaxBps)} · sell tax {bps(safety.sellTaxBps)} · round trip {bps(safety.roundTripBps)}
+                {safety.honeypot ? <span className="text-risk-high">{translateUI("Cannot sell after buying (honeypot)")}</span> : safety.sellOk ? translateUI("Sells back") : translateUI("Probe failed")}  {translateUI("· buy tax")}{' '}
+                {bps(safety.buyTaxBps)}  {translateUI("· sell tax")} {bps(safety.sellTaxBps)}  {translateUI("· round trip")} {bps(safety.roundTripBps)}
               </p>
             </div>
           )}
@@ -470,17 +469,16 @@ export function SwapPanel({ initialToken }: { initialToken: string }) {
 
         {sim && (
           <details className="rounded-2xl border border-line bg-surface p-4 text-xs">
-            <summary className="cursor-pointer text-sm font-semibold">Unsigned transaction</summary>
+            <summary className="cursor-pointer text-sm font-semibold">{translateUI("Unsigned transaction")}</summary>
             <dl className="mt-3 space-y-1.5 font-mono">
-              <Row label="to" value={sim.built.tx.to} />
-              <Row label="value" value={`${fmt(sim.built.tx.value, 18)} ETH`} />
-              <Row label="commands" value={sim.built.commands.map((c) => c.label).join(' → ') || 'RushrPonsRouter'} />
-              <Row label="approvals" value={sim.built.approvals.map((a) => `${a.kind} → ${short(a.spender)}`).join(', ') || 'none'} />
-              <Row label="calldata" value={`${(sim.built.tx.data.length - 2) / 2} bytes`} />
+              <Row label={translateUI("to")} value={sim.built.tx.to} />
+              <Row label={translateUI("value")} value={`${fmt(sim.built.tx.value, 18)} ETH`} />
+              <Row label={translateUI("commands")} value={sim.built.commands.map((c) => c.label).join(' → ') || 'RushrPonsRouter'} />
+              <Row label={translateUI("approvals")} value={sim.built.approvals.map((a) => `${a.kind} → ${short(a.spender)}`).join(', ') || 'none'} />
+              <Row label={translateUI("calldata")} value={`${(sim.built.tx.data.length - 2) / 2} bytes`} />
             </dl>
             <button type="button" disabled title={signBlock ?? undefined} className="mt-3 w-full rounded-xl border border-line py-2 font-semibold text-muted">
-              Signing disabled in the test bed
-            </button>
+              {translateUI("Signing disabled in the test bed")}</button>
             {signBlock && <p className="mt-1.5 text-[11px] text-muted">{signBlock}.</p>}
           </details>
         )}
@@ -490,9 +488,10 @@ export function SwapPanel({ initialToken }: { initialToken: string }) {
 }
 
 function Row({ label, value, strong }: { label: string; value: string; strong?: boolean }) {
+  const {t:translateUI}=usePlatformLanguage();
   return (
     <div className="flex items-baseline justify-between gap-3">
-      <dt className="text-muted">{label}</dt>
+      <dt className="text-muted">{translateUI(label)}</dt>
       <dd className={`min-w-0 truncate text-right tabular-nums ${strong ? 'font-semibold text-ink' : ''}`}>{value}</dd>
     </div>
   );
@@ -509,6 +508,7 @@ function WalletButton({
   onConnect: (w: InjectedWallet) => void;
   onDisconnect: () => void;
 }) {
+  const {t:translateUI}=usePlatformLanguage();
   const [open, setOpen] = useState(false);
   if (account)
     return (
@@ -519,8 +519,7 @@ function WalletButton({
   return (
     <div className="relative">
       <button type="button" onClick={() => setOpen((o) => !o)} className="rounded-xl bg-ink px-3 py-2 text-xs font-semibold text-bg">
-        Connect wallet
-      </button>
+        {translateUI("Connect wallet")}</button>
       {open && (
         <div className="absolute right-0 z-10 mt-1 w-56 rounded-xl border border-line bg-surface-2 p-1 shadow-xl">
           {wallets.length ? (
@@ -539,7 +538,7 @@ function WalletButton({
               </button>
             ))
           ) : (
-            <p className="px-2.5 py-2 text-xs text-muted">No browser wallet found. Quotes and simulation still work with a simulated wallet.</p>
+            <p className="px-2.5 py-2 text-xs text-muted">{translateUI("No browser wallet found. Quotes and simulation still work with a simulated wallet.")}</p>
           )}
         </div>
       )}

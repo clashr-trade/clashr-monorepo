@@ -1,5 +1,6 @@
 'use client';
 
+import {usePlatformLanguage} from '@/components/landing/language-provider';
 import { useMemo, useState } from 'react';
 import { forceCenter, forceCollide, forceLink, forceManyBody, forceSimulation, type SimulationNodeDatum } from 'd3-force';
 import { pct, short } from '@/lib/format';
@@ -18,6 +19,7 @@ const CLUSTER_COLORS = ['#ff6b5b', '#ffb547', '#b58cff', '#5ec8ff', '#ff7ab6', '
 
 /** Top holders as bubbles sized by share; linked when they share a funder, funded each other or traded tokens. */
 export function BubbleMap({ data }: { data: BubbleData }) {
+  const {t:translateUI}=usePlatformLanguage();
   const [hover, setHover] = useState<Node | null>(null);
   const [focus, setFocus] = useState<number | null>(null);
   const { nodes, links } = useMemo(() => {
@@ -91,16 +93,16 @@ export function BubbleMap({ data }: { data: BubbleData }) {
           <div className="pointer-events-none absolute left-3 top-3 rounded-xl border border-white/10 bg-surface-2 px-3 py-2 text-xs shadow-xl">
             <div className="font-mono">{short(hover.wallet)}</div>
             <div className="mt-0.5 text-muted">
-              holds <span className="text-ink">{pct(hover.pct, 2)}</span>
+              {translateUI("holds")}<span className="text-ink">{pct(hover.pct, 2)}</span>
               {hover.tags.length ? ` · ${hover.tags.join(', ')}` : ''}
             </div>
-            {hover.funder && <div className="mt-0.5 text-muted">funded by {short(hover.funder)}</div>}
+            {hover.funder && <div className="mt-0.5 text-muted">{translateUI("funded by")} {short(hover.funder)}</div>}
           </div>
         )}
       </div>
       <div className="space-y-2 text-xs">
-        <div className="font-semibold">Clusters</div>
-        {data.clusters.length === 0 && <p className="text-muted">No linked wallets among the top holders.</p>}
+        <div className="font-semibold">{translateUI("Clusters")}</div>
+        {data.clusters.length === 0 && <p className="text-muted">{translateUI("No linked wallets among the top holders.")}</p>}
         {data.clusters.slice(0, 6).map((c, i) => (
           <div
             key={c.funder}
@@ -110,26 +112,21 @@ export function BubbleMap({ data }: { data: BubbleData }) {
           >
             <span className="size-2.5 rounded-full" style={{ background: CLUSTER_COLORS[i % CLUSTER_COLORS.length] }} />
             <span className="flex-1">
-              {c.wallets.length} wallets, one funder
-              <span className="block font-mono text-[10px] text-muted">{short(c.funder)}</span>
+              {c.wallets.length} {translateUI("wallets, one funder")}<span className="block font-mono text-[10px] text-muted">{short(c.funder)}</span>
             </span>
             <span className={`font-mono ${c.pct >= 10 ? 'text-risk-high' : ''}`}>{pct(c.pct)}</span>
           </div>
         ))}
         <div className="flex flex-wrap gap-x-3 gap-y-1 pt-2 text-[11px] text-muted">
           <span className="flex items-center gap-1">
-            <span className="size-2 rounded-full border border-white bg-white/20" /> Dev
-          </span>
+            <span className="size-2 rounded-full border border-white bg-white/20" /> {translateUI("Dev")}</span>
           <span className="flex items-center gap-1">
-            <span className="size-2 rounded-full bg-brand/60" /> Unlinked
-          </span>
+            <span className="size-2 rounded-full bg-brand/60" /> {translateUI("Unlinked")}</span>
           <span className="flex items-center gap-1">
-            <span className="size-2 rounded-full bg-risk-high/70" /> Cluster
-          </span>
+            <span className="size-2 rounded-full bg-risk-high/70" /> {translateUI("Cluster")}</span>
         </div>
         <p className="leading-relaxed text-muted">
-          Bubble size is share of supply. Lines join wallets that share a funder or funded each other; dashed blue lines are token transfers between them. Click a bubble to open the wallet.
-        </p>
+          {translateUI("Bubble size is share of supply. Lines join wallets that share a funder or funded each other; dashed blue lines are token transfers between them. Click a bubble to open the wallet.")}</p>
       </div>
     </div>
   );

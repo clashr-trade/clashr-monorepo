@@ -1,3 +1,4 @@
+import {UIText} from './language-provider';
 import Link from 'next/link';
 import { Fragment, type ReactNode } from 'react';
 import { headingLabel, plain, type Block, type Inline } from './markdown';
@@ -13,9 +14,7 @@ const PENDING = /^(tbd|published at launch)$/i;
 
 export function Pending() {
   return (
-    <span className="inline-flex items-center whitespace-nowrap rounded-full border border-line bg-surface-2 px-2 py-0.5 font-mono text-[11px] uppercase tracking-wider text-muted">
-      Published at launch
-    </span>
+    <span className="inline-flex items-center whitespace-nowrap rounded-full border border-line bg-surface-2 px-2 py-0.5 font-mono text-[11px] uppercase tracking-wider text-muted"><UIText text="Published at launch"/></span>
   );
 }
 
@@ -261,7 +260,7 @@ export function RiskNotice({ blocks }: { blocks: Block[] }) {
   if (!q || q.t !== 'quote') return null;
   return (
     <aside className="rounded-2xl border border-risk-medium/30 bg-risk-medium/[0.07] p-5 text-[15px] leading-relaxed text-ink/85 md:p-6 [&_a]:underline [&_a]:underline-offset-2">
-      <div className="mb-2 font-mono text-[11px] uppercase tracking-[0.14em] text-risk-medium">Important</div>
+      <div className="mb-2 font-mono text-[11px] uppercase tracking-[0.14em] text-risk-medium"><UIText text="Important"/></div>
       <Inlines c={q.c} />
     </aside>
   );
@@ -298,9 +297,7 @@ function TocList({ items }: { items: TocItem[] }) {
 export function TocMobile({ items }: { items: TocItem[] }) {
   return (
     <details className="group rounded-xl border border-line bg-surface lg:hidden">
-      <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 font-mono text-xs uppercase tracking-[0.14em] text-muted [&::-webkit-details-marker]:hidden">
-        Contents
-        <span className="text-base leading-none transition-transform group-open:rotate-45" aria-hidden>
+      <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 font-mono text-xs uppercase tracking-[0.14em] text-muted [&::-webkit-details-marker]:hidden"><UIText text="Contents"/><span className="text-base leading-none transition-transform group-open:rotate-45" aria-hidden>
           +
         </span>
       </summary>
@@ -315,7 +312,7 @@ export function TocMobile({ items }: { items: TocItem[] }) {
 export function TocDesktop({ items }: { items: TocItem[] }) {
   return (
     <nav aria-label="Contents" className="sticky top-24 hidden lg:block">
-      <div className="mb-3 px-2 font-mono text-[11px] uppercase tracking-[0.14em] text-muted">Contents</div>
+      <div className="mb-3 px-2 font-mono text-[11px] uppercase tracking-[0.14em] text-muted"><UIText text="Contents"/></div>
       <TocList items={items} />
     </nav>
   );

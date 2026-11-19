@@ -1,6 +1,8 @@
 'use client';
 
-import Image from 'next/image';
+import {usePlatformLanguage} from '@/components/landing/language-provider';
+import {LanguageSelect} from '@/components/landing/language-provider';
+import {Brand} from '@/components/brand';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
@@ -16,26 +18,26 @@ import { AccountMenu } from './auth/account-menu';
 import { FeedbackButton } from './feedback';
 
 export function TopBar() {
+  const {t:translateUI}=usePlatformLanguage();
   const path = usePathname();
   const bsc = BNB_PRODUCT || isBscPath(path);
   const navigation = terminalNavigation(path);
   const router = useRouter();
   return (
     <header className="sticky top-0 z-40 flex h-14 shrink-0 items-center gap-2 border-b border-white/[0.06] bg-bg/90 px-3 backdrop-blur-md sm:gap-4 sm:px-4">
-      <Link href="/" aria-label="Rushr home" className="flex items-center gap-2">
-        <Image src="/logo-mark.png" alt="" width={22} height={22} priority />
-        <span className="text-lg font-semibold tracking-[-0.04em]">rushr</span>
+      <Link href="/" aria-label={translateUI("CLASHR home")} className="flex items-center gap-2">
+        <span className="text-lg"><Brand size={25}/></span>
         {/* Same dashed chip as the landing's, in the dark theme. */}
-        <span className="rounded-full border border-dashed border-white/20 px-1.5 py-px font-mono text-[9px] uppercase tracking-wider text-muted">Beta</span>
+        <span className="rounded-full border border-dashed border-white/20 px-1.5 py-px font-mono text-[9px] uppercase tracking-wider text-muted">{translateUI("Beta")}</span>
       </Link>
-      <label className="ml-auto flex shrink-0 items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.03] px-2 py-1.5 text-xs md:ml-0">
+      {!BNB_PRODUCT && <label className="ml-auto flex shrink-0 items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.03] px-2 py-1.5 text-xs md:ml-0">
         <span aria-hidden="true" className={`size-1.5 rounded-full ${bsc ? 'bg-amber-300' : 'bg-brand'}`} />
-        {BNB_PRODUCT?<span aria-label="BNB Smart Chain"><span className="sm:hidden">BNB</span><span className="hidden sm:inline">BNB Smart Chain</span></span>:<select aria-label="Network" value={bsc ? '56' : '4663'} onChange={(e) => router.push(terminalNetworkDestination(path, e.target.value === '56' ? 56 : 4663))} className="max-w-36 cursor-pointer bg-surface text-ink outline-none">
-          <option value="56">BNB Smart Chain</option>
-          {!BNB_PRODUCT && <option value="4663">Robinhood Chain</option>}
+        {BNB_PRODUCT?<span aria-label={translateUI("BNB Smart Chain")}><span className="sm:hidden">{translateUI("BNB")}</span><span className="hidden sm:inline">{translateUI("BNB Smart Chain")}</span></span>:<select aria-label={translateUI("Network")} value={bsc ? '56' : '4663'} onChange={(e) => router.push(terminalNetworkDestination(path, e.target.value === '56' ? 56 : 4663))} className="max-w-36 cursor-pointer bg-surface text-ink outline-none">
+          <option value="56">{translateUI("BNB Smart Chain")}</option>
+          {!BNB_PRODUCT && <option value="4663">{translateUI("Robinhood Chain")}</option>}
         </select>}
-      </label>
-      <nav aria-label="Primary navigation" className="hidden shrink-0 items-center gap-1 whitespace-nowrap text-sm lg:flex">
+      </label>}
+      <nav aria-label={translateUI("Primary navigation")} className="hidden shrink-0 items-center gap-1 whitespace-nowrap text-sm lg:flex">
         {navigation.map((n) => (
           <Link
             key={n.label}
@@ -43,13 +45,13 @@ export function TopBar() {
             aria-current={n.active ? 'page' : undefined}
             className={`rounded-lg px-2 py-1.5 transition xl:px-3 ${n.active ? 'bg-white/[0.07] text-ink' : 'text-muted hover:text-ink'}`}
           >
-            {n.label}
+            {translateUI(n.label)}
           </Link>
         ))}
       </nav>
       <Search chainId={bsc?56:4663}/>
-      <div className="ml-auto flex items-center gap-2">
-        {BNB_PRODUCT ? <><FeedbackButton/><AccountMenu /></> : bsc ? <span className="whitespace-nowrap rounded-full border border-amber-300/20 px-2 py-1 font-mono text-[10px] text-amber-200">{bscSigningEnabled()?'Wallet confirmed':'Signing off'}</span> : <><FeedbackButton /><AccountMenu /></>}
+      <div className="ml-auto flex items-center gap-2"><LanguageSelect/>
+        {BNB_PRODUCT ? <><FeedbackButton/><AccountMenu /></> : bsc ? <span className="whitespace-nowrap rounded-full border border-amber-300/20 px-2 py-1 font-mono text-[10px] text-amber-200">{bscSigningEnabled()?translateUI("Wallet confirmed"):translateUI("Signing off")}</span> : <><FeedbackButton /><AccountMenu /></>}
       </div>
     </header>
   );
@@ -60,9 +62,10 @@ export function TopBar() {
  * rather than a bottom tab bar: the token page already pins its trade bar to the bottom of the screen.
  */
 export function MobileNav() {
+  const {t:translateUI}=usePlatformLanguage();
   const path = usePathname();
   return (
-    <nav aria-label="Sections" className="grid shrink-0 grid-cols-5 border-b border-white/[0.06] bg-bg/90 text-[12px] backdrop-blur-md lg:hidden">
+    <nav aria-label={translateUI("Sections")} className="grid shrink-0 grid-cols-5 border-b border-white/[0.06] bg-bg/90 text-[12px] backdrop-blur-md lg:hidden">
       {terminalNavigation(path).map((n) => {
         const on = n.active;
         return (
@@ -72,7 +75,7 @@ export function MobileNav() {
             aria-current={on ? 'page' : undefined}
             className={`relative py-2.5 text-center transition ${on ? 'font-medium text-ink' : 'text-muted active:text-ink'}`}
           >
-            {n.label}
+            {translateUI(n.label)}
             {on && <span className="absolute inset-x-4 bottom-0 h-0.5 rounded-full bg-brand" />}
           </Link>
         );
@@ -82,6 +85,7 @@ export function MobileNav() {
 }
 
 function Search({chainId=4663}:{chainId?:56|4663}) {
+ const {t:translateUI}=usePlatformLanguage();
   const router = useRouter();
   const [q, setQ] = useState('');
   const legacyResults = useTokenSearch(chainId===4663?q:'');
@@ -127,7 +131,7 @@ function Search({chainId=4663}:{chainId?:56|4663}) {
             else if (results[0]) go(results[0].address);
           }
         }}
-        placeholder={chainId===56?'Search BNB view or paste a contract':'Search token, contract or ticker'}
+        placeholder={chainId===56?translateUI("Search BNB view or paste a contract"):translateUI("Search token, contract or ticker")}
         className="w-full rounded-xl border border-white/[0.06] bg-surface py-2 pl-9 pr-10 text-sm outline-none placeholder:text-muted focus:border-white/15"
       />
       <kbd className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded border border-white/10 px-1.5 font-mono text-[10px] text-muted">/</kbd>

@@ -3,7 +3,7 @@ import { useId } from 'react';
 /**
  * Generated token avatar for tokens without an icon (or while the icon loads). Everything is
  * derived from the contract address, so a token always gets the same avatar on the server, in
- * the browser and across pages: a two-tone gradient from the Rushr palette, a faint mirrored
+ * the browser and across pages: a two-tone gradient from the CLASHR palette, a faint mirrored
  * 5x5 pattern, and the ticker's first letter.
  */
 

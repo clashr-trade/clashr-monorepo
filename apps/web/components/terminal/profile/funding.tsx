@@ -1,5 +1,6 @@
 'use client';
 
+import {usePlatformLanguage} from '@/components/landing/language-provider';
 import { useState } from 'react';
 import { ArrowSquareOut, Bank, Check, Copy, CreditCard, Shuffle, Warning } from '@phosphor-icons/react';
 import { USDG } from '@/lib/balances';
@@ -20,15 +21,16 @@ const MOONPAY_URL = 'https://www.moonpay.com/buy';
 
 /** Deposit modal body: the address, the chain warning, and every verified way to fund it. */
 export function DepositPanel({ address }: { address: `0x${string}` | null }) {
+  const {t:translateUI}=usePlatformLanguage();
   const [copied, setCopied] = useState(false);
-  if(BNB_PRODUCT)return <div><p className="text-[11px] text-muted">Your wallet on BNB Smart Chain · chain 56</p>
+  if(BNB_PRODUCT)return <div><p className="text-[11px] text-muted">{translateUI("Your wallet on BNB Smart Chain · chain 56")}</p>
     <p className="mt-3 break-all rounded-xl border border-white/10 bg-bg p-3 font-mono text-xs">{address??'Connect a wallet first'}</p>
-    <button disabled={!address} onClick={async()=>{try{await navigator.clipboard.writeText(address!);setCopied(true);}catch{setCopied(false);}}} className="mt-3 rounded-xl bg-ink px-4 py-2 text-sm text-bg">{copied?'Copied':'Copy deposit address'}</button>
-    <p className="mt-4 text-xs leading-relaxed text-muted">Send BNB or supported BEP-20 tokens to this address on BNB Smart Chain. Keep BNB available for network fees. Confirm chain 56 in the sending wallet before transferring.</p>
-    <a href={`${EXPLORER}/address/${address??''}`} target="_blank" rel="noopener noreferrer" className="mt-4 inline-block text-xs underline">View BNB wallet on BscScan</a></div>;
+    <button disabled={!address} onClick={async()=>{try{await navigator.clipboard.writeText(address!);setCopied(true);}catch{setCopied(false);}}} className="mt-3 rounded-xl bg-ink px-4 py-2 text-sm text-bg">{copied?translateUI("Copied"):translateUI("Copy deposit address")}</button>
+    <p className="mt-4 text-xs leading-relaxed text-muted">{translateUI("Send BNB or supported BEP-20 tokens to this address on BNB Smart Chain. Keep BNB available for network fees. Confirm chain 56 in the sending wallet before transferring.")}</p>
+    <a href={`${EXPLORER}/address/${address??''}`} target="_blank" rel="noopener noreferrer" className="mt-4 inline-block text-xs underline">{translateUI("View BNB wallet on BscScan")}</a></div>;
   return (
     <div>
-      <div className="text-[11px] text-muted">Your Rushr wallet on Robinhood Chain</div>
+      <div className="text-[11px] text-muted">{translateUI("Your CLASHR wallet on Robinhood Chain")}</div>
       {address ? (
         <div className="mt-1.5 flex flex-wrap items-center gap-2">
           <span className="min-w-0 flex-1 break-all rounded-xl border border-white/[0.06] bg-bg px-3 py-2 font-mono text-[13px]">{address}</span>
@@ -42,65 +44,59 @@ export function DepositPanel({ address }: { address: `0x${string}` | null }) {
             }
             className="flex items-center gap-1.5 rounded-xl bg-ink px-3 py-2 text-sm font-semibold text-bg hover:bg-white"
           >
-            {copied ? <Check size={15} /> : <Copy size={15} />} {copied ? 'Copied' : 'Copy'}
+            {copied ? <Check size={15} /> : <Copy size={15} />} {copied ? translateUI("Copied") : translateUI("Copy")}
           </button>
-          <a href={`${EXPLORER}/address/${address}`} target="_blank" rel="noreferrer" className="rounded-xl border border-white/[0.08] p-2 text-muted hover:text-ink" title="Open in explorer">
+          <a href={`${EXPLORER}/address/${address}`} target="_blank" rel="noreferrer" className="rounded-xl border border-white/[0.08] p-2 text-muted hover:text-ink" title={translateUI("Open in explorer")}>
             <ArrowSquareOut size={16} />
           </a>
         </div>
       ) : (
-        <p className="mt-1.5 text-sm text-muted">Creating your wallet…</p>
+        <p className="mt-1.5 text-sm text-muted">{translateUI("Creating your wallet…")}</p>
       )}
       <p className="mt-2 flex items-start gap-1.5 text-[11px] leading-relaxed text-risk-medium">
         <Warning size={13} className="mt-px shrink-0" weight="fill" />
-        Only send ETH or USDG on Robinhood Chain (chain ID 4663). Funds sent on another network won&apos;t arrive.
-      </p>
+        {translateUI("Only send ETH or USDG on Robinhood Chain (chain ID 4663). Funds sent on another network won't arrive.")}</p>
 
-      <h3 className="mt-5 text-sm font-semibold">Ways to add funds</h3>
+      <h3 className="mt-5 text-sm font-semibold">{translateUI("Ways to add funds")}</h3>
       <div className="mt-2 space-y-2">
         <Option
           icon={Bank}
-          title="From Robinhood"
+          title={translateUI("From Robinhood")}
           badge="Easiest"
           body={
             <>
-              In the Robinhood app, buy ETH or USDG, tap <span className="text-ink">Send</span>, choose the{' '}
-              <span className="text-ink">Robinhood Chain</span> network and paste your address above. Not available in New York.
-            </>
+              {translateUI("In the Robinhood app, buy ETH or USDG, tap")}<span className="text-ink">{translateUI("Send")}</span>{translateUI(", choose the")}{' '}
+              <span className="text-ink">{translateUI("Robinhood Chain")}</span> {translateUI("network and paste your address above. Not available in New York.")}</>
           }
         />
         <Option
           icon={Shuffle}
-          title="Bridge from Base, Arbitrum or Ethereum"
+          title={translateUI("Bridge from Base, Arbitrum or Ethereum")}
           body="Seconds, small fee. Your address is filled in on Relay; double-check it before you confirm."
           actions={
             address && (
               <>
-                <ExtLink href={relayUrl(address, ETH)}>Bridge ETH (Relay)</ExtLink>
-                <ExtLink href={relayUrl(address, USDG)}>Bridge USDG (Relay)</ExtLink>
+                <ExtLink href={relayUrl(address, ETH)}>{translateUI("Bridge ETH (Relay)")}</ExtLink>
+                <ExtLink href={relayUrl(address, USDG)}>{translateUI("Bridge USDG (Relay)")}</ExtLink>
                 <ExtLink href={ACROSS_URL} subtle>
-                  Across
-                </ExtLink>
+                  {translateUI("Across")}</ExtLink>
               </>
             )
           }
         />
         <Option
           icon={CreditCard}
-          title="Buy with card"
+          title={translateUI("Buy with card")}
           body="MoonPay sells USDG on Robinhood Chain (not in New York or Canada). Choose Robinhood Chain and paste your address. For ETH, buy on Base, then bridge with Relay."
-          actions={<ExtLink href={MOONPAY_URL}>Open MoonPay</ExtLink>}
+          actions={<ExtLink href={MOONPAY_URL}>{translateUI("Open MoonPay")}</ExtLink>}
         />
         <details className="group rounded-xl border border-white/[0.06] bg-bg px-3 py-2.5 text-xs text-muted">
-          <summary className="cursor-pointer select-none text-ink/80 marker:text-muted">Advanced: official bridge from Ethereum</summary>
+          <summary className="cursor-pointer select-none text-ink/80 marker:text-muted">{translateUI("Advanced: official bridge from Ethereum")}</summary>
           <p className="mt-2 leading-relaxed">
-            Arbitrum&apos;s canonical bridge: about 10 minutes in, 7 days to withdraw, and you pay Ethereum gas. It sends to the wallet you connect
-            there, so use it only with a wallet you control and then send on to your Rushr address.
-          </p>
+            {translateUI("Arbitrum's canonical bridge: about 10 minutes in, 7 days to withdraw, and you pay Ethereum gas. It sends to the wallet you connect there, so use it only with a wallet you control and then send on to your CLASHR address.")}</p>
           <div className="mt-2">
             <ExtLink href={CANONICAL_URL} subtle>
-              Arbitrum bridge
-            </ExtLink>
+              {translateUI("Arbitrum bridge")}</ExtLink>
           </div>
         </details>
       </div>
@@ -109,11 +105,12 @@ export function DepositPanel({ address }: { address: `0x${string}` | null }) {
 }
 
 function Option({ icon: Icon, title, badge, body, actions }: { icon: typeof Bank; title: string; badge?: string; body: React.ReactNode; actions?: React.ReactNode }) {
+  const {t:translateUI}=usePlatformLanguage();
   return (
     <div className="rounded-xl border border-white/[0.06] bg-bg p-3">
       <div className="flex items-center gap-2 text-sm font-medium">
         <Icon size={16} className="text-brand" />
-        {title}
+        {translateUI(title)}
         {badge && <span className="rounded-md bg-brand/15 px-1.5 py-0.5 text-[10px] font-semibold text-brand">{badge}</span>}
       </div>
       <p className="mt-1 text-xs leading-relaxed text-muted">{body}</p>

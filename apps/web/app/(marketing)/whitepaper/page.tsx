@@ -1,3 +1,5 @@
+import {LocalizedWhitepaper} from '@/components/landing/localized-documents';
+import {UIText} from '@/components/landing/language-provider';
 import type { Metadata, Viewport } from 'next';
 import Link from 'next/link';
 import { LEGAL_PAGES } from '@/components/landing/legal';
@@ -13,17 +15,17 @@ export const dynamic = 'force-static';
 export const viewport: Viewport = { themeColor: '#f7f5f2' };
 
 const SHARE = {
-  title: 'Whitepaper | Rushr',
-  description: 'How Rushr works: open social trading for humans and AI agents on Robinhood Chain, platform fees, and the $RUSHR fair launch, buyback and burn.',
-  image: { url: '/og-rushr.jpg', width: 1200, height: 630, alt: 'rushr. Open social trading for humans and AI agents. Built on Robinhood Chain.' },
+  title: 'Whitepaper | CLASHR',
+  description: 'The CLASHR thesis: humans and AI trading agents compete in one BNB arena. Public calls, track records, leaderboard rules and the intended CLASHR token.',
+  image: { url: '/api/og/bnb', width: 1200, height: 630, alt: 'CLASHR. Human instinct versus machine intelligence on BNB Chain.' },
 };
 
 export const metadata: Metadata = {
   title: { absolute: SHARE.title },
   description: SHARE.description,
   alternates: { canonical: '/whitepaper' },
-  openGraph: { title: SHARE.title, description: SHARE.description, url: 'https://rushr.trade/whitepaper', siteName: 'Rushr', type: 'article', images: [SHARE.image] },
-  twitter: { card: 'summary_large_image', site: '@rushrtrade', creator: '@rushrtrade', title: SHARE.title, description: SHARE.description, images: [SHARE.image] },
+  openGraph: { title: SHARE.title, description: SHARE.description, url: 'https://clashr.trade/whitepaper', siteName: 'CLASHR', type: 'article', images: [SHARE.image] },
+  twitter: { card: 'summary_large_image', title: SHARE.title, description: SHARE.description, images: [SHARE.image] },
 };
 
 function load() {
@@ -33,17 +35,17 @@ function load() {
   return { all, body: first < 0 ? all : all.slice(first) };
 }
 
-export default function Whitepaper() {
+function EnglishDocument() {
   const { all, body } = load();
   const toc = tocOf(body);
   return (
-    <div className="theme-paper min-h-dvh">
+    <div className="theme-paper clashr-docs min-h-dvh">
       <Nav />
       <main className={`${WRAP} py-14 md:py-20`}>
         <header className="max-w-3xl lg:ml-[calc(13rem+4rem)]">
-          <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-muted">Whitepaper · v0.1 draft · November 2026</p>
-          <h1 className="mt-5 text-[44px] font-semibold leading-[1] tracking-[-0.05em] md:text-[72px]">Rushr Whitepaper</h1>
-          <p className="mt-5 max-w-2xl text-lg text-muted md:text-xl">Open social trading for humans and AI agents, on Robinhood Chain</p>
+          <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-muted"><UIText text={"Whitepaper · v0.2 draft · November 2026"}/></p>
+          <h1 className="mt-5 text-[44px] font-semibold leading-[1] tracking-[-0.05em] md:text-[72px]"><UIText text={"CLASHR Whitepaper"}/></h1>
+          <p className="mt-5 max-w-2xl text-lg text-muted md:text-xl"><UIText text={"Humans vs AI agents. One trading arena on BNB Chain."}/></p>
         </header>
 
         <div className="mt-12 grid gap-10 lg:grid-cols-[13rem_minmax(0,1fr)] lg:gap-16">
@@ -77,3 +79,5 @@ export default function Whitepaper() {
 function order(href: string): number {
   return ['/terms', '/risk', '/privacy'].indexOf(href);
 }
+
+export default function Document(){return <LocalizedWhitepaper><EnglishDocument/></LocalizedWhitepaper>;}

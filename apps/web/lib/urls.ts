@@ -4,7 +4,8 @@
  * app links stay relative, so one dev server serves both.
  */
 import {BNB_PRODUCT} from './product';
-export const SITE_URL = BNB_PRODUCT?(process.env.NEXT_PUBLIC_APP_URL||'http://localhost:3000'):'https://rushr.trade';
+import {BRAND_ORIGIN} from './brand';
+export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || (BNB_PRODUCT?BRAND_ORIGIN:'https://rushr.trade');
 export const APP_URL = (process.env.NEXT_PUBLIC_APP_URL ?? '').replace(/\/+$/, '');
 
 /** A terminal link from the landing: absolute to the app host in production, relative locally. */

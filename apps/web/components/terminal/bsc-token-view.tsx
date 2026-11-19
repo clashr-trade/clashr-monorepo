@@ -1,4 +1,5 @@
 ﻿'use client';
+import {usePlatformLanguage} from '@/components/landing/language-provider';
 import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { CaretLeft, CaretRight, X } from '@phosphor-icons/react';
@@ -46,6 +47,7 @@ export function BscTokenView({
   initial?: BscTokenWorkspace;
   serverNow?: number;
 }) {
+  const {t:translateUI}=usePlatformLanguage();
   const [data, setData] = useState<BscTokenWorkspace>(
     initial ?? {
       chainId: 56,
@@ -125,7 +127,7 @@ export function BscTokenView({
       }
     };
     if (!initial) void run();
-    const timer = setInterval(run, 15_000);
+    const timer = setInterval(run, 3_000);
     window.addEventListener('rushr:trade', run);
     return () => {
       ctl.abort();
@@ -154,18 +156,21 @@ export function BscTokenView({
       serverNow={serverNow}
     />
   );
-  const spotAvailable = data.detail.pools.length > 0 || token.status === 'migrated';
+  const spotAvailable = data.detail.pools.some(p => p.dex === 'v2' || p.dex === 'v3');
+  const flapCurve = data.detail.source === 'flap' && token.status !== 'migrated';
   const tradePanel = (side: 'buy' | 'sell' = 'buy') => (
     <BscSpotPanel
       token={token.address as Address}
       symbol={token.symbol}
       presentation="terminal"
       bnbUsd={bnbUsd}
+      quoteUsd={token.quote_usd}
       initialSide={side}
-      venueAvailable={spotAvailable}
+      venueAvailable={spotAvailable||flapCurve}
+      venue={flapCurve?'flap':'pancake'}
     />
   );
-  const source = data.detail.source === 'fourmeme' ? 'Four.meme' : 'GeckoTerminal';
+  const source = data.detail.source === 'flap' ? 'Flap' : 'GeckoTerminal';
   return (
     <div className="h-full overflow-y-auto pb-20 lg:overflow-hidden lg:pb-0">
       <div
@@ -179,10 +184,10 @@ export function BscTokenView({
             {callsOpen ? (
               <>
                 <header className="flex items-center gap-2 border-b border-white/5 px-3 py-2.5">
-                  <h2 className="text-sm font-semibold">Calls on ${token.symbol}</h2>
+                  <h2 className="text-sm font-semibold">{translateUI("Calls on $")}{token.symbol}</h2>
                   <span className="font-mono text-xs text-muted">{calls.items?.length ?? '—'}</span>
                   <button
-                    aria-label="Hide calls"
+                    aria-label={translateUI("Hide calls")}
                     onClick={() => setCallsOpen(false)}
                     className="ml-auto p-1 text-muted"
                   >
@@ -195,12 +200,12 @@ export function BscTokenView({
               </>
             ) : (
               <button
-                aria-label="Show calls"
+                aria-label={translateUI("Show calls")}
                 onClick={() => setCallsOpen(true)}
                 className="flex flex-col items-center gap-2 py-3 text-xs text-muted"
               >
                 <CaretRight size={14} />
-                <span className="[writing-mode:vertical-rl]">Calls</span>
+                <span className="[writing-mode:vertical-rl]">{translateUI("Calls")}</span>
               </button>
             )}
           </section>
@@ -214,8 +219,7 @@ export function BscTokenView({
           />
           {failed && (
             <p role="status" className="px-2 text-xs text-risk-medium">
-              Market refresh delayed. Showing the last available snapshot.
-            </p>
+              {translateUI("Market refresh delayed. Showing the last available snapshot.")}</p>
           )}
           <div className="h-[360px] shrink-0 overflow-hidden rounded-2xl border border-white/[0.06] bg-surface lg:h-auto lg:min-h-[280px] lg:flex-[1.15]">
             <PriceChart
@@ -250,15 +254,13 @@ export function BscTokenView({
             body={
               <>
                 <p className="border-b border-white/5 px-3 py-1.5 text-[10px] text-muted">
-                  {source} public data · Recent {data.trades.length} trades · 15s updates. Derived
-                  trader results cover this sample only.
-                </p>
+                  {source}  {translateUI("public data · Recent")} {data.trades.length} {translateUI("trades · 3s updates. Derived trader results cover this sample only.")}{data.detail.source==='flap'&&translateUI(' USD chart values use the current indicative quote-asset/USD conversion.')}</p>
                 {tab === 'calls' && callsPanel}
                 {tab === 'trades' &&
                   (data.activity === 'unavailable' ? (
-                    <Empty text="Trade history is temporarily unavailable." />
+                    <Empty text={translateUI("Trade history is temporarily unavailable.")} />
                   ) : data.activity === 'curve-unindexed' ? (
-                    <Empty text="Trade history is unavailable for this curve." />
+                    <Empty text={translateUI("Trade history is unavailable for this curve.")} />
                   ) : (
                     <TradesTable
                       trades={data.trades}
@@ -282,7 +284,7 @@ export function BscTokenView({
                       onMaker={showMaker}
                     />
                   ) : (
-                    <Empty text="Holder distribution is unavailable for this BNB token." />
+                    <Empty text={translateUI("Holder distribution is unavailable for this BNB token.")} />
                   ))}
                 {tab === 'traders' && (
                   <TopTradersTab
@@ -311,12 +313,11 @@ export function BscTokenView({
                   (data.holders?.length ? (
                     <>
                       <p className="px-4 py-3 text-xs text-muted">
-                        Reported holder distribution. Funding relationships have not been indexed.
-                      </p>
+                        {translateUI("Reported holder distribution. Funding relationships have not been indexed.")}</p>
                       <BubbleMap data={{ nodes: data.holders, edges: [], clusters: [] }} />
                     </>
                   ) : (
-                    <Empty text="Holder distribution is needed to draw the bubble map." />
+                    <Empty text={translateUI("Holder distribution is needed to draw the bubble map.")} />
                   ))}
                 {tab === 'dev' && (
                   <div className="p-5 text-sm text-muted">
@@ -328,14 +329,13 @@ export function BscTokenView({
                           rel="noreferrer"
                           href={`https://bscscan.com/address/${data.creator}`}
                         >
-                          Creator {short(data.creator)}
+                          {translateUI("Creator")}{short(data.creator)}
                         </a>
                         <p className="mt-3">
-                          This creator&apos;s other launches have not been indexed here yet.
-                        </p>
+                          {translateUI("This creator's other launches have not been indexed here yet.")}</p>
                       </>
                     ) : (
-                      <p>Creator information is unavailable for this token.</p>
+                      <p>{translateUI("Creator information is unavailable for this token.")}</p>
                     )}
                   </div>
                 )}
@@ -355,15 +355,18 @@ export function BscTokenView({
             className="shrink-0 rounded-2xl border border-white/[0.06] bg-surface p-3"
             aria-label={`About ${token.symbol}`}
           >
-            <h2 className="text-sm font-semibold">About {token.symbol}</h2>
+            <h2 className="text-sm font-semibold">{translateUI("About")} {token.symbol}</h2>
             <p className="mt-2 break-words text-xs leading-relaxed text-ink/80">
               {data.description ?? token.name}
             </p>
+            <p className="mt-3 text-[10px] text-muted">{translateUI('Safety uses finalized indexed data. Concentration excludes protocol pools, burns and contracts. Missing history or funding data stays unknown; the Flap label is not a safety verdict.')}</p>
             <SafetyGrid t={token} className="mt-3" />
+            {!token.safety_at&&<p role="status" className="mt-2 text-[10px] text-risk-medium">{translateUI(token.safety_status==='history-unavailable'?'Launch history is unavailable; safety metrics remain unknown.':'Indexing holder history and safety data. Values appear automatically when coverage is complete.')}</p>}
+            {token.safety_at&&<p className="mt-2 text-[10px] text-muted" title={token.safety_at}>{translateUI('Safety snapshot')} · {translateUI('Block')} {token.safety_block} · UTC {new Date(token.safety_at).toISOString().slice(11,19)}</p>}
             <div className="mt-3 grid grid-cols-4 gap-1 rounded-xl bg-white/[0.03] p-2">
               {WINDOWS.map((w) => (
                 <div key={w.id} className="text-center text-[10px] text-muted">
-                  {w.label}
+                  {translateUI(w.label)}
                   <p
                     className={`mt-1 font-mono text-xs ${stats[w.id].change == null ? 'text-muted' : stats[w.id].change! >= 0 ? 'text-brand' : 'text-risk-high'}`}
                   >
@@ -373,22 +376,21 @@ export function BscTokenView({
               ))}
             </div>
             <p className="mt-2 text-[10px] text-muted">
-              Price changes use available history. Unreported safety values remain unknown.
-            </p>
+              {translateUI("Price changes use available history. Unreported safety values remain unknown.")}</p>
             <details className="mt-4 border-t border-white/5 pt-3 text-xs">
-              <summary className="cursor-pointer font-semibold">Pools & token details</summary>
+              <summary className="cursor-pointer font-semibold">{translateUI("Pools & token details")}</summary>
               <dl className="mt-3 space-y-2">
                 <div className="flex justify-between">
-                  <dt className="text-muted">Network</dt>
-                  <dd>BNB Smart Chain</dd>
+                  <dt className="text-muted">{translateUI("Network")}</dt>
+                  <dd>{translateUI("BNB Smart Chain")}</dd>
                 </div>
                 <div className="flex justify-between">
-                  <dt className="text-muted">Decimals</dt>
+                  <dt className="text-muted">{translateUI("Decimals")}</dt>
                   <dd>{data.decimals ?? 'Unknown'}</dd>
                 </div>
                 <div className="flex justify-between">
-                  <dt className="text-muted">Supply</dt>
-                  <dd>{supply ? supply.toLocaleString('en-US') : 'Unknown'}</dd>
+                  <dt className="text-muted">{translateUI("Supply")}</dt>
+                  <dd>{supply ? supply.toLocaleString('en-US') : translateUI("Unknown")}</dd>
                 </div>
               </dl>
               {data.detail.pools.map((p) => (
@@ -399,14 +401,13 @@ export function BscTokenView({
                   rel="noreferrer"
                   className="mt-3 flex justify-between gap-2 underline"
                 >
-                  <span>PancakeSwap {p.dex}</span>
+                  <span>{translateUI("PancakeSwap")} {p.dex}</span>
                   <span>{usd(p.liquidity_usd)}</span>
                 </a>
               ))}
               {!data.detail.pools.length && (
                 <p className="mt-3 text-muted">
-                  Four.meme bonding curve. No verified PancakeSwap pool is available yet.
-                </p>
+                  {translateUI("Flap bonding curve. No verified PancakeSwap pool is available yet.")}</p>
               )}
             </details>
           </section>
@@ -418,13 +419,13 @@ export function BscTokenView({
             onClick={() => setSheet('buy')}
             className="rounded-xl bg-go py-3 font-semibold text-bg"
           >
-            Buy {token.symbol}
+            {translateUI("Buy")}{token.symbol}
           </button>
           <button
             onClick={() => setSheet('sell')}
             className="rounded-xl bg-risk-high py-3 font-semibold text-bg"
           >
-            Sell {token.symbol}
+            {translateUI("Sell")}{token.symbol}
           </button>
         </div>
       )}
@@ -442,7 +443,7 @@ export function BscTokenView({
           >
             <section className="max-h-[90dvh] w-full overflow-y-auto rounded-t-3xl bg-bg p-3 [padding-bottom:max(0.75rem,env(safe-area-inset-bottom))]">
               <button
-                aria-label="Close trade"
+                aria-label={translateUI("Close trade")}
                 onClick={() => setSheet(null)}
                 className="mb-2 ml-auto flex p-1"
               >

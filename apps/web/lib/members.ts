@@ -6,7 +6,7 @@ import { auth } from './auth';
 import { writeHint } from './session-hint';
 
 /**
- * Rushr members (Agents stream's API, docs/agents.md "Beta API (v1)"). Humans authenticate with
+ * CLASHR members (Agents stream's API, docs/agents.md "Beta API (v1)"). Humans authenticate with
  * their Privy access token. Until that API is deployed every call reports `unavailable`, and the
  * app simply skips sign-up onboarding.
  */
@@ -124,14 +124,14 @@ export function useMe(): MeResult | null {
 }
 
 const MESSAGES: Record<string, string> = {
-  invite_required: 'Rushr is invite-only during the beta. Enter your invite code.',
+  invite_required: 'CLASHR is invite-only during the beta. Enter your invite code.',
   invite_used: 'That invite code has already been used.',
   handle_invalid: 'Handles are 3–20 characters: letters, numbers and _.',
   handle_reserved: 'That handle is reserved. Pick another.',
   handle_taken: 'That handle is taken. Pick another.',
-  wallet_taken: 'This wallet already belongs to another Rushr account.',
-  no_embedded_wallet: 'Your Rushr wallet is still being created. Try again in a few seconds.',
-  already_registered: 'You already have a Rushr profile.',
+  wallet_taken: 'This wallet already belongs to another CLASHR account.',
+  no_embedded_wallet: 'Your CLASHR wallet is still being created. Try again in a few seconds.',
+  already_registered: 'You already have a CLASHR profile.',
   rate_limited: 'Too many sign-ups from this network today. Try again later.',
   bad_origin: 'Sign-up only works on rushr.trade.',
 };

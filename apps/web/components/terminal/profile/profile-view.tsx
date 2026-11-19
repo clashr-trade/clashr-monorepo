@@ -1,5 +1,6 @@
 'use client';
 
+import {usePlatformLanguage} from '@/components/landing/language-provider';
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { ArrowDown, ArrowUp, DotsThree, GearSix, Key, PencilSimple, Robot, ShareNetwork, User, XLogo } from '@phosphor-icons/react';
@@ -34,7 +35,7 @@ import { EditProfile } from './edit-profile';
 import { WalletOverview } from '../wallet-overview';
 
 /**
- * Profile pages in FOMO's structure with Rushr's look: a banner header, then portfolio (value, PnL,
+ * Profile pages in FOMO's structure with CLASHR's look: a banner header, then portfolio (value, PnL,
  * cash, positions), activity (feed / transactions) and a "follow top traders" rail. /me adds the
  * cash card's Deposit / Withdraw and editing.
  */
@@ -86,22 +87,22 @@ function positionShare(handle: string, own: boolean, p: Position, pnl: number, p
 /* ------------------------------------------------------------------ entry points */
 
 export function MyProfile() {
+  const {t:translateUI}=usePlatformLanguage();
   const { enabled, ready, authenticated, user } = useAuth();
   const me = useMe();
   const handle = me?.status === 'registered' ? me.member.handle : null;
   const [tick, setTick] = useState(0);
   const full = useProfileMember(handle, tick);
-  if (!enabled) return <Notice title="Profiles open with sign-in" body="Sign-in isn't enabled on this build." />;
+  if (!enabled) return <Notice title={translateUI("Profiles open with sign-in")} body="Sign-in isn't enabled on this build." />;
   if (!authenticated || !user)
     return (
       <Notice
-        title={ready ? 'Sign in to see your profile' : 'Loading…'}
+        title={ready ? translateUI("Sign in to see your profile") : translateUI("Loading…")}
         body="Your profile is where you fund your wallet, see your positions and share your PnL."
         action={
           ready ? (
             <button type="button" onClick={() => auth.login()} className="rounded-xl bg-ink px-5 py-2.5 text-sm font-semibold text-bg hover:bg-white">
-              Sign in
-            </button>
+              {translateUI("Sign in")}</button>
           ) : null
         }
       />
@@ -173,6 +174,7 @@ function ProfilePage({ view, onEdited }: { view: View; onEdited?: () => void }) 
 /* ------------------------------------------------------------------ header */
 
 function Header({ view, summary, onEdited }: { view: View; summary: PnlSummary | null; onEdited?: () => void }) {
+  const {t:translateUI}=usePlatformLanguage();
   const { authenticated } = useAuth();
   const m = view.member;
   const rel = useRelationship(view.own ? null : view.handle, authenticated);
@@ -209,21 +211,20 @@ function Header({ view, summary, onEdited }: { view: View; summary: PnlSummary |
             <MemberAvatar member={view.member} wallet={view.wallet} label={view.name} size={96} />
           </span>
           <div className="ml-auto flex flex-wrap items-center justify-end gap-2 pb-1">
-            <Count label="Following" value={m?.following ?? null} />
-            <Count label="Followers" value={m?.followers ?? null} />
+            <Count label={translateUI("Following")} value={m?.following ?? null} />
+            <Count label={translateUI("Followers")} value={m?.followers ?? null} />
             <button type="button" onClick={() => void share()} className="flex items-center gap-1.5 rounded-xl border border-white/[0.08] px-3 py-2 text-sm text-muted hover:text-ink">
-              <ShareNetwork size={15} /> {shared ? 'Link copied' : 'Share'}
+              <ShareNetwork size={15} /> {shared ? translateUI("Link copied") : translateUI("Share")}
             </button>
             {view.own ? (
               <button
                 type="button"
                 disabled={!m}
-                title={m ? undefined : 'Pick a handle first'}
+                title={m ? undefined : translateUI("Pick a handle first")}
                 onClick={() => setEditing(true)}
                 className="flex items-center gap-1.5 rounded-xl bg-ink px-3 py-2 text-sm font-semibold text-bg hover:bg-white disabled:opacity-40"
               >
-                <PencilSimple size={15} /> Edit profile
-              </button>
+                <PencilSimple size={15} /> {translateUI("Edit profile")}</button>
             ) : rel.state && !rel.state.self ? (
               <button
                 type="button"
@@ -231,12 +232,11 @@ function Header({ view, summary, onEdited }: { view: View; summary: PnlSummary |
                 disabled={rel.busy}
                 className={`rounded-xl px-4 py-2 text-sm font-semibold ${rel.state.following ? 'border border-white/[0.12] text-ink hover:border-risk-high/40 hover:text-risk-high' : 'bg-brand text-bg hover:brightness-110'}`}
               >
-                {rel.state.following ? 'Following' : 'Follow'}
+                {rel.state.following ? translateUI("Following") : translateUI("Follow")}
               </button>
             ) : !authenticated ? (
               <button type="button" onClick={() => auth.login()} className="rounded-xl bg-brand px-4 py-2 text-sm font-semibold text-bg hover:brightness-110">
-                Follow
-              </button>
+                {translateUI("Follow")}</button>
             ) : null}
           </div>
         </div>
@@ -245,9 +245,9 @@ function Header({ view, summary, onEdited }: { view: View; summary: PnlSummary |
             <h1 className="text-2xl font-semibold tracking-[-0.02em]">{view.name}</h1>
             <span className="inline-flex items-center gap-1 rounded-md bg-white/[0.06] px-1.5 py-0.5 text-[11px] font-semibold text-muted">
               {m?.kind === 'agent' ? <Robot size={12} weight="bold" /> : <User size={12} weight="bold" />}
-              {m?.kind === 'agent' ? 'Agent' : 'Human'}
+              {m?.kind === 'agent' ? translateUI("Agent") : translateUI("Human")}
             </span>
-            {rel.state?.followedBy && <span className="rounded-md bg-white/[0.04] px-1.5 py-0.5 text-[11px] text-muted">Follows you</span>}
+            {rel.state?.followedBy && <span className="rounded-md bg-white/[0.04] px-1.5 py-0.5 text-[11px] text-muted">{translateUI("Follows you")}</span>}
           </div>
           <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted">
             {view.handle && <span>@{view.handle}</span>}
@@ -259,7 +259,7 @@ function Header({ view, summary, onEdited }: { view: View; summary: PnlSummary |
             {view.wallet && <span className="font-mono text-xs">{short(view.wallet)}</span>}
             {m?.owner && (
               <span>
-                Owned by{' '}
+                {translateUI("Owned by")}{' '}
                 <Link href={`/u/${m.owner.handle}`} className="text-ink/80 hover:text-ink">
                   @{m.owner.handle}
                 </Link>
@@ -269,20 +269,20 @@ function Header({ view, summary, onEdited }: { view: View; summary: PnlSummary |
           {m?.bio ? (
             <p className="mt-2 max-w-2xl text-sm text-ink/85">{m.bio}</p>
           ) : view.own && !view.handle ? (
-            <p className="mt-2 text-sm text-muted">Pick your handle to get a public profile.</p>
+            <p className="mt-2 text-sm text-muted">{translateUI("Pick your handle to get a public profile.")}</p>
           ) : null}
           <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted">
             <span>
-              Avg hold <span className="text-ink/80">—</span>
+              {translateUI("Avg hold")}<span className="text-ink/80">—</span>
             </span>
             <span>
-              Trades <span className="font-mono text-ink/80">{countFmt(summary?.trades)}</span>
+              {translateUI("Trades")}<span className="font-mono text-ink/80">{countFmt(summary?.trades)}</span>
             </span>
-            {m?.createdAt && <span>Joined {dateUtc(m.createdAt)}</span>}
+            {m?.createdAt && <span>{translateUI("Joined")} {dateUtc(m.createdAt)}</span>}
           </div>
           {!!m?.agents?.length && (
             <div className="mt-3 flex flex-wrap items-center gap-1.5">
-              <span className="text-xs text-muted">Agents</span>
+              <span className="text-xs text-muted">{translateUI("Agents")}</span>
               {m.agents.map((a) => (
                 <Link key={a.id} href={`/u/${a.handle}`} className="inline-flex items-center gap-1 rounded-full border border-white/[0.08] px-2 py-0.5 text-xs hover:border-white/20">
                   <Robot size={12} /> @{a.handle}
@@ -309,10 +309,11 @@ function Header({ view, summary, onEdited }: { view: View; summary: PnlSummary |
 }
 
 function Count({ label, value }: { label: string; value: number | null }) {
+  const {t:translateUI}=usePlatformLanguage();
   return (
     <div className="px-2 text-center">
       <div className="font-mono text-base font-semibold leading-tight">{countFmt(value)}</div>
-      <div className="text-[11px] text-muted">{label}</div>
+      <div className="text-[11px] text-muted">{translateUI(label)}</div>
     </div>
   );
 }
@@ -323,6 +324,7 @@ type Range = PnlRange;
 const RANGE_LABEL: Record<Range, string> = { '24h': '24H', '7d': '7D', '30d': '30D', all: 'ALL' };
 
 function Portfolio({ wallet, total, summary, loading }: { wallet: string | null; total: number | null; summary: PnlSummary | null; loading: boolean }) {
+  const {t:translateUI}=usePlatformLanguage();
   const [range, setRange] = useState<Range>('7d');
   const history = usePnlHistory(wallet, range);
   const hist = history.state === 'ready' ? history.data : null;
@@ -334,13 +336,13 @@ function Portfolio({ wallet, total, summary, loading }: { wallet: string | null;
   const up = (value ?? 0) >= 0;
   return (
     <section className="rounded-2xl border border-white/[0.06] bg-surface p-4">
-      <div className="text-xs text-muted">Portfolio value</div>
+      <div className="text-xs text-muted">{translateUI("Portfolio value")}</div>
       <div className="mt-1 flex flex-wrap items-baseline gap-x-3 gap-y-1">
         <span className="font-mono text-3xl font-semibold tracking-tight">{loading && total == null ? '…' : total == null ? '—' : usd(total)}</span>
         {value != null && (
           <span className={`flex items-center gap-0.5 font-mono text-sm ${up ? 'text-brand' : 'text-risk-high'}`}>
             {up ? <ArrowUp size={12} weight="bold" /> : <ArrowDown size={12} weight="bold" />}
-            {usdSigned(value)} <span className="ml-1 font-sans text-xs text-muted">{range === 'all' ? 'all-time PnL' : `realized, ${RANGE_LABEL[range]}`}</span>
+            {usdSigned(value)} <span className="ml-1 font-sans text-xs text-muted">{range === 'all' ? translateUI("all-time PnL") : `realized, ${RANGE_LABEL[range]}`}</span>
           </span>
         )}
       </div>
@@ -358,12 +360,13 @@ function Portfolio({ wallet, total, summary, loading }: { wallet: string | null;
 
 /** The wallet card's ⋯ menu: key export and trading settings. */
 function WalletMenu() {
+  const {t:translateUI}=usePlatformLanguage();
   const external=useAuth().user?.walletKind==='external';
   const [menu, setMenu] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
   return (
     <div className="relative">
-      <button type="button" onClick={() => setMenu((m) => !m)} aria-label="More" aria-expanded={menu} className="rounded-lg p-1.5 text-muted hover:bg-white/[0.05] hover:text-ink">
+      <button type="button" onClick={() => setMenu((m) => !m)} aria-label={translateUI("More")} aria-expanded={menu} className="rounded-lg p-1.5 text-muted hover:bg-white/[0.05] hover:text-ink">
         <DotsThree size={20} weight="bold" />
       </button>
       {menu && (
@@ -378,12 +381,10 @@ function WalletMenu() {
             }}
             className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-muted hover:bg-white/[0.04] hover:text-ink"
           >
-            <Key size={15} /> Export private key
-          </button>}
-          {external&&<p className="px-3 py-2 text-xs text-muted">Manage keys and recovery in your external wallet.</p>}
+            <Key size={15} /> {translateUI("Export private key")}</button>}
+          {external&&<p className="px-3 py-2 text-xs text-muted">{translateUI("Manage keys and recovery in your external wallet.")}</p>}
           <Link href="/settings" role="menuitem" className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-muted hover:bg-white/[0.04] hover:text-ink">
-            <GearSix size={15} /> Trading settings
-          </Link>
+            <GearSix size={15} /> {translateUI("Trading settings")}</Link>
         </div>
       )}
       {exportError && <p className="absolute right-0 top-9 w-56 rounded-lg bg-surface-2 p-2 text-xs text-risk-high">{exportError}</p>}
@@ -396,6 +397,7 @@ function WalletMenu() {
 const DUST_USD = 1;
 
 function Positions({ state, positions, handle, own }: { state: 'loading' | 'ready' | 'unavailable'; positions: Position[]; handle: string | null; own: boolean }) {
+  const {t:translateUI}=usePlatformLanguage();
   const [tab, setTab] = useState<'open' | 'closed'>('open');
   const [dust, setDust] = useState(false);
   const [sharing, setSharing] = useState<ShareTarget | null>(null);
@@ -421,7 +423,7 @@ function Positions({ state, positions, handle, own }: { state: 'loading' | 'read
   return (
     <section className="overflow-hidden rounded-2xl border border-white/[0.06] bg-surface">
       <div className="flex items-center gap-1 border-b border-white/[0.05] px-3 py-2">
-        <h2 className="mr-2 text-sm font-semibold">Positions</h2>
+        <h2 className="mr-2 text-sm font-semibold">{translateUI("Positions")}</h2>
         {(['open', 'closed'] as const).map((t) => (
           <button key={t} type="button" onClick={() => setTab(t)} className={`rounded-lg px-2.5 py-1 text-xs capitalize ${tab === t ? 'bg-white/[0.08] text-ink' : 'text-muted hover:text-ink'}`}>
             {t}
@@ -429,20 +431,19 @@ function Positions({ state, positions, handle, own }: { state: 'loading' | 'read
         ))}
         {closedTotal != null && rows.length > 0 && (
           <span className="ml-auto font-mono text-[11px] text-muted">
-            {rows.length} closed · <span className={closedTotal >= 0 ? 'text-brand' : 'text-risk-high'}>{usdSigned(closedTotal)}</span>
+            {rows.length}  {translateUI("closed ·")} <span className={closedTotal >= 0 ? 'text-brand' : 'text-risk-high'}>{usdSigned(closedTotal)}</span>
           </span>
         )}
         {tab === 'open' && (
           <label className="ml-auto flex cursor-pointer items-center gap-1.5 text-[11px] text-muted">
             <input type="checkbox" checked={dust} onChange={(e) => setDust(e.target.checked)} className="accent-[var(--color-brand)]" />
-            Show dust
-          </label>
+            {translateUI("Show dust")}</label>
         )}
       </div>
       {state === 'loading' ? (
         <Rows />
       ) : state === 'unavailable' ? (
-        <Empty text="Positions are being computed." sub="They fill in as Rushr finishes indexing past trades." />
+        <Empty text={translateUI("Positions are being computed.")} sub="They fill in as CLASHR finishes indexing past trades." />
       ) : !rows.length ? (
         <Empty text={tab === 'open' ? 'No open positions.' : 'No closed positions yet.'} />
       ) : (
@@ -483,7 +484,7 @@ function Positions({ state, positions, handle, own }: { state: 'loading' | 'read
                   <button
                     type="button"
                     aria-label={`Share the ${p.symbol} trade`}
-                    title="Share"
+                    title={translateUI("Share")}
                     onClick={() => setSharing(positionShare(handle, own, p, open ? pnl : p.realized_usd, open ? pnlPct : p.bought_usd > 0 ? (p.realized_usd / p.bought_usd) * 100 : null))}
                     className="mx-1.5 shrink-0 rounded-lg p-2 text-muted transition hover:bg-white/[0.05] hover:text-ink"
                   >
@@ -517,6 +518,7 @@ function heldTokens(p: Position): number {
 /* ------------------------------------------------------------------ activity */
 
 function Activity({ handle, wallet }: { handle: string | null; wallet: string | null }) {
+  const {t:translateUI}=usePlatformLanguage();
   const [tab, setTab] = useState<'calls' | 'tx'>('calls');
   const [side, setSide] = useState<'all' | 'buy' | 'sell'>('all');
   const [min, setMin] = useState(0);
@@ -532,20 +534,20 @@ function Activity({ handle, wallet }: { handle: string | null; wallet: string | 
           ] as const
         ).map(([id, label]) => (
           <button key={id} type="button" onClick={() => setTab(id)} className={`rounded-lg px-2.5 py-1 text-xs font-medium ${tab === id ? 'bg-white/[0.08] text-ink' : 'text-muted hover:text-ink'}`}>
-            {label}
+            {translateUI(label)}
           </button>
         ))}
         {tab === 'tx' && (
         <div className="ml-auto flex items-center gap-1 text-[11px]">
-          <select value={side} onChange={(e) => setSide(e.target.value as typeof side)} aria-label="Filter by side" className="rounded-lg border border-white/[0.06] bg-bg px-1.5 py-1 text-muted outline-none">
-            <option value="all">All</option>
-            <option value="buy">Buys</option>
-            <option value="sell">Sells</option>
+          <select value={side} onChange={(e) => setSide(e.target.value as typeof side)} aria-label={translateUI("Filter by side")} className="rounded-lg border border-white/[0.06] bg-bg px-1.5 py-1 text-muted outline-none">
+            <option value="all">{translateUI("All")}</option>
+            <option value="buy">{translateUI("Buys")}</option>
+            <option value="sell">{translateUI("Sells")}</option>
           </select>
-          <select value={min} onChange={(e) => setMin(Number(e.target.value))} aria-label="Minimum size" className="rounded-lg border border-white/[0.06] bg-bg px-1.5 py-1 text-muted outline-none">
+          <select value={min} onChange={(e) => setMin(Number(e.target.value))} aria-label={translateUI("Minimum size")} className="rounded-lg border border-white/[0.06] bg-bg px-1.5 py-1 text-muted outline-none">
             {[0, 10, 100, 1000].map((v) => (
               <option key={v} value={v}>
-                {v ? `Min $${countFmt(v)}` : 'Any size'}
+                {v ? `Min $${countFmt(v)}` : translateUI("Any size")}
               </option>
             ))}
           </select>
@@ -556,14 +558,14 @@ function Activity({ handle, wallet }: { handle: string | null; wallet: string | 
         callouts.state === 'loading' && handle ? (
           <Rows />
         ) : callouts.state !== 'ready' ? (
-          <Empty text="Calls show up here." sub="Each call with its stance, the market cap when it was posted, and the move since." />
+          <Empty text={translateUI("Calls show up here.")} sub="Each call with its stance, the market cap when it was posted, and the move since." />
         ) : (
           <CalloutList items={callouts.data} />
         )
       ) : trades.state === 'loading' ? (
         <Rows />
       ) : trades.state !== 'ready' ? (
-        <Empty text="Transactions show up here." sub="Each buy and sell with its size and the market cap at the time." />
+        <Empty text={translateUI("Transactions show up here.")} sub="Each buy and sell with its size and the market cap at the time." />
       ) : (
         <TradeList items={trades.data.filter((t) => (side === 'all' || t.side === side) && (t.usd ?? 0) >= min)} />
       )}
@@ -573,15 +575,16 @@ function Activity({ handle, wallet }: { handle: string | null; wallet: string | 
 
 /** The wallet's buys and sells: token, size, market cap at the price traded, and the result of each sell. */
 function TradeList({ items }: { items: WalletTrade[] }) {
+  const {t:translateUI}=usePlatformLanguage();
   const now = useNow(Date.now());
-  if (!items.length) return <Empty text="No trades yet." />;
+  if (!items.length) return <Empty text={translateUI("No trades yet.")} />;
   return (
     <ul>
       {items.map((t) => (
         <li key={`${t.tx}:${t.logIndex}`} className="border-t border-white/[0.03] first:border-0">
           <Link href={`/token/${t.token}`} className="flex items-center gap-3 px-3 py-2.5 hover:bg-white/[0.02]">
             <span className={`w-9 shrink-0 rounded px-1.5 py-0.5 text-center text-[10px] font-semibold ${t.side === 'buy' ? 'bg-brand/15 text-brand' : 'bg-risk-high/15 text-risk-high'}`}>
-              {t.side === 'buy' ? 'Buy' : 'Sell'}
+              {t.side === 'buy' ? translateUI("Buy") : translateUI("Sell")}
             </span>
             <TokenAvatar t={{ address: t.token, symbol: t.symbol ?? '?', launchpad: null, image_url: t.imageUrl }} size={26} />
             <span className="min-w-0 flex-1">
@@ -606,8 +609,9 @@ function TradeList({ items }: { items: WalletTrade[] }) {
 
 /** The member's calls, as cards like the feed's: stance, take, market cap at the call, move since, likes and comments. */
 function CalloutList({ items }: { items: Callout[] }) {
+  const {t:translateUI}=usePlatformLanguage();
   const now = useNow(Date.now());
-  if (!items.length) return <Empty text="No calls yet." sub="Calls are posted from a token page: your take, timestamped and tracked from the market cap at the time." />;
+  if (!items.length) return <Empty text={translateUI("No calls yet.")} sub="Calls are posted from a token page: your take, timestamped and tracked from the market cap at the time." />;
   return (
     <ul className="space-y-2 p-2">
       {items.map((c) => (
@@ -620,6 +624,7 @@ function CalloutList({ items }: { items: Callout[] }) {
 /* ------------------------------------------------------------------ rail */
 
 function TopTraders({ exclude }: { exclude: string | null }) {
+  const {t:translateUI}=usePlatformLanguage();
   const { authenticated } = useAuth();
   const raw = useSuggestions(authenticated);
   // Never suggest the profile you're looking at (or yourself).
@@ -627,11 +632,11 @@ function TopTraders({ exclude }: { exclude: string | null }) {
   const [followed, setFollowed] = useState<Record<string, boolean>>({});
   return (
     <section className="rounded-2xl border border-white/[0.06] bg-surface p-3">
-      <h2 className="px-1 text-sm font-semibold">Follow top traders</h2>
+      <h2 className="px-1 text-sm font-semibold">{translateUI("Follow top traders")}</h2>
       {list.state === 'loading' ? (
         <Rows n={4} />
       ) : list.state !== 'ready' || !list.data.length ? (
-        <p className="px-1 py-6 text-center text-xs text-muted">Top traders appear here once Season 0&apos;s leaderboard opens.</p>
+        <p className="px-1 py-6 text-center text-xs text-muted">{translateUI("Top traders appear here once Season 0's leaderboard opens.")}</p>
       ) : (
         <ul className="mt-2 space-y-1">
           {list.data.map((s: Suggestion) => (
@@ -644,7 +649,7 @@ function TopTraders({ exclude }: { exclude: string | null }) {
                 </span>
                 <span className="block truncate text-[11px] text-muted">
                   @{s.member.handle}{s.pnl!=null&&<> · <span className={s.pnl >= 0 ? 'text-brand' : 'text-risk-high'}>{usdSigned(s.pnl)}</span></>}
-                  {s.inclAgents ? ' incl. agents' : ''}
+                  {s.inclAgents ? translateUI(" incl. agents") : ''}
                 </span>
               </Link>
               <button
@@ -658,7 +663,7 @@ function TopTraders({ exclude }: { exclude: string | null }) {
                 }}
                 className={`shrink-0 rounded-lg px-2.5 py-1 text-xs font-semibold ${followed[s.member.id] ? 'border border-white/[0.12] text-muted' : 'bg-white/[0.08] text-ink hover:bg-white/[0.12]'}`}
               >
-                {followed[s.member.id] ? 'Following' : 'Follow'}
+                {followed[s.member.id] ? translateUI("Following") : translateUI("Follow")}
               </button>
             </li>
           ))}
@@ -671,11 +676,12 @@ function TopTraders({ exclude }: { exclude: string | null }) {
 /* ------------------------------------------------------------------ bits */
 
 function Empty({ text, sub }: { text: string; sub?: string }) {
+  const {t:translateUI}=usePlatformLanguage();
   return (
     <div className="grid h-48 place-items-center px-6 text-center">
       <div>
-        <p className="text-sm text-muted">{text}</p>
-        {sub && <p className="mt-1 text-[11px] text-muted/70">{sub}</p>}
+        <p className="text-sm text-muted">{translateUI(text)}</p>
+        {sub && <p className="mt-1 text-[11px] text-muted/70">{translateUI(sub)}</p>}
       </div>
     </div>
   );
@@ -704,10 +710,11 @@ function Skeleton() {
 }
 
 function Notice({ title, body, action }: { title: string; body: string; action?: React.ReactNode }) {
+  const {t:translateUI}=usePlatformLanguage();
   return (
     <div className="grid h-full place-items-center p-4">
       <div className="max-w-sm rounded-2xl border border-white/[0.06] bg-surface p-6 text-center">
-        <h1 className="text-lg font-semibold">{title}</h1>
+        <h1 className="text-lg font-semibold">{translateUI(title)}</h1>
         <p className="mt-1 text-sm text-muted">{body}</p>
         {action && <div className="mt-4">{action}</div>}
       </div>

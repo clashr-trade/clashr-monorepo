@@ -1,5 +1,6 @@
 'use client';
 
+import {usePlatformLanguage} from '@/components/landing/language-provider';
 import { useEffect, useMemo, useState } from 'react';
 import { erc20Abi, formatUnits, parseEther, parseUnits } from 'viem';
 import Link from 'next/link';
@@ -10,7 +11,7 @@ import { SHOW_RISK } from '@/lib/risk-labels';
 
 /**
  * Trade box for the token page. Beta v0: quick buy / sell from the user's Privy
- * embedded wallet with no confirmation popup, through Uniswap's Universal Router, with the Rushr fee in
+ * embedded wallet with no confirmation popup, through Uniswap's Universal Router, with the CLASHR fee in
  * the same tx. Renders nothing unless NEXT_PUBLIC_SWAP_ENABLED=1 and a Privy app id are set. Sign-in
  * and signing go through lib/auth (one Privy setup); settings come from /settings.
  */
@@ -26,6 +27,7 @@ function fmt(v: bigint, decimals: number, max = 6) {
 }
 
 function TradeBoxInner({ token }: { token: TradeToken }) {
+  const {t:translateUI}=usePlatformLanguage();
   const q = useQuickTrade(token);
   const settings = q.settings;
   const [side, setSide] = useState<'buy' | 'sell'>('buy');
@@ -98,8 +100,7 @@ function TradeBoxInner({ token }: { token: TradeToken }) {
           ))}
         </div>
         <Link href="/settings" className="ml-auto rounded-lg px-2 py-1 text-xs text-muted hover:text-ink" title={`Cap ${settings.maxTradeEth} ETH · slippage ${typeof settings.slippagePct === 'number' ? `${settings.slippagePct}%` : 'auto'}`}>
-          Settings
-        </Link>
+          {translateUI("Settings")}</Link>
       </div>
 
       <div className="mt-3 flex items-center gap-2">
@@ -107,11 +108,11 @@ function TradeBoxInner({ token }: { token: TradeToken }) {
           inputMode="decimal"
           value={amount}
           onChange={(e) => setAmount(e.target.value.replace(',', '.'))}
-          placeholder={side === 'buy' ? '0.0 ETH' : `0 ${token.symbol}`}
-          aria-label={side === 'buy' ? 'ETH to spend' : `${token.symbol} to sell`}
+          placeholder={side === 'buy' ? translateUI("0.0 ETH") : `0 ${token.symbol}`}
+          aria-label={side === 'buy' ? translateUI("ETH to spend") : `${token.symbol} to sell`}
           className="min-w-0 flex-1 rounded-xl border border-line bg-surface-2 px-3 py-2 font-mono tabular-nums outline-none focus:border-brand/60"
         />
-        <span className="text-xs text-muted">{side === 'buy' ? 'ETH' : token.symbol}</span>
+        <span className="text-xs text-muted">{side === 'buy' ? translateUI("ETH") : token.symbol}</span>
       </div>
       <div className="mt-2 flex flex-wrap gap-1">
         {side === 'buy'
@@ -140,11 +141,11 @@ function TradeBoxInner({ token }: { token: TradeToken }) {
 
       {t?.quote && (
         <dl className="mt-3 space-y-1 text-xs">
-          <Row label="You receive (est.)" value={`${fmt(t.quote.amountOut, outDecimals)} ${outSymbol}`} />
+          <Row label={translateUI("You receive (est.)")} value={`${fmt(t.quote.amountOut, outDecimals)} ${outSymbol}`} />
           <Row label={`Min received (${(t.slippageBps / 100).toFixed(1)}% slippage)`} value={`${fmt(t.quote.minAmountOut, outDecimals)} ${outSymbol}`} />
           <Row label={feeLine(t.quote)} value={`${fmt(t.quote.fee.feeAmount, 18)} ETH`} />
-          <Row label="Route" value={t.quote.pool.venueFeeLabel} />
-          {t.calls.length > 1 && <Row label="Transactions" value={`${t.calls.length} (first sell approves the token)`} />}
+          <Row label={translateUI("Route")} value={t.quote.pool.venueFeeLabel} />
+          {t.calls.length > 1 && <Row label={translateUI("Transactions")} value={`${t.calls.length} (first sell approves the token)`} />}
         </dl>
       )}
       {t?.warnings.map((w) => (
@@ -162,7 +163,7 @@ function TradeBoxInner({ token }: { token: TradeToken }) {
       {SHOW_RISK && (needsAck || (q.ack && token.risk === 'high')) && (
         <label className="mt-2 flex items-start gap-2 rounded-lg bg-risk-high/10 px-2 py-1.5 text-xs text-risk-high">
           <input type="checkbox" checked={q.ack} onChange={(e) => q.setAck(e.target.checked)} className="mt-0.5" />
-          <span>I understand this token is high risk{token.verdict ? ` (${token.verdict})` : ''} and I may lose what I put in.</span>
+          <span>{translateUI("I understand this token is high risk")}{token.verdict ? ` (${token.verdict})` : ''}  {translateUI("and I may lose what I put in.")}</span>
         </label>
       )}
 
@@ -172,65 +173,63 @@ function TradeBoxInner({ token }: { token: TradeToken }) {
         onClick={() => void q.execute()}
         className={`mt-3 w-full rounded-xl py-2.5 font-semibold text-bg transition disabled:opacity-40 ${side === 'buy' ? 'bg-go' : 'bg-risk-high'}`}
       >
-        {!q.session.authenticated ? 'Sign in to trade' : busy ? 'Trading…' : side === 'buy' ? `Buy ${token.symbol}` : `Sell ${token.symbol}`}
+        {!q.session.authenticated ? translateUI("Sign in to trade") : busy ? translateUI("Trading…") : side === 'buy' ? `Buy ${token.symbol}` : `Sell ${token.symbol}`}
       </button>
       <Status status={q.status} />
       <p className="mt-2 text-[11px] leading-snug text-muted">
-        Trades are signed in your own Rushr wallet without a confirmation popup, up to your per-trade cap ({settings.maxTradeEth} ETH). Non-custodial: export your key any time.
-      </p>
+        {translateUI("Trades are signed in your own CLASHR wallet without a confirmation popup, up to your per-trade cap (")}{settings.maxTradeEth} {translateUI("ETH). Non-custodial: export your key any time.")}</p>
     </section>
   );
 }
 
 function Row({ label, value }: { label: string; value: string }) {
+  const {t:translateUI}=usePlatformLanguage();
   return (
     <div className="flex justify-between gap-2">
-      <dt className="text-muted">{label}</dt>
+      <dt className="text-muted">{translateUI(label)}</dt>
       <dd className="min-w-0 truncate text-right font-mono tabular-nums">{value}</dd>
     </div>
   );
 }
 
 export function Status({ status }: { status: TradeStatus }) {
+  const {t:translateUI}=usePlatformLanguage();
   switch (status.kind) {
     case 'idle':
       return null;
     case 'quoting':
-      return <p className="mt-2 text-xs text-muted">Getting a fresh quote…</p>;
+      return <p className="mt-2 text-xs text-muted">{translateUI("Getting a fresh quote…")}</p>;
     case 'sending':
       return (
         <p className="mt-2 text-xs text-muted">
-          {status.label === 'buy' ? 'Buying' : status.label === 'sell' ? 'Selling' : `Step ${status.step}/${status.total}: ${status.label}`}…
+          {status.label === 'buy' ? translateUI("Buying") : status.label === 'sell' ? translateUI("Selling") : `Step ${status.step}/${status.total}: ${status.label}`}…
         </p>
       );
     case 'pending':
       return (
         <p className="mt-2 text-xs text-muted">
-          Submitted{status.total > 1 ? ` ${status.step}/${status.total}` : ''}, confirming…{' '}
+          {translateUI("Submitted")}{status.total > 1 ? ` ${status.step}/${status.total}` : ''}{translateUI(", confirming…")}{' '}
           <a className="underline" href={`https://robinhoodchain.blockscout.com/tx/${status.hash}`} target="_blank" rel="noreferrer">
-            view
-          </a>
+            {translateUI("view")}</a>
         </p>
       );
     case 'success':
       return (
         <p className="mt-2 text-xs text-brand">
-          Confirmed in {(status.ms / 1000).toFixed(1)}s.{' '}
+          {translateUI("Confirmed in")}{(status.ms / 1000).toFixed(1)}s.{' '}
           <a className="underline" href={status.url} target="_blank" rel="noreferrer">
-            View on explorer
-          </a>
+            {translateUI("View on explorer")}</a>
         </p>
       );
     case 'failed':
       return (
         <p className="mt-2 text-xs text-risk-high">
-          Failed: {status.message}
+          {translateUI("Failed:")}{status.message}
           {status.url && (
             <>
               {' '}
               <a className="underline" href={status.url} target="_blank" rel="noreferrer">
-                View on explorer
-              </a>
+                {translateUI("View on explorer")}</a>
             </>
           )}
         </p>

@@ -1,5 +1,6 @@
 'use client';
 
+import {usePlatformLanguage} from '@/components/landing/language-provider';
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import {
   CandlestickSeries,
@@ -93,6 +94,7 @@ export function PriceChart({
   /** The signed-in wallet's average buy price (USD) while it holds the token: a dashed line on the axis. */
   avgBuy?: number | null;
 }) {
+  const {t:translateUI}=usePlatformLanguage();
   const box = useRef<HTMLDivElement>(null);
   const chart = useRef<IChartApi | null>(null);
   const candles = useRef<ISeriesApi<'Candlestick'> | null>(null);
@@ -399,7 +401,7 @@ export function PriceChart({
             key={i}
             type="button"
             onClick={() => setIv(i)}
-            title={FROM_TRADES.has(i) ? 'Built from recent trades' : undefined}
+            title={FROM_TRADES.has(i) ? translateUI("Built from recent trades") : undefined}
             className={`shrink-0 rounded-md px-2 py-1 font-mono ${interval === i ? 'bg-white/[0.08] text-ink' : 'text-muted hover:text-ink'}`}
           >
             {i}
@@ -407,9 +409,9 @@ export function PriceChart({
         ))}
         <div className="ml-auto flex shrink-0 gap-1 pl-2">
           {calls != null && (
-            <ChipToggle on={showCalls} onClick={() => setShowCalls(!showCalls)} label="Calls" />
+            <ChipToggle on={showCalls} onClick={() => setShowCalls(!showCalls)} label={translateUI("Calls")} />
           )}
-          {marks != null && <ChipToggle on={showTrades} onClick={() => setShowTrades(!showTrades)} label="My trades" short="Mine" />}
+          {marks != null && <ChipToggle on={showTrades} onClick={() => setShowTrades(!showTrades)} label={translateUI("My trades")} short="Mine" />}
         </div>
         <div className="ml-1 flex shrink-0 rounded-lg bg-white/[0.04] p-0.5">
           {(candlesUrl&&supply<=0 ? ['price'] as const : ['mcap', 'price'] as const).map((m) => (
@@ -419,7 +421,7 @@ export function PriceChart({
               onClick={() => setMode(m)}
               className={`rounded-md px-2 py-0.5 ${mode === m ? 'bg-white/[0.1] text-ink' : 'text-muted'}`}
             >
-              {m === 'mcap' ? 'MCap' : 'Price'}
+              {m === 'mcap' ? translateUI("MCap") : translateUI("Price")}
             </button>
           ))}
         </div>
@@ -443,7 +445,7 @@ export function PriceChart({
             </span>
             {ch != null && <span className={up ? 'text-brand' : 'text-risk-high'}>{`${up ? '+' : ''}${ch.toFixed(2)}%`}</span>}
             <span>
-              Vol <span className="text-ink/80">{usd(legend.volume)}</span>
+              {translateUI("Vol")}<span className="text-ink/80">{usd(legend.volume)}</span>
             </span>
             {ownHere && <OwnLegend g={ownHere} scale={scale} />}
           </div>
@@ -455,13 +457,12 @@ export function PriceChart({
         ) : (
           seeded && (
             <span className="pointer-events-none absolute bottom-9 left-1/2 z-10 -translate-x-1/2 rounded-full bg-surface-2/90 px-2.5 py-1 text-[11px] text-muted ring-1 ring-white/[0.06]">
-              No trades in this window yet · live from the current price
-            </span>
+              {translateUI("No trades in this window yet · live from the current price")}</span>
           )
         )}
         {empty && (
           <p className="pointer-events-none absolute inset-0 grid place-items-center text-xs text-muted">
-            {FROM_TRADES.has(interval) ? 'No recent trades to build this view from.' : 'No trades in this window yet.'}
+            {FROM_TRADES.has(interval) ? translateUI("No recent trades to build this view from.") : translateUI("No trades in this window yet.")}
           </p>
         )}
       </div>
@@ -538,7 +539,7 @@ function usdPrecise(n: number) {
   return price(n);
 }
 
-const SOURCE_TEXT = { chain: 'from chain', index: 'from the Rushr index', mixed: 'from chain and index' } as const;
+const SOURCE_TEXT = { chain: 'from chain', index: 'from the CLASHR index', mixed: 'from chain and index' } as const;
 
 const span = (secs: number) => {
   const h = secs / 3600;
@@ -559,6 +560,7 @@ export const isHydrating = (h?: Hydration | null) => h?.state === 'hydrating' ||
 
 /** "Fetching history from chain · last 30m loaded": the server is still backfilling this token. */
 export function HydratingPill({ hydration, className = '' }: { hydration: Hydration; className?: string }) {
+  const {t:translateUI}=usePlatformLanguage();
   const { title, detail } = hydrationLabel(hydration);
   return (
     <span
@@ -569,14 +571,15 @@ export function HydratingPill({ hydration, className = '' }: { hydration: Hydrat
         <span className="absolute inline-flex size-full animate-ping rounded-full bg-brand/60" />
         <span className="relative inline-flex size-2 rounded-full bg-brand" />
       </span>
-      {title}
-      {detail && <span className="font-mono text-muted">· {detail}</span>}
+      {translateUI(title)}
+      {detail && <span className="font-mono text-muted">· {translateUI(detail)}</span>}
     </span>
   );
 }
 
 /** "You: B $250 @ $146K · S $90" for the hovered candle. */
 function OwnLegend({ g, scale }: { g: { buys: OwnTrade[]; sells: OwnTrade[] }; scale: number }) {
+  const {t:translateUI}=usePlatformLanguage();
   const part = (list: OwnTrade[]) => {
     const total = list.reduce((t, x) => t + (x.usd ?? 0), 0);
     const priced = list.filter((x) => x.priceUsd != null);
@@ -585,13 +588,14 @@ function OwnLegend({ g, scale }: { g: { buys: OwnTrade[]; sells: OwnTrade[] }; s
   };
   return (
     <span className="text-ink/80">
-      You{g.buys.length > 0 && <span className="ml-1 text-brand">B {part(g.buys)}</span>}
+      {translateUI("You")}{g.buys.length > 0 && <span className="ml-1 text-brand">B {part(g.buys)}</span>}
       {g.sells.length > 0 && <span className="ml-1 text-risk-high">S {part(g.sells)}</span>}
     </span>
   );
 }
 
 function ChipToggle({ on, onClick, label, short }: { on: boolean; onClick: () => void; label: string; short?: string }) {
+  const {t:translateUI}=usePlatformLanguage();
   return (
     <button
       type="button"
@@ -602,7 +606,7 @@ function ChipToggle({ on, onClick, label, short }: { on: boolean; onClick: () =>
       {short ? (
         <>
           <span className="sm:hidden">{short}</span>
-          <span className="hidden sm:inline">{label}</span>
+          <span className="hidden sm:inline">{translateUI(label)}</span>
         </>
       ) : (
         label
@@ -620,6 +624,7 @@ const HOVER_GAP = CALL_RADIUS + 8;
  * top of the chart, and kept inside the chart horizontally.
  */
 function CallHover({ hover, scale }: { hover: { call: Callout; x: number; y: number; others: number }; scale: number }) {
+  const {t:translateUI}=usePlatformLanguage();
   const ref = useRef<HTMLDivElement>(null);
   const [pos, setPos] = useState<{ left: number; top: number } | null>(null);
   const c = hover.call;
@@ -647,18 +652,18 @@ function CallHover({ hover, scale }: { hover: { call: Callout; x: number; y: num
         <MemberAvatar member={c.author} size={22} />
         <span className="min-w-0 truncate font-medium text-ink">@{c.author.handle}</span>
         <span className={`ml-auto shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${bull ? 'bg-go/15 text-go' : 'bg-risk-high/15 text-risk-high'}`}>
-          {bull ? 'Bullish' : 'Bearish'}
+          {bull ? translateUI("Bullish") : translateUI("Bearish")}
         </span>
       </div>
       <p className="mt-2 line-clamp-4 whitespace-pre-line break-words text-[13px] leading-snug text-ink/90">{c.body}</p>
       {(at || since != null) && (
         <p className="mt-2 font-mono text-[11px] text-muted">
-          {at && <>called at {at}</>}
+          {at && <>{translateUI("called at")} {at}</>}
           {at && since != null && ' · '}
           {since != null && <span className={since >= 0 ? 'text-go' : 'text-risk-high'}>{`${since >= 0 ? '+' : ''}${since.toFixed(0)}% since`}</span>}
         </p>
       )}
-      {hover.others > 0 && <p className="mt-1 text-[11px] text-muted">+{hover.others} more call{hover.others > 1 ? 's' : ''} on this candle</p>}
+      {hover.others > 0 && <p className="mt-1 text-[11px] text-muted">+{hover.others}  {translateUI("more call")}{hover.others > 1 ? 's' : ''}  {translateUI("on this candle")}</p>}
     </div>
   );
 }

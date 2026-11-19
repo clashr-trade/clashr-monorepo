@@ -260,7 +260,7 @@ async function render(node: React.ReactElement) {
   });
 }
 
-/** A plain card for a missing member or position, so a shared link still previews as Rushr. */
+/** A plain card for a missing member or position, so a shared link still previews as CLASHR. */
 export function fallbackCard(text: string) {
   return new ImageResponse(
     (

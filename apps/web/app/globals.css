@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@import './clashr.css';
 
 /*
  * Rushr tokens. The terminal is dark (near-black with a green cast). The landing page swaps the

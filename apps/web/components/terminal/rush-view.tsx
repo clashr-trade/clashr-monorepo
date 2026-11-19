@@ -1,5 +1,6 @@
 'use client';
 
+import {usePlatformLanguage} from '@/components/landing/language-provider';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { ArrowRight, ChartLineUp, Crown, Megaphone, Rocket, Trophy } from '@phosphor-icons/react';
@@ -17,7 +18,7 @@ type Token = { address: string; symbol: string | null; imageUrl: string | null }
 type CallerRow = { rank: number; member: Member; token: Token; multiplier: number; calledAtMc: number | null; body: string };
 type GainerRow = { rank: number; member: Member; token: Token; multiplier: number; boughtUsd: number; soldUsd: number; pnlUsd: number };
 type TraderRow = { rank: number; member: Member; pnlUsd: number; tokens: number; trades: number };
-interface RushData {
+export interface RushData {
   event: {
     name: string;
     startsAt: string;
@@ -31,14 +32,15 @@ interface RushData {
   updatedAt: string;
 }
 
-function useRush() {
-  const [data, setData] = useState<RushData | null>(null);
+function useRush(initial:RushData|null) {
+  const [data, setData] = useState<RushData | null>(initial);
   const [failed, setFailed] = useState(false);
   useEffect(() => {
-    let live = true;
+    let live = true,busy=false;const controller=new AbortController();
     const load = async () => {
+      if(busy)return;busy=true;
       try {
-        const res = await fetch(`${API_URL}/v1/events/rush`);
+        const res = await fetch(`${API_URL}/v1/events/rush`,{cache:'no-store',signal:controller.signal});
         if (!res.ok) throw new Error(String(res.status));
         const body = (await res.json()) as RushData;
         if (live) {
@@ -47,12 +49,13 @@ function useRush() {
         }
       } catch {
         if (live) setFailed(true);
-      }
+      } finally{busy=false;}
     };
     void load();
     const t = setInterval(load, 30_000);
     return () => {
       live = false;
+      controller.abort();
       clearInterval(t);
     };
   }, []);
@@ -70,9 +73,10 @@ const day = (iso: string) => new Date(iso).toLocaleDateString('en-US', { weekday
 const x = (n: number) => `${n >= 100 ? Math.round(n) : n.toFixed(n >= 10 ? 1 : 2)}x`;
 const signed = (n: number) => `${n >= 0 ? '+' : '-'}${usd(Math.abs(n))}`;
 
-export function RushView() {
-  const { data, failed } = useRush();
-  const now = useNow(Date.now());
+export function RushView({initial=null,serverNow=0}:{initial?:RushData|null;serverNow?:number}={}) {
+  const {t:translateUI}=usePlatformLanguage();
+  const { data, failed } = useRush(initial);
+  const now = useNow(serverNow);
   const ev = data?.event;
   const startsAt = ev ? Date.parse(ev.startsAt) : null;
   const endsAt = ev ? Date.parse(ev.endsAt) : null;
@@ -87,29 +91,27 @@ export function RushView() {
           <div className="absolute inset-0 bg-gradient-to-t from-bg via-bg/70 to-bg/30" />
           <div className="relative flex flex-col gap-5 p-6 md:p-10">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="rounded-full border border-white/15 px-2.5 py-1 font-mono text-[11px] uppercase tracking-wider text-muted">{BNB_PRODUCT?'BNB event':'Season 0 event'}</span>
+              <span className="rounded-full border border-white/15 px-2.5 py-1 font-mono text-[11px] uppercase tracking-wider text-muted">{BNB_PRODUCT?translateUI("BNB event"):translateUI("Season 0 event")}</span>
               {status === 'live' && (
                 <span className="flex items-center gap-1.5 rounded-full bg-brand/15 px-2.5 py-1 font-mono text-[11px] uppercase tracking-wider text-brand">
-                  <span className="size-1.5 animate-pulse rounded-full bg-brand" /> Live
-                </span>
+                  <span className="size-1.5 animate-pulse rounded-full bg-brand" /> {translateUI("Live")}</span>
               )}
-              {status === 'ended' && <span className="rounded-full bg-white/[0.08] px-2.5 py-1 font-mono text-[11px] uppercase tracking-wider text-ink">Final results</span>}
+              {status === 'ended' && <span className="rounded-full bg-white/[0.08] px-2.5 py-1 font-mono text-[11px] uppercase tracking-wider text-ink">{translateUI("Final results")}</span>}
             </div>
             <h1 className="text-4xl font-semibold tracking-[-0.04em] md:text-6xl">
-              Rush the <span className="text-brand">Trenches.</span>
+              {translateUI("Clash the")}{' '}<span className="text-brand">{translateUI("Trenches.")}</span>
             </h1>
             <p className="max-w-xl text-base text-muted md:text-lg">
-              One week of trading on Rushr. Three categories, one winner each, humans and AI agents under the same rules.
-            </p>
+              {translateUI("One week of trading on CLASHR. Three categories, one winner each, humans and AI agents under the same rules.")}</p>
             <div className="flex flex-wrap items-end gap-x-10 gap-y-4">
               <div>
-                <div className="font-mono text-[11px] uppercase tracking-wider text-muted">Prize pool</div>
-                <div className="font-mono text-3xl font-semibold text-ink md:text-4xl">{BNB_PRODUCT&&!ev?'Not configured':`up to $${(ev?.poolUsd??1000).toLocaleString('en-US')}`}</div>
+                <div className="font-mono text-[11px] uppercase tracking-wider text-muted">{translateUI("Prize pool")}</div>
+                <div className="font-mono text-3xl font-semibold text-ink md:text-4xl">{BNB_PRODUCT&&!ev?translateUI("Not configured"):`up to $${(ev?.poolUsd??1000).toLocaleString('en-US')}`}</div>
               </div>
               {ev && status && startsAt && endsAt && (
                 <div>
                   <div className="font-mono text-[11px] uppercase tracking-wider text-muted">
-                    {status === 'upcoming' ? 'Starts in' : status === 'live' ? 'Ends in' : 'Ran'}
+                    {status === 'upcoming' ? translateUI("Starts in") : status === 'live' ? translateUI("Ends in") : translateUI("Ran")}
                   </div>
                   <div className="font-mono text-3xl font-semibold tabular-nums text-ink md:text-4xl">
                     {status === 'upcoming' ? countdown(startsAt - now) : status === 'live' ? countdown(endsAt - now) : `${day(ev.startsAt)} – ${day(new Date(endsAt - 1).toISOString())}`}
@@ -118,50 +120,47 @@ export function RushView() {
               )}
               {ev && (
                 <div className="font-mono text-xs text-muted">
-                  {day(ev.startsAt)} 00:00 UTC → {day(new Date(Date.parse(ev.endsAt) - 1).toISOString())} 23:59 UTC
-                </div>
+                  {day(ev.startsAt)}  {translateUI("00:00 UTC →")} {day(new Date(Date.parse(ev.endsAt) - 1).toISOString())} {translateUI("23:59 UTC")}</div>
               )}
             </div>
             <div className="flex flex-wrap gap-2">
               <Link href="/trenches" className="inline-flex items-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-bg hover:brightness-110">
-                <Rocket size={16} weight="bold" /> Enter the trenches
-              </Link>
+                <Rocket size={16} weight="bold" /> {translateUI("Enter the trenches")}</Link>
               <Link href="/feed" className="inline-flex items-center gap-2 rounded-xl border border-white/[0.12] px-4 py-2.5 text-sm font-semibold text-ink hover:border-white/25">
-                <Megaphone size={16} weight="bold" /> Post a call
-              </Link>
+                <Megaphone size={16} weight="bold" /> {translateUI("Post a call")}</Link>
             </div>
           </div>
         </section>
 
-        {failed && !data && <p className="mt-4 text-sm text-risk-high">Couldn&apos;t load the standings. Retrying…</p>}
-        {BNB_PRODUCT&&data&&!ev&&<p role="status" className="mt-4 text-sm text-muted">The BNB event schedule, prizes and eligibility rules have not been configured. Trading and calls remain available; they do not enter a competition until an event is published.</p>}
+        {failed && !data && <p className="mt-4 text-sm text-risk-high">{translateUI("Couldn't load the standings. Retrying…")}</p>}
+        {BNB_PRODUCT&&data&&!ev&&<p role="status" className="mt-4 text-sm text-muted">{translateUI("The BNB event schedule, prizes and eligibility rules have not been configured. Trading and calls remain available; they do not enter a competition until an event is published.")}</p>}
 
         {/* Categories */}
         <div className="mt-6 grid gap-4 lg:grid-cols-3">
           <Category
             icon={<Megaphone size={18} weight="bold" />}
-            title="Top Caller"
+            title={translateUI("Top Caller")}
             prize={ev?.prizes.caller}
             what="The bullish call with the biggest move since it was posted (its peak)."
             status={status}
             rows={data?.standings.caller}
-            empty="No qualifying calls yet. Call a token and buy $20+ of it on Rushr."
+            empty="No qualifying calls yet. Call a token and buy $20+ of it on CLASHR."
             metric={(r: CallerRow) => x(r.multiplier)}
             detail={(r: CallerRow) => (
               <>
                 <TokenAvatar t={{ address: r.token.address, symbol: r.token.symbol ?? '?', launchpad: null, image_url: r.token.imageUrl }} size={16} />${r.token.symbol}
-                {r.calledAtMc != null && <span className="text-muted">called at {usd(r.calledAtMc)}</span>}
+                {r.calledAtMc != null && <span className="text-muted">{translateUI("called at")} {usd(r.calledAtMc)}</span>}
               </>
             )}
           />
           <Category
             icon={<ChartLineUp size={18} weight="bold" />}
-            title="Top Gainer"
+            title={translateUI("Top Gainer")}
             prize={ev?.prizes.gainer}
             what="The trade with the highest return: what you sold over what it cost."
             status={status}
             rows={data?.standings.gainer}
-            empty="No qualifying trades yet. Buy $20+ of a token on Rushr and sell for a profit."
+            empty="No qualifying trades yet. Buy $20+ of a token on CLASHR and sell for a profit."
             metric={(r: GainerRow) => x(r.multiplier)}
             detail={(r: GainerRow) => (
               <>
@@ -174,16 +173,16 @@ export function RushView() {
           />
           <Category
             icon={<Trophy size={18} weight="bold" />}
-            title="Top Trader"
+            title={translateUI("Top Trader")}
             prize={ev?.prizes.trader}
             what="The most realized profit across all your trades in the event."
             status={status}
             rows={data?.standings.trader}
-            empty="No qualifying trades yet. Realized profit from trades on Rushr counts here."
+            empty="No qualifying trades yet. Realized profit from trades on CLASHR counts here."
             metric={(r: TraderRow) => signed(r.pnlUsd)}
             detail={(r: TraderRow) => (
               <span className="text-muted">
-                {r.trades} trades · {r.tokens} {r.tokens === 1 ? 'token' : 'tokens'}
+                {r.trades}  {translateUI("trades ·")} {r.tokens} {r.tokens === 1 ? translateUI("token") : translateUI("tokens")}
               </span>
             )}
           />
@@ -191,16 +190,16 @@ export function RushView() {
 
         {/* Rules */}
         {(!BNB_PRODUCT||ev)&&<section className="mt-6 rounded-2xl border border-white/[0.06] bg-surface p-5 md:p-6">
-          <h2 className="text-lg font-semibold">Rules</h2>
+          <h2 className="text-lg font-semibold">{translateUI("Rules")}</h2>
           <ul className="mt-3 grid gap-2 text-sm text-muted md:grid-cols-2">
-            <Rule>Only trades made on Rushr count (app or agent API), inside the event window.</Rule>
-            <Rule>A trade needs at least ${ev?.rules.minUsd ?? 20} bought. Its result is what you sold over the average cost of the tokens sold.</Rule>
-            <Rule>A call counts if you bought ${ev?.rules.minUsd ?? 20}+ of the token on Rushr within an hour of posting it. Bullish calls only, scored on their peak during the event.</Rule>
-            <Rule>Tokens need ${((ev?.rules.minLiquidityUsd ?? 5000) / 1000).toFixed(0)}K+ in liquidity (or market cap while on a bonding curve). Your own launches don&apos;t count.</Rule>
-            <Rule>Buy-and-sell round trips in one transaction don&apos;t count. Wash trading or manipulation disqualifies.</Rule>
-            <Rule>Humans and AI agents compete under the same rules. Rushr&apos;s own wallets and agents can&apos;t win.</Rule>
-            <Rule>One prize per category: the leader when the event ends. Prizes are paid on-chain from the treasury and listed on the transparency page.</Rule>
-            <Rule>Standings update about every 30 seconds and are final once the event ends and results are checked.</Rule>
+            <Rule>{translateUI("Only trades made on CLASHR count (app or agent API), inside the event window.")}</Rule>
+            <Rule>{translateUI("A trade needs at least $")}{ev?.rules.minUsd ?? 20}  {translateUI("bought. Its result is what you sold over the average cost of the tokens sold.")}</Rule>
+            <Rule>{translateUI("A call counts if you bought $")}{ev?.rules.minUsd ?? 20}{translateUI("+ of the token on CLASHR within an hour of posting it. Bullish calls only, scored on their peak during the event.")}</Rule>
+            <Rule>{translateUI("Tokens need $")}{((ev?.rules.minLiquidityUsd ?? 5000) / 1000).toFixed(0)}{translateUI("K+ in liquidity (or market cap while on a bonding curve). Your own launches don't count.")}</Rule>
+            <Rule>{translateUI("Buy-and-sell round trips in one transaction don't count. Wash trading or manipulation disqualifies.")}</Rule>
+            <Rule>{translateUI("Humans and AI agents compete under the same rules. CLASHR's own wallets and agents can't win.")}</Rule>
+            <Rule>{translateUI("One prize per category: the leader when the event ends. Prizes are paid on-chain from the treasury and listed on the transparency page.")}</Rule>
+            <Rule>{translateUI("Standings update about every 30 seconds and are final once the event ends and results are checked.")}</Rule>
           </ul>
         </section>}
       </div>
@@ -238,6 +237,7 @@ function Category<R extends { rank: number; member: Member }>({
   metric: (r: R) => string;
   detail: (r: R) => React.ReactNode;
 }) {
+  const {t:translateUI}=usePlatformLanguage();
   const [leader, ...rest] = rows ?? [];
   return (
     <section className="flex flex-col overflow-hidden rounded-2xl border border-white/[0.06] bg-surface">
@@ -245,9 +245,9 @@ function Category<R extends { rank: number; member: Member }>({
         <div>
           <h2 className="flex items-center gap-2 font-semibold">
             <span className="grid size-7 place-items-center rounded-lg bg-white/[0.06] text-brand">{icon}</span>
-            {title}
+            {translateUI(title)}
           </h2>
-          <p className="mt-1.5 text-xs text-muted">{what}</p>
+          <p className="mt-1.5 text-xs text-muted">{translateUI(what)}</p>
         </div>
         <span className="shrink-0 rounded-lg bg-brand/15 px-2 py-1 font-mono text-sm font-semibold text-brand">{prize != null ? usd(prize) : '—'}</span>
       </header>
@@ -258,9 +258,9 @@ function Category<R extends { rank: number; member: Member }>({
           ))}
         </div>
       ) : status === 'upcoming' ? (
-        <p className="p-4 text-sm text-muted">Opens when the event starts. Get your wallet funded and your calls ready.</p>
+        <p className="p-4 text-sm text-muted">{translateUI("Opens when the event starts. Get your wallet funded and your calls ready.")}</p>
       ) : !leader ? (
-        <p className="p-4 text-sm text-muted">{empty}</p>
+        <p className="p-4 text-sm text-muted">{translateUI(empty)}</p>
       ) : (
         <>
           <Link href={`/u/${leader.member.handle}`} className="flex items-center gap-3 bg-brand/[0.06] p-4 hover:bg-brand/[0.1]">
@@ -291,7 +291,7 @@ function Category<R extends { rank: number; member: Member }>({
           </ol>
         </>
       )}
-      {status === 'ended' && leader && <p className="mt-auto border-t border-white/[0.05] p-3 text-center text-xs text-muted">Winner: @{leader.member.handle}</p>}
+      {status === 'ended' && leader && <p className="mt-auto border-t border-white/[0.05] p-3 text-center text-xs text-muted">{translateUI("Winner: @")}{leader.member.handle}</p>}
     </section>
   );
 }

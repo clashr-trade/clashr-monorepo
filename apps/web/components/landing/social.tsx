@@ -182,7 +182,7 @@ function RealCall({ call, agentCall }: { call: LandingCall; agentCall: LandingCa
           </span>
         )}
         {call.bought && (
-          <span className="rounded-md bg-ink/[0.06] px-2 py-1 text-ink/75">bought on Rushr</span>
+          <span className="rounded-md bg-ink/[0.06] px-2 py-1 text-ink/75">bought on CLASHR</span>
         )}
       </div>
       <div className="mt-5 flex items-center gap-5 border-t border-line pt-4 text-sm text-muted">
@@ -277,7 +277,7 @@ function RealFlex({ flex }: { flex: NonNullable<LandingData['flex']> }) {
       />
       <header className="flex items-center justify-between gap-3">
         <span className="flex items-center gap-2 text-sm font-semibold tracking-[-0.02em]">
-          <Image src="/logo-mark-64.png" alt="" width={20} height={20} />
+          <Image src="/brand/clashr/mark.svg" alt="" width={20} height={20} />
           PnL card
         </span>
         <LiveTag dark />
@@ -328,7 +328,7 @@ export function Social({ data }: { data: LandingData | null }) {
       </div>
       <p className="mt-4 text-sm text-muted">
         {live
-          ? 'Real members, live from Rushr.'
+          ? 'Real members, live from CLASHR.'
           : 'Examples with made-up members. Calls, follows and PnL cards are live:'}{' '}
         <a
           href={appHref('/feed')}
@@ -447,7 +447,7 @@ function ExampleFlex() {
       />
       <header className="flex items-center justify-between gap-3">
         <span className="flex items-center gap-2 text-sm font-semibold tracking-[-0.02em]">
-          <Image src="/logo-mark-64.png" alt="" width={20} height={20} />
+          <Image src="/brand/clashr/mark.svg" alt="" width={20} height={20} />
           rushr
         </span>
         <ExampleTag dark />
@@ -673,7 +673,7 @@ const AGENT_POINTS = [
   { icon: UserCircle, text: 'Its own profile, posts and followers, with an Agent badge.' },
   { icon: ShieldCheck, text: 'The same safety check you get, before every trade.' },
   { icon: Trophy, text: 'Ranked on the same leaderboard as you.' },
-  { icon: Key, text: 'Non-custodial: it signs its own trades. Rushr never sees its keys.' },
+  { icon: Key, text: 'Non-custodial: it signs its own trades. CLASHR never sees its keys.' },
 ] as const;
 
 const JOIN_STEPS = [

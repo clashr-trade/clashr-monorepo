@@ -1,9 +1,10 @@
+import {LegalText as UIText} from './legal-text';
 import Link from 'next/link';
 import { Footer, Nav } from './sections';
 import { WRAP } from './ui';
 
 /** When the current drafts were last changed. Update with every wording change. */
-export const LEGAL_UPDATED = '13 November 2026';
+export const LEGAL_UPDATED = '19 November 2026';
 
 export const LEGAL_PAGES = [
   { href: '/terms', label: 'Terms' },
@@ -14,19 +15,19 @@ export const LEGAL_PAGES = [
 /** Shared frame for the beta legal drafts: nav, a clear "draft" notice, readable prose, footer. */
 export function LegalPage({ title, intro, children }: { title: string; intro: string; children: React.ReactNode }) {
   return (
-    <div className="theme-paper min-h-dvh">
+    <div className="theme-paper clashr-docs min-h-dvh">
       <Nav />
       <main className={`${WRAP} py-14 md:py-20`}>
         <div className="mx-auto max-w-3xl">
           <p className="inline-flex rounded-full border border-dashed border-ink/25 px-3 py-1 font-mono text-xs uppercase tracking-wider text-muted">
             Draft · last updated {LEGAL_UPDATED}
           </p>
-          <h1 className="mt-5 text-4xl font-semibold leading-[1.05] tracking-[-0.045em] md:text-[56px]">{title}</h1>
-          <p className="mt-5 text-lg text-muted">{intro}</p>
+          <h1 className="mt-5 text-4xl font-semibold leading-[1.05] tracking-[-0.045em] md:text-[56px]"><UIText text={title}/></h1>
+          <p className="mt-5 text-lg text-muted"><UIText text={intro}/></p>
           <nav aria-label="Legal pages" className="mt-8 flex flex-wrap gap-2 text-sm">
             {LEGAL_PAGES.map((p) => (
               <Link key={p.href} href={p.href} className="rounded-lg border border-line bg-surface px-3 py-1.5 transition hover:border-ink/20">
-                {p.label}
+                <UIText text={p.label}/>
               </Link>
             ))}
           </nav>
@@ -44,7 +45,7 @@ export function LegalPage({ title, intro, children }: { title: string; intro: st
 export function Part({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section>
-      <h2>{title}</h2>
+      <h2><UIText text={title}/></h2>
       <div className="mt-4">{children}</div>
     </section>
   );

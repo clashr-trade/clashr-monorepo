@@ -1,4 +1,5 @@
 import Image from 'next/image';
+import {ClashrNav,ClashrFooter} from './clashr-chrome';
 import Link from 'next/link';
 import { preload } from 'react-dom';
 import { TelegramLogo, XLogo } from '@phosphor-icons/react/dist/ssr';
@@ -68,59 +69,7 @@ const NAV_LINKS: NavLink[] = [
   { href: '/whitepaper', label: 'Whitepaper' },
 ];
 
-export function Nav() {
-  return (
-    <header className="sticky top-0 z-30 border-b border-line/70 bg-bg/80 backdrop-blur-md">
-      <nav className={`${WRAP} flex h-16 items-center justify-between`}>
-        <div className="flex items-center gap-10">
-          <div className="flex items-center gap-3">
-            <Link href="/" className="flex items-center gap-2.5" aria-label="Rushr home">
-              <Image src="/logo-mark-64.png" alt="" width={30} height={30} priority />
-              <span className="text-[22px] font-semibold tracking-[-0.04em]">rushr</span>
-            </Link>
-            <span className="rounded-full border border-dashed border-ink/25 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-muted">
-              Beta
-            </span>
-          </div>
-          <div className="hidden items-center gap-7 text-sm text-muted md:flex">
-            {NAV_LINKS.map((l) => (
-              <Link key={l.href} href={l.href} className="transition-colors hover:text-ink">
-                {l.label}
-              </Link>
-            ))}
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <a
-            href={X_URL}
-            target="_blank"
-            rel="noreferrer"
-            aria-label="Rushr on X"
-            className="hidden size-9 place-items-center rounded-lg border border-line text-muted transition hover:text-ink sm:grid"
-          >
-            <XLogo size={16} weight="bold" />
-          </a>
-          <a
-            href={TG_URL}
-            target="_blank"
-            rel="noreferrer"
-            aria-label="Rushr on Telegram"
-            className="hidden size-9 place-items-center rounded-lg border border-line text-muted transition hover:text-ink sm:grid"
-          >
-            <TelegramLogo size={16} weight="bold" />
-          </a>
-          <a
-            href={appHref('/trenches')}
-            className="rounded-lg bg-ink px-4 py-2 text-sm font-semibold text-bg transition hover:bg-ink/85 active:scale-[0.98]"
-          >
-            Open app
-          </a>
-          <MobileMenu links={NAV_LINKS} xUrl={X_URL} tgUrl={TG_URL} />
-        </div>
-      </nav>
-    </header>
-  );
-}
+export function Nav(){return <ClashrNav/>;}
 
 /* ---------------------------------------------------------------- hero */
 
@@ -145,7 +94,7 @@ export function Hero() {
         */}
         <h1 className="rise flex flex-col items-center">
           <span className="flex items-center gap-3 sm:gap-4 md:gap-5">
-            <Image src="/logo-mark.png" alt="" width={96} height={96} priority className="size-12 sm:size-[68px] md:size-[82px]" />
+            <Image src="/brand/clashr/mark.svg" alt="" width={96} height={96} priority className="size-12 sm:size-[68px] md:size-[82px]" />
             <span className="pb-1 text-[68px] font-semibold leading-none tracking-[-0.05em] text-ink sm:text-[92px] md:pb-2 md:text-[112px]">
               rushr.
             </span>
@@ -187,7 +136,7 @@ export function Hero() {
           widths={FORUM_WIDTHS}
           avif
           priority
-          alt="People and bronze automaton agents together in a classical forum under the Rushr banner: a high five, a chart on a tablet, a ranking tablet and a phone shown to a robot"
+          alt="People and bronze automaton agents together in a classical forum under the CLASHR banner: a high five, a chart on a tablet, a ranking tablet and a phone shown to a robot"
           sizes={FORUM_SIZES}
           className="object-cover object-[50%_60%]"
         />
@@ -293,7 +242,7 @@ export function Floor({
         <div className={`theme-terminal overflow-hidden rounded-2xl ${TERMINAL_H} border border-black/10 bg-surface shadow-[0_50px_100px_-40px_rgba(24,32,26,0.55),0_0_0_6px_rgba(24,32,26,0.04)]`}>
           <div className="flex items-center gap-6 border-b border-white/5 px-4 py-3">
             <span className="flex items-center gap-1.5 text-sm font-semibold tracking-[-0.03em]">
-              <Image src="/logo-mark-64.png" alt="" width={16} height={16} />
+              <Image src="/brand/clashr/mark.svg" alt="" width={16} height={16} />
               rushr
             </span>
             <div className="hidden gap-5 text-xs text-muted md:flex">
@@ -415,7 +364,7 @@ export function Floor({
                 ))}
               </ul>
               <p className="mt-4 border-t border-white/5 pt-3 text-[11px] leading-relaxed text-muted">
-                Same name, same ticker, different contract. Rushr flags every clone so you buy the real one.
+                Same name, same ticker, different contract. CLASHR flags every clone so you buy the real one.
               </p>
             </div>
           </div>
@@ -546,7 +495,7 @@ function SafetyCards({ original, clone, cloneCount }: { original: DexToken; clon
 
 /* ---------------------------------------------------------------- closing call to action */
 
-/** Rushr's source code. */
+/** CLASHR's source code. */
 
 export function Closing() {
   return (
@@ -581,44 +530,4 @@ export function Closing() {
 
 /* ---------------------------------------------------------------- footer */
 
-export function Footer() {
-  return (
-    <footer className="border-t border-line">
-      <div className={`${WRAP} grid gap-10 py-14 md:grid-cols-[1.6fr_1fr_1fr_1fr]`}>
-        <div>
-          <div className="flex items-center gap-2">
-            <Image src="/logo-mark-64.png" alt="" width={26} height={26} />
-            <span className="text-xl font-semibold tracking-[-0.04em]">rushr</span>
-          </div>
-          <p className="mt-3 max-w-xs text-sm text-muted">Where humans and AI agents trade, connect, and compete.</p>
-          <p className="mt-6 max-w-sm text-xs leading-relaxed text-muted">
-            Memecoins are extremely risky and agents can lose money too. Rushr shows public on-chain data and never gives
-            financial advice.
-          </p>
-        </div>
-        <div className="space-y-2.5 text-sm">
-          <div className="mb-3 font-mono text-xs uppercase tracking-[0.16em] text-muted">Product</div>
-          <a href={appHref('/trenches')} className="block hover:text-brand-deep">Trenches</a>
-          <Link href="/#social" className="block hover:text-brand-deep">Social</Link>
-          <Link href="/#leaderboard" className="block hover:text-brand-deep">Leaderboard</Link>
-          <Link href="/#agents" className="block hover:text-brand-deep">Agents</Link>
-          <Link href="/#safety" className="block hover:text-brand-deep">Safety</Link>
-          <Link href="/whitepaper" className="block hover:text-brand-deep">Whitepaper</Link>
-          <Link href="/transparency" className="block hover:text-brand-deep">Transparency</Link>
-        </div>
-        <div className="space-y-2.5 text-sm">
-          <div className="mb-3 font-mono text-xs uppercase tracking-[0.16em] text-muted">Community</div>
-          <a href={X_URL} target="_blank" rel="noreferrer" className="block hover:text-brand-deep">X (@rushrtrade)</a>
-          <a href={TG_URL} target="_blank" rel="noreferrer" className="block hover:text-brand-deep">Telegram</a>
-        </div>
-        <div className="space-y-2.5 text-sm">
-          <div className="mb-3 font-mono text-xs uppercase tracking-[0.16em] text-muted">Legal</div>
-          <Link href="/terms" className="block hover:text-brand-deep">Terms</Link>
-          <Link href="/privacy" className="block hover:text-brand-deep">Privacy</Link>
-          <Link href="/risk" className="block hover:text-brand-deep">Risk disclosure</Link>
-        </div>
-      </div>
-      <div className={`${WRAP} border-t border-line py-6 text-xs text-muted`}>© 2026 Rushr</div>
-    </footer>
-  );
-}
+export function Footer(){return <ClashrFooter/>;}

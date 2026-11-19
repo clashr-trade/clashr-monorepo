@@ -7,7 +7,7 @@ import { TokenView } from '@/components/terminal/token-view';
 import { getCandles, getTokenDetail, getTrades, isPending } from '@/lib/api';
 import { fromApi, TRADE_LIMIT } from '@/lib/trades';
 import {BNB_PRODUCT} from '@/lib/product';
-import {getBnbProductToken} from '@/lib/fourmeme-market';
+import {getBnbProductToken} from '@/lib/flap-market';
 import {getPublicBscCandles} from '@/lib/bsc-public-market';
 import {BscTokenView} from '@/components/terminal/bsc-token-view';
 import {getBscTokenWorkspace} from '@/lib/bsc-token-workspace';
@@ -27,8 +27,8 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
   if (!t || isPending(t)) return { title: 'Token' };
   // `?pnl=<handle>` on a shared link previews as that member's PnL card for this token.
   const who = (await searchParams).pnl?.toLowerCase();
-  const card = who && /^[a-z0-9_]{3,20}$/.test(who) ? { url: `/card/position/${who}/${address}`, alt: `@${who}'s $${t.symbol} PnL on Rushr` } : undefined;
-  return appShare(`$${t.symbol}`, `/token/${address}`, `$${t.symbol} (${t.name}) on Robinhood Chain: live chart, safety check and calls on Rushr.`, {}, card);
+  const card = who && /^[a-z0-9_]{3,20}$/.test(who) ? { url: `/card/position/${who}/${address}`, alt: `@${who}'s $${t.symbol} PnL on CLASHR` } : undefined;
+  return appShare(`$${t.symbol}`, `/token/${address}`, `$${t.symbol} (${t.name}) on Robinhood Chain: live chart, safety check and calls on CLASHR.`, {}, card);
 }
 
 export default async function TokenPage({ params }: Props) {

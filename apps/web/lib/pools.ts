@@ -5,7 +5,7 @@ import { API_URL } from './api';
 import type { Pair } from './pairs';
 
 /**
- * A token's pools: Rushr's own `/tokens/:a/pools` first, DexScreener for anything it doesn't have.
+ * A token's pools: CLASHR's own `/tokens/:a/pools` first, DexScreener for anything it doesn't have.
  *
  * Works before and after that endpoint ships: a 404 (route not deployed yet), an error or an
  * empty list all mean "use DexScreener only", exactly as before. Once it's live, our rows win and

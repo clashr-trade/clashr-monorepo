@@ -1,5 +1,6 @@
 import { getPublicBscCandles } from '../../../../../../lib/bsc-public-market';
-import {getBscTokenWorkspace,candlesFromBscTrades} from '../../../../../../lib/bsc-token-workspace';
+import {getBscTokenWorkspace} from '../../../../../../lib/bsc-token-workspace';
+import {getFlapCandles} from '@/lib/flap-market';
 import {BNB_PRODUCT} from '@/lib/product';
 export async function GET(request:Request,{params}:{params:Promise<{address:string}>}) {
   const {address}=await params;
@@ -8,9 +9,8 @@ export async function GET(request:Request,{params}:{params:Promise<{address:stri
   try{
     if(BNB_PRODUCT){
       const snapshot=await getBscTokenWorkspace(address);
-      if(snapshot?.detail.source==='fourmeme'&&!snapshot.detail.pools.length){
-        const seconds:Record<string,number>={'1m':60,'5m':300,'15m':900,'1h':3600,'4h':14400};
-        return Response.json({chainId:56,source:'fourmeme',candles:candlesFromBscTrades(snapshot.trades,seconds[interval]!)},{headers:{'cache-control':'public, s-maxage=15'}});
+      if(snapshot?.detail.source==='flap'&&!snapshot.detail.pools.length){
+        return Response.json({chainId:56,source:'flap',candles:await getFlapCandles(address,interval)},{headers:{'cache-control':'public, s-maxage=15'}});
       }
     }
     return Response.json({chainId:56,source:'geckoterminal',candles:await getPublicBscCandles(address,interval)},{headers:{'cache-control':'public, s-maxage=30'}});

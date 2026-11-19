@@ -1,9 +1,17 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { bnbAmountForUsd,bscSigningEnabled, switchBscWalletChain, parseBscInput, parseBscSlippage, readBscActivity, saveBscActivity, type BscActivity, type BscInjectedProvider } from '../lib/bsc-wallet';
+import { assetAmountForUsd,bnbAmountForUsd,bscSigningEnabled, switchBscWalletChain, parseBscInput, parseBscSlippage, readBscActivity, saveBscActivity, type BscActivity, type BscInjectedProvider } from '../lib/bsc-wallet';
 const account='0x'+'1'.repeat(40),token='0x'+'2'.repeat(40),hash='0x'+'3'.repeat(64);
 const entry:BscActivity={chainId:56,account,token,hash,kind:'swap',status:'submitted',createdAt:'2026-11-17T00:00:00Z',expected:{to:token,data:'0x1234',value:'0'}};
 afterEach(()=>vi.unstubAllEnvs());
 describe('BSC wallet amount and rollout boundaries',()=>{
+  it('converts USD using actual quote decimals and preserves quote settlement activity',()=>{
+    expect(assetAmountForUsd('10',2,6)).toBe('5');expect(assetAmountForUsd('0.01',1000,6)).toBe('0.00001');
+    expect(assetAmountForUsd('10',500,18)).toBe(bnbAmountForUsd('10',500));
+    expect(()=>assetAmountForUsd('10',0,6)).toThrow();
+    let raw='';const storage={getItem:()=>raw,setItem:(_key:string,value:string)=>{raw=value;}};
+    saveBscActivity(storage,account,{...entry,fill:{side:'buy',tokenAmount:'1000',tokenDecimals:18,nativeAmount:null,settlement:{asset:'0x'+'0'.repeat(40),amount:null,maximum:'123',decimals:18,symbol:'BNB'},meetsMinimum:true,provenance:'canonical-receipt-events',platformFeeWei:'0'}});
+    expect(readBscActivity(storage,account)[0]?.fill?.nativeAmount).toBeNull();expect(readBscActivity(storage,account)[0]?.fill?.settlement?.maximum).toBe('123');
+  });
   it('converts USD presets into exact BNB budgets while rejecting unavailable rates and excessive dollar precision',()=>{
     expect(bnbAmountForUsd('10',500)).toBe('0.02');
     expect(bnbAmountForUsd('0.01',1000)).toBe('0.00001');

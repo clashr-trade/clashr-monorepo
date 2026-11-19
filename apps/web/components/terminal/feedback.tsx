@@ -1,5 +1,6 @@
 'use client';
 
+import {usePlatformLanguage} from '@/components/landing/language-provider';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { usePathname } from 'next/navigation';
@@ -71,6 +72,7 @@ async function sendFeedback(kind: Kind, message: string, page: string): Promise<
  * while reconnecting); its tooltip has the detail.
  */
 export function FeedbackButton() {
+  const {t:translateUI}=usePlatformLanguage();
   const [open, setOpen] = useState(false);
   const btn = useRef<HTMLButtonElement>(null);
   const { connected, latencyMs } = useLiveStatus();
@@ -90,14 +92,14 @@ export function FeedbackButton() {
         ref={btn}
         type="button"
         onClick={() => setOpen(true)}
-        title={BNB_PRODUCT?'Send feedback to this BNB product':`Send feedback · ${live}`}
+        title={BNB_PRODUCT?translateUI("Send feedback to this BNB product"):`Send feedback · ${live}`}
         aria-haspopup="dialog"
         className="relative flex items-center gap-1.5 rounded-xl border border-white/[0.06] bg-surface px-2.5 py-2 text-xs text-muted transition hover:text-ink sm:px-3"
       >
         <ChatCircleText size={16} />
-        <span className="hidden sm:inline">Feedback</span>
+        <span className="hidden sm:inline">{translateUI("Feedback")}</span>
         <span
-          aria-label={connected ? 'Live' : 'Reconnecting'}
+          aria-label={connected ? translateUI("Live") : translateUI("Reconnecting")}
           className={`${BNB_PRODUCT?'hidden':'absolute'} -right-0.5 -top-0.5 size-2 rounded-full ring-2 ring-bg ${connected ? 'bg-brand' : 'bg-risk-high'}`}
         />
       </button>
@@ -107,6 +109,7 @@ export function FeedbackButton() {
 }
 
 function FeedbackDialog({ onClose }: { onClose: () => void }) {
+  const {t:translateUI}=usePlatformLanguage();
   const path = usePathname();
   const panel = useRef<HTMLDivElement>(null);
   const area = useRef<HTMLTextAreaElement>(null);
@@ -177,7 +180,7 @@ function FeedbackDialog({ onClose }: { onClose: () => void }) {
 
   return createPortal(
     <div className="fixed inset-0 z-[80] flex items-end justify-center sm:items-center sm:p-6" role="dialog" aria-modal="true" aria-labelledby="feedback-title">
-      <button type="button" tabIndex={-1} aria-label="Close" onClick={onClose} className="absolute inset-0 bg-black/70 backdrop-blur-[2px]" />
+      <button type="button" tabIndex={-1} aria-label={translateUI("Close")} onClick={onClose} className="absolute inset-0 bg-black/70 backdrop-blur-[2px]" />
       <div
         ref={panel}
         className="relative w-full rounded-t-2xl border border-white/[0.08] bg-surface p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] shadow-2xl sm:max-w-md sm:rounded-2xl sm:pb-5"
@@ -185,19 +188,17 @@ function FeedbackDialog({ onClose }: { onClose: () => void }) {
         <div className="mx-auto -mt-2 mb-3 h-1 w-10 rounded-full bg-white/15 sm:hidden" aria-hidden />
         <div className="mb-4 flex items-center justify-between">
           <h2 id="feedback-title" className="text-lg font-semibold">
-            Send feedback
-          </h2>
-          <button type="button" onClick={onClose} aria-label="Close" className="rounded-lg p-1.5 text-muted hover:bg-white/[0.05] hover:text-ink">
+            {translateUI("Send feedback")}</h2>
+          <button type="button" onClick={onClose} aria-label={translateUI("Close")} className="rounded-lg p-1.5 text-muted hover:bg-white/[0.05] hover:text-ink">
             <X size={18} />
           </button>
         </div>
         {state.s === 'sent' ? (
           <p role="status" className="py-8 text-center text-sm text-ink">
-            Thanks, we read every message.
-          </p>
+            {translateUI("Thanks, we read every message.")}</p>
         ) : (
           <form onSubmit={submit}>
-            <div className="flex gap-1.5" role="radiogroup" aria-label="Kind">
+            <div className="flex gap-1.5" role="radiogroup" aria-label={translateUI("Kind")}>
               {KINDS.map((k) => (
                 <button
                   key={k.id}
@@ -209,7 +210,7 @@ function FeedbackDialog({ onClose }: { onClose: () => void }) {
                     draft.kind === k.id ? 'border-brand/40 bg-brand/10 text-ink' : 'border-white/[0.08] text-muted hover:text-ink'
                   }`}
                 >
-                  {k.label}
+                  {translateUI(k.label)}
                 </button>
               ))}
             </div>
@@ -217,10 +218,10 @@ function FeedbackDialog({ onClose }: { onClose: () => void }) {
               ref={area}
               value={draft.message}
               onChange={(e) => update({ ...draft, message: e.target.value.slice(0, MAX) })}
-              placeholder="What happened, or what would make Rushr better?"
+              placeholder={translateUI("What happened, or what would make CLASHR better?")}
               rows={5}
               maxLength={MAX}
-              aria-label="Your feedback"
+              aria-label={translateUI("Your feedback")}
               className="mt-3 w-full resize-none rounded-xl border border-white/[0.08] bg-bg/60 p-3 text-sm text-ink placeholder:text-muted/70 focus:border-white/20 focus:outline-none"
             />
             <div className="mt-2 flex items-center gap-3">
@@ -237,7 +238,7 @@ function FeedbackDialog({ onClose }: { onClose: () => void }) {
                 disabled={!canSend}
                 className="ml-auto rounded-xl bg-brand px-4 py-2 text-sm font-semibold text-bg transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40"
               >
-                {state.s === 'sending' ? 'Sending…' : 'Send'}
+                {state.s === 'sending' ? translateUI("Sending…") : translateUI("Send")}
               </button>
             </div>
           </form>

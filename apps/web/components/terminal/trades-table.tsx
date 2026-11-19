@@ -1,5 +1,6 @@
 'use client';
 
+import {usePlatformLanguage} from '@/components/landing/language-provider';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowSquareOut, Funnel, PauseCircle, X } from '@phosphor-icons/react';
 import { age, compact, EXPLORER, price, short, usd } from '@/lib/format';
@@ -34,6 +35,7 @@ export function TradesTable({
   onMaker: (wallet: string | null) => void;
   updateMode?:'live'|'poll';
 }) {
+  const {t:translateUI}=usePlatformLanguage();
   const [side, setSide] = useState<'all' | 'buy' | 'sell'>('all');
   const [tags, setTags] = useState<MakerTag[]>([]);
   const [minUsd, setMinUsd] = useState(0);
@@ -89,7 +91,7 @@ export function TradesTable({
                 side === s ? (s === 'buy' ? 'bg-brand/20 text-brand' : s === 'sell' ? 'bg-risk-high/20 text-risk-high' : 'bg-white/[0.1] text-ink') : 'text-muted'
               }`}
             >
-              {s === 'all' ? 'All' : `${s}s`}
+              {s === 'all' ? translateUI("All") : `${s}s`}
             </button>
           ))}
         </div>
@@ -103,8 +105,8 @@ export function TradesTable({
           onClick={() => setShowFilters((s) => !s)}
           className={`flex items-center gap-1 rounded-lg px-2 py-0.5 ${showFilters || minUsd ? 'bg-white/[0.08] text-ink' : 'text-muted hover:text-ink'}`}
         >
-          <Funnel size={11} weight={minUsd ? 'fill' : 'regular'} /> <span className="sm:hidden">Filter</span>
-          <span className="hidden sm:inline">Min $</span>
+          <Funnel size={11} weight={minUsd ? 'fill' : 'regular'} /> <span className="sm:hidden">{translateUI("Filter")}</span>
+          <span className="hidden sm:inline">{translateUI("Min $")}</span>
           {minUsd ? ` ${usd(minUsd)}` : ''}
         </button>
         {maker && (
@@ -123,24 +125,23 @@ export function TradesTable({
             }}
             className="text-muted hover:text-ink"
           >
-            Clear
-          </button>
+            {translateUI("Clear")}</button>
         )}
         <span className="ml-auto flex items-center gap-1.5 text-muted">
           {frozen ? (
             <span className="flex items-center gap-1 text-risk-medium">
-              <PauseCircle size={12} weight="fill" /> Paused{queued > 0 ? ` · ${queued} new` : ''}
+              <PauseCircle size={12} weight="fill" />  {translateUI("Paused")}{queued > 0 ? ` · ${queued} new` : ''}
             </span>
           ) : (
             <>
-              <span className="size-1.5 rounded-full bg-brand" /> {updateMode==='poll'?'15s updates':'Live'}
+              <span className="size-1.5 rounded-full bg-brand" /> {updateMode==='poll'?translateUI("Indexed updates"):translateUI("Live")}
             </>
           )}
         </span>
       </div>
       {showFilters && (
         <div className="flex flex-wrap items-center gap-2 border-b border-white/[0.04] px-3 py-2 text-[11px]">
-          <span className="text-muted">Min trade</span>
+          <span className="text-muted">{translateUI("Min trade")}</span>
           {[0, 50, 250, 1000, 5000].map((v) => (
             <button
               key={v}
@@ -148,7 +149,7 @@ export function TradesTable({
               onClick={() => setMinUsd(v)}
               className={`rounded-md px-2 py-0.5 font-mono ${minUsd === v ? 'bg-white/[0.1] text-ink' : 'text-muted hover:text-ink'}`}
             >
-              {v ? usd(v) : 'Any'}
+              {v ? usd(v) : translateUI("Any")}
             </button>
           ))}
           <div className="flex flex-wrap gap-1 sm:hidden">
@@ -167,21 +168,21 @@ export function TradesTable({
         onMouseLeave={() => setFrozen(null)}
       >
         {shown.length === 0 ? (
-          <div className="grid h-40 place-items-center text-sm text-muted">{trades.length ? 'No trades match these filters.' : 'No trades yet.'}</div>
+          <div className="grid h-40 place-items-center text-sm text-muted">{trades.length ? translateUI("No trades match these filters.") : translateUI("No trades yet.")}</div>
         ) : (
           <table className="w-full text-xs">
             <thead className="sticky top-0 z-10 bg-surface text-left text-[11px] text-muted">
               <tr>
-                <th className="py-2 pl-3 font-normal">Age</th>
-                <th className="py-2 font-normal">Type</th>
-                <th className="py-2 pr-2 text-right font-normal">USD</th>
-                <th className="hidden py-2 pr-2 text-right font-normal sm:table-cell">Amount</th>
+                <th className="py-2 pl-3 font-normal">{translateUI("Age")}</th>
+                <th className="py-2 font-normal">{translateUI("Type")}</th>
+                <th className="py-2 pr-2 text-right font-normal">{translateUI("USD")}</th>
+                <th className="hidden py-2 pr-2 text-right font-normal sm:table-cell">{translateUI("Amount")}</th>
                 <th className="hidden py-2 pr-2 text-right font-normal md:table-cell">
-                  <button type="button" onClick={() => setMcap((m) => !m)} className="hover:text-ink" title="Switch price / market cap">
-                    {mcap ? 'MC' : 'Price'} ⇄
+                  <button type="button" onClick={() => setMcap((m) => !m)} className="hover:text-ink" title={translateUI("Switch price / market cap")}>
+                    {mcap ? translateUI("MC") : translateUI("Price")} ⇄
                   </button>
                 </th>
-                <th className="py-2 pl-2 font-normal">Maker</th>
+                <th className="py-2 pl-2 font-normal">{translateUI("Maker")}</th>
                 <th className="w-8 py-2 pr-3 font-normal" />
               </tr>
             </thead>
@@ -202,7 +203,7 @@ export function TradesTable({
             </tbody>
           </table>
         )}
-        {shown.length > SHOW && <p className="py-3 text-center text-[11px] text-muted">Showing the latest {SHOW} of {shown.length} trades.</p>}
+        {shown.length > SHOW && <p className="py-3 text-center text-[11px] text-muted">{translateUI("Showing the latest")} {SHOW}  {translateUI("of")} {shown.length}  {translateUI("trades.")}</p>}
       </div>
     </div>
   );
@@ -255,6 +256,7 @@ const Row = memo(function Row({
   active: boolean;
   onMaker: (wallet: string | null) => void;
 }) {
+  const {t:translateUI}=usePlatformLanguage();
   const buy = x.side === 'buy';
   const tone = buy ? 'text-brand' : 'text-risk-high';
   const big = (x.usd ?? 0) >= 1000;
@@ -268,7 +270,7 @@ const Row = memo(function Row({
       <td className="whitespace-nowrap py-1.5 pl-3 text-muted">
         <Age time={x.time} serverNow={serverNow} />
       </td>
-      <td className={tone}>{buy ? 'Buy' : 'Sell'}</td>
+      <td className={tone}>{buy ? translateUI("Buy") : translateUI("Sell")}</td>
       <td className={`pr-2 text-right ${tone} ${big ? 'font-semibold' : ''}`}>{usd(x.usd)}</td>
       <td className="hidden pr-2 text-right text-ink/80 sm:table-cell">{compact(x.tokens)}</td>
       <td className="hidden pr-2 text-right text-ink/70 md:table-cell">{mcap ? usd(x.priceUsd && supply ? x.priceUsd * supply : null) : price(x.priceUsd)}</td>
@@ -277,7 +279,7 @@ const Row = memo(function Row({
           <button
             type="button"
             onClick={() => onMaker(active ? null : x.trader)}
-            title={active ? 'Show all makers' : 'Only this maker'}
+            title={active ? translateUI("Show all makers") : translateUI("Only this maker")}
             className={`hover:text-ink ${active ? 'text-brand' : 'text-ink/75'}`}
           >
             {short(x.trader, 3, 4)}
@@ -286,7 +288,7 @@ const Row = memo(function Row({
         </span>
       </td>
       <td className="pr-3 text-right">
-        <a href={`${EXPLORER}/tx/${x.tx}`} target="_blank" rel="noreferrer" aria-label="Open transaction" className="text-muted hover:text-ink">
+        <a href={`${EXPLORER}/tx/${x.tx}`} target="_blank" rel="noreferrer" aria-label={translateUI("Open transaction")} className="text-muted hover:text-ink">
           <ArrowSquareOut size={12} />
         </a>
       </td>

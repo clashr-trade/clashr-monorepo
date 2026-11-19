@@ -1,5 +1,6 @@
 'use client';
 
+import {usePlatformLanguage} from '@/components/landing/language-provider';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { formatUnits, parseUnits, type Address } from 'viem';
@@ -41,6 +42,7 @@ const whole = (v: bigint, decimals: number) => Number(formatUnits(v, decimals));
 
 
 function Panel({ token, priceUsd, position }: { token: TradeToken; priceUsd: number | null; position: LivePosition }) {
+  const {t:translateUI}=usePlatformLanguage();
   const q = useQuickTrade(token);
   const settings = useSettings();
   const ethUsd = useEthUsd();
@@ -163,7 +165,7 @@ function Panel({ token, priceUsd, position }: { token: TradeToken; priceUsd: num
       <div className="space-y-3 p-3">
         {/* presets, wallet, ETH balance */}
         <div className="flex items-center gap-1.5">
-          <div className="flex rounded-lg bg-white/[0.04] p-0.5" role="tablist" aria-label="Trading preset">
+          <div className="flex rounded-lg bg-white/[0.04] p-0.5" role="tablist" aria-label={translateUI("Trading preset")}>
             {([0, 1, 2] as const).map((i) => (
               <button
                 key={i}
@@ -180,16 +182,15 @@ function Panel({ token, priceUsd, position }: { token: TradeToken; priceUsd: num
           {signedIn && <WalletChip wallet={q.wallet!} />}
           <div className="ml-auto flex items-center gap-1">
             {signedIn && (
-              <span className="whitespace-nowrap font-mono text-[11px] tabular-nums text-muted" title="ETH balance">
-                {bal ? units(bal.eth, 18, 4) : '…'} ETH
-              </span>
+              <span className="whitespace-nowrap font-mono text-[11px] tabular-nums text-muted" title={translateUI("ETH balance")}>
+                {bal ? units(bal.eth, 18, 4) : '…'} {translateUI("ETH")}</span>
             )}
             {signedIn && (
-              <IconButton label="Deposit" onClick={() => setModal('deposit')}>
+              <IconButton label={translateUI("Deposit")} onClick={() => setModal('deposit')}>
                 <Plus size={13} weight="bold" />
               </IconButton>
             )}
-            <IconButton label="Preset settings" onClick={() => setModal('presets')}>
+            <IconButton label={translateUI("Preset settings")} onClick={() => setModal('presets')}>
               <Gear size={14} />
             </IconButton>
           </div>
@@ -214,8 +215,8 @@ function Panel({ token, priceUsd, position }: { token: TradeToken; priceUsd: num
             </button>
           ))}
           {['Auto', 'Limit'].map((x) => (
-            <span key={x} className="flex items-center gap-1 px-2 pb-2 text-xs text-muted/60" title="Coming soon">
-              {x} <span className="rounded bg-white/[0.05] px-1 text-[9px] uppercase tracking-wide">soon</span>
+            <span key={x} className="flex items-center gap-1 px-2 pb-2 text-xs text-muted/60" title={translateUI("Coming soon")}>
+              {x} <span className="rounded bg-white/[0.05] px-1 text-[9px] uppercase tracking-wide">{translateUI("soon")}</span>
             </span>
           ))}
         </div>
@@ -249,7 +250,7 @@ function Panel({ token, priceUsd, position }: { token: TradeToken; priceUsd: num
                   ? `${compact(whole(t.quote.amountOut, token.decimals))} ${token.symbol}`
                   : `${units(t.quote.amountOut, 18, 4)} ETH`
                 : q.status.kind === 'quoting'
-                  ? 'Quoting…'
+                  ? translateUI("Quoting…")
                   : '—'}
             </span>
           </div>
@@ -258,8 +259,8 @@ function Panel({ token, priceUsd, position }: { token: TradeToken; priceUsd: num
           <dl className="space-y-1 text-[11px]">
             <Row label={`Min received (${(t.slippageBps / 100).toFixed(1)}%)`} value={side === 'buy' ? `${compact(whole(t.quote.minAmountOut, token.decimals))} ${token.symbol}` : `${units(t.quote.minAmountOut, 18, 5)} ETH`} />
             <Row label={feeLine(t.quote)} value={`${units(t.quote.fee.feeAmount, 18, 6)} ETH`} />
-            {t.quote.priceImpactBps != null && <Row label="Price impact" value={`${(t.quote.priceImpactBps / 100).toFixed(2)}%`} warn={t.quote.priceImpactBps > 500} />}
-            {t.calls.length > 1 && <Row label="Transactions" value={`${t.calls.length} (first sell approves)`} />}
+            {t.quote.priceImpactBps != null && <Row label={translateUI("Price impact")} value={`${(t.quote.priceImpactBps / 100).toFixed(2)}%`} warn={t.quote.priceImpactBps > 500} />}
+            {t.calls.length > 1 && <Row label={translateUI("Transactions")} value={`${t.calls.length} (first sell approves)`} />}
           </dl>
         )}
 
@@ -278,7 +279,7 @@ function Panel({ token, priceUsd, position }: { token: TradeToken; priceUsd: num
         {SHOW_RISK && (needsAck || (q.ack && token.risk === 'high')) && (
           <label className="flex items-start gap-2 rounded-lg bg-risk-high/10 px-2 py-1.5 text-xs text-risk-high">
             <input type="checkbox" checked={q.ack} onChange={(e) => q.setAck(e.target.checked)} className="mt-0.5" />
-            <span>I understand this token is high risk{token.verdict ? ` (${token.verdict})` : ''} and I may lose what I put in.</span>
+            <span>{translateUI("I understand this token is high risk")}{token.verdict ? ` (${token.verdict})` : ''}  {translateUI("and I may lose what I put in.")}</span>
           </label>
         )}
 
@@ -289,11 +290,11 @@ function Panel({ token, priceUsd, position }: { token: TradeToken; priceUsd: num
           className={`w-full rounded-xl py-3 text-[15px] font-semibold text-bg transition hover:brightness-110 disabled:opacity-40 ${side === 'buy' ? 'bg-go' : 'bg-risk-high'}`}
         >
           {!q.session.authenticated
-            ? 'Sign in to trade'
+            ? translateUI("Sign in to trade")
             : busy || armed
               ? side === 'buy'
-                ? 'Buying…'
-                : 'Selling…'
+                ? translateUI("Buying…")
+                : translateUI("Selling…")
               : side === 'buy'
                 ? `Buy ${token.symbol}`
                 : bal && amountIn === bal.token && amountIn > 0n
@@ -303,28 +304,27 @@ function Panel({ token, priceUsd, position }: { token: TradeToken; priceUsd: num
         <Status status={q.status} />
 
         <div className="flex items-center gap-3 border-t border-white/[0.05] pt-2 font-mono text-[11px] text-muted">
-          <button type="button" onClick={() => setModal('presets')} className="hover:text-ink" title="Slippage for this preset">
-            Slippage{' '}
+          <button type="button" onClick={() => setModal('presets')} className="hover:text-ink" title={translateUI("Slippage for this preset")}>
+            {translateUI("Slippage")}{' '}
             <span className="text-ink">
               {preset.slippagePct === 'auto' ? `Auto${t?.quote ? ` ${(t.slippageBps / 100).toFixed(1)}%` : ''}` : `${preset.slippagePct}%`}
             </span>
           </button>
-          <span className="flex items-center gap-1" title="Estimated network fee (gas is set automatically)">
-            <GasPump size={12} /> Gas
-            {t?.gasCostWei ? (
+          <span className="flex items-center gap-1" title={translateUI("Estimated network fee (gas is set automatically)")}>
+            <GasPump size={12} /> {translateUI("Gas")}{t?.gasCostWei ? (
               <span className="text-ink">{ethUsd ? usd(whole(t.gasCostWei, 18) * ethUsd) : `${units(t.gasCostWei, 18, 6)} ETH`}</span>
             ) : (
-              <span className="text-ink">Auto</span>
+              <span className="text-ink">{translateUI("Auto")}</span>
             )}
           </span>
-          <span className="ml-auto" title="Per-trade cap (settings)">
-            Cap <span className="text-ink">{settings.maxTradeEth} ETH</span>
+          <span className="ml-auto" title={translateUI("Per-trade cap (settings)")}>
+            {translateUI("Cap")}<span className="text-ink">{settings.maxTradeEth}  {translateUI("ETH")}</span>
           </span>
         </div>
       </div>
 
       {modal === 'deposit' && q.wallet && (
-        <Modal title="Deposit" onClose={() => setModal(null)} wide>
+        <Modal title={translateUI("Deposit")} onClose={() => setModal(null)} wide>
           <DepositPanel address={q.wallet} />
         </Modal>
       )}
@@ -368,6 +368,7 @@ function PositionStrip({
   onSellAll: () => void;
   onShare: () => void;
 }) {
+  const {t:translateUI}=usePlatformLanguage();
   const [unit, setUnit] = useState<'usd' | 'eth'>('usd');
   const [balAs, setBalAs] = useState<'usd' | 'token'>('usd');
   const n = positionNumbers(token, bal, position, priceUsd);
@@ -384,12 +385,12 @@ function PositionStrip({
   return (
     <div className="border-b border-white/[0.06] bg-white/[0.015] px-3 pb-2.5 pt-2">
       <div className="grid grid-cols-4 gap-2">
-        <Stat label="Bal" onLabel={() => setBalAs(balAs === 'usd' ? 'token' : 'usd')} labelHint={balAs === 'usd' ? `Show ${token.symbol}` : 'Show $'}>
+        <Stat label={translateUI("Bal")} onLabel={() => setBalAs(balAs === 'usd' ? 'token' : 'usd')} labelHint={balAs === 'usd' ? `Show ${token.symbol}` : 'Show $'}>
           {balAs === 'token' ? compact(n.held) : money(n.heldUsd)}
         </Stat>
-        <Stat label="Bought">{money(n.bought)}</Stat>
-        <Stat label="Sold">{money(n.sold)}</Stat>
-        <Stat label="PnL" className={tone}>
+        <Stat label={translateUI("Bought")}>{money(n.bought)}</Stat>
+        <Stat label={translateUI("Sold")}>{money(n.sold)}</Stat>
+        <Stat label={translateUI("PnL")} className={tone}>
           {money(n.pnl, true)}
           <span className="block text-[10px] font-medium leading-tight">{n.pnlPct != null ? pctSigned(n.pnlPct, 1) : '\u00a0'}</span>
         </Stat>
@@ -398,7 +399,7 @@ function PositionStrip({
         <div className="flex rounded-md bg-white/[0.04] p-0.5 font-mono text-[10px]">
           {(['usd', 'eth'] as const).map((u) => (
             <button key={u} type="button" onClick={() => setUnit(u)} className={`rounded px-1.5 py-px ${unit === u ? 'bg-white/10 text-ink' : 'text-muted hover:text-ink'}`}>
-              {u === 'usd' ? '$' : 'ETH'}
+              {u === 'usd' ? '$' : translateUI("ETH")}
             </button>
           ))}
         </div>
@@ -406,8 +407,8 @@ function PositionStrip({
           type="button"
           onClick={onShare}
           disabled={n.pnl == null}
-          aria-label="Share PnL card"
-          title="Share PnL card"
+          aria-label={translateUI("Share PnL card")}
+          title={translateUI("Share PnL card")}
           className="rounded-md p-1 text-muted hover:bg-white/[0.05] hover:text-ink disabled:opacity-30"
         >
           <ShareNetwork size={13} />
@@ -418,8 +419,7 @@ function PositionStrip({
           disabled={busy || !bal || bal.token <= 0n}
           className="ml-auto rounded-md bg-risk-high/20 px-2 py-0.5 text-[11px] font-semibold text-risk-high transition hover:bg-risk-high/30 disabled:opacity-30"
         >
-          Sell All
-        </button>
+          {translateUI("Sell All")}</button>
       </div>
     </div>
   );
@@ -438,14 +438,15 @@ function Stat({
   onLabel?: () => void;
   labelHint?: string;
 }) {
+  const {t:translateUI}=usePlatformLanguage();
   return (
     <div className="min-w-0">
       {onLabel ? (
         <button type="button" onClick={onLabel} title={labelHint} className="flex items-center gap-0.5 text-[10px] text-muted underline decoration-dotted underline-offset-2 hover:text-ink">
-          {label}
+          {translateUI(label)}
         </button>
       ) : (
-        <div className="text-[10px] text-muted">{label}</div>
+        <div className="text-[10px] text-muted">{translateUI(label)}</div>
       )}
       <div className={`truncate font-mono text-[12px] font-semibold tabular-nums ${className}`}>{children}</div>
     </div>
@@ -455,6 +456,7 @@ function Stat({
 /* ------------------------------------------------------------------ inputs */
 
 function BuyInputs({ preset, amount, setAmount, maxTradeEth }: { preset: TradePreset; amount: string; setAmount: (v: string) => void; maxTradeEth: number }) {
+  const {t:translateUI}=usePlatformLanguage();
   return (
     <div className="space-y-2">
       <div className="grid grid-cols-4 gap-1.5">
@@ -469,7 +471,7 @@ function BuyInputs({ preset, amount, setAmount, maxTradeEth }: { preset: TradePr
           </button>
         ))}
       </div>
-      <AmountInput value={amount} onChange={setAmount} suffix="ETH" label="ETH to spend" hint={Number(amount) > maxTradeEth ? `Above your ${maxTradeEth} ETH cap` : undefined} />
+      <AmountInput value={amount} onChange={setAmount} suffix="ETH" label={translateUI("ETH to spend")} hint={Number(amount) > maxTradeEth ? `Above your ${maxTradeEth} ETH cap` : undefined} />
     </div>
   );
 }
@@ -495,6 +497,7 @@ function SellInputs({
   priceUsd: number | null;
   ethUsd: number | null;
 }) {
+  const {t:translateUI}=usePlatformLanguage();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(preset.sell.map(String));
   useEffect(() => setDraft(preset.sell.map(String)), [preset.sell]);
@@ -548,7 +551,7 @@ function SellInputs({
         <button
           type="button"
           onClick={() => (editing ? save() : setEditing(true))}
-          aria-label={editing ? 'Save sell presets' : 'Edit sell presets'}
+          aria-label={editing ? translateUI("Save sell presets") : translateUI("Edit sell presets")}
           className="rounded-lg border border-white/[0.06] px-2 text-muted hover:text-ink"
         >
           {editing ? <Check size={13} /> : <PencilSimple size={13} />}
@@ -569,7 +572,7 @@ function SellInputs({
               </span>
             );
           })}
-          <span className="w-[30px] self-end text-center">ETH</span>
+          <span className="w-[30px] self-end text-center">{translateUI("ETH")}</span>
         </div>
       )}
       <AmountInput
@@ -584,10 +587,11 @@ function SellInputs({
 }
 
 function AmountInput({ value, onChange, suffix, label, hint }: { value: string; onChange: (v: string) => void; suffix: string; label: string; hint?: string }) {
+  const {t:translateUI}=usePlatformLanguage();
   return (
     <div>
       <label className="flex items-center gap-2 rounded-xl border border-white/[0.08] bg-bg px-3 py-2 focus-within:border-white/25">
-        <span className="text-[11px] text-muted">Amount</span>
+        <span className="text-[11px] text-muted">{translateUI("Amount")}</span>
         <input
           inputMode="decimal"
           value={value}
@@ -604,9 +608,10 @@ function AmountInput({ value, onChange, suffix, label, hint }: { value: string; 
 }
 
 function Row({ label, value, warn = false }: { label: string; value: string; warn?: boolean }) {
+  const {t:translateUI}=usePlatformLanguage();
   return (
     <div className="flex justify-between gap-2">
-      <dt className="text-muted">{label}</dt>
+      <dt className="text-muted">{translateUI(label)}</dt>
       <dd className={`min-w-0 truncate text-right font-mono tabular-nums ${warn ? 'text-risk-medium' : ''}`}>{value}</dd>
     </div>
   );
@@ -623,6 +628,7 @@ function IconButton({ label, onClick, children }: { label: string; onClick: () =
 /* ------------------------------------------------------------------ wallet chip */
 
 function WalletChip({ wallet }: { wallet: Address }) {
+  const {t:translateUI}=usePlatformLanguage();
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -647,7 +653,7 @@ function WalletChip({ wallet }: { wallet: Address }) {
           <div className="flex items-center gap-2 rounded-lg bg-white/[0.04] px-2 py-1.5 text-xs">
             <Check size={12} className="text-go" />
             <span className="min-w-0 flex-1">
-              <span className="block">Rushr wallet</span>
+              <span className="block">{translateUI("CLASHR wallet")}</span>
               <span className="font-mono text-[10px] text-muted">{short(wallet, 4, 4)}</span>
             </span>
           </div>
@@ -661,12 +667,11 @@ function WalletChip({ wallet }: { wallet: Address }) {
             }}
             className="mt-0.5 flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-xs text-muted hover:bg-white/[0.04] hover:text-ink"
           >
-            <Copy size={12} /> {copied ? 'Copied' : 'Copy address'}
+            <Copy size={12} /> {copied ? translateUI("Copied") : translateUI("Copy address")}
           </button>
           <Link href="/me" className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-xs text-muted hover:bg-white/[0.04] hover:text-ink">
-            <Wallet size={12} /> Wallet and portfolio
-          </Link>
-          <p className="px-2 pb-1 pt-1.5 text-[10px] leading-snug text-muted/80">More wallets per account are coming.</p>
+            <Wallet size={12} /> {translateUI("Wallet and portfolio")}</Link>
+          <p className="px-2 pb-1 pt-1.5 text-[10px] leading-snug text-muted/80">{translateUI("More wallets per account are coming.")}</p>
         </div>
       )}
     </div>
@@ -676,6 +681,7 @@ function WalletChip({ wallet }: { wallet: Address }) {
 /* ------------------------------------------------------------------ preset editor */
 
 function PresetEditor({ settings, onClose }: { settings: TradeSettings; onClose: () => void }) {
+  const {t:translateUI}=usePlatformLanguage();
   const [which, setWhich] = useState<0 | 1 | 2>(settings.activePreset);
   const [drafts, setDrafts] = useState(() =>
     settings.presets.map((p) => ({ buy: [...p.buy], sell: p.sell.map(String), slip: p.slippagePct === 'auto' ? '' : String(p.slippagePct), auto: p.slippagePct === 'auto' })),
@@ -695,7 +701,7 @@ function PresetEditor({ settings, onClose }: { settings: TradeSettings; onClose:
   };
   const input = 'w-full rounded-lg border border-white/[0.08] bg-bg px-2 py-1.5 text-center font-mono text-xs outline-none focus:border-white/25';
   return (
-    <Modal title="Trading presets" onClose={onClose}>
+    <Modal title={translateUI("Trading presets")} onClose={onClose}>
       <div className="space-y-4 text-sm">
         <div className="flex rounded-lg bg-white/[0.04] p-0.5">
           {([0, 1, 2] as const).map((i) => (
@@ -705,7 +711,7 @@ function PresetEditor({ settings, onClose }: { settings: TradeSettings; onClose:
           ))}
         </div>
         <fieldset>
-          <legend className="mb-1 text-xs text-muted">Buy amounts (ETH)</legend>
+          <legend className="mb-1 text-xs text-muted">{translateUI("Buy amounts (ETH)")}</legend>
           <div className="grid grid-cols-4 gap-1.5">
             {d.buy.map((v, i) => (
               <input
@@ -720,7 +726,7 @@ function PresetEditor({ settings, onClose }: { settings: TradeSettings; onClose:
           </div>
         </fieldset>
         <fieldset>
-          <legend className="mb-1 text-xs text-muted">Sell percentages</legend>
+          <legend className="mb-1 text-xs text-muted">{translateUI("Sell percentages")}</legend>
           <div className="grid grid-cols-4 gap-1.5">
             {d.sell.map((v, i) => (
               <input
@@ -735,44 +741,41 @@ function PresetEditor({ settings, onClose }: { settings: TradeSettings; onClose:
           </div>
         </fieldset>
         <fieldset>
-          <legend className="mb-1 text-xs text-muted">Slippage</legend>
+          <legend className="mb-1 text-xs text-muted">{translateUI("Slippage")}</legend>
           <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={() => set({ auto: true })}
               className={`rounded-lg border px-3 py-1.5 text-xs ${d.auto ? 'border-go/60 bg-go/10 text-go' : 'border-white/[0.08] text-muted'}`}
             >
-              Auto
-            </button>
+              {translateUI("Auto")}</button>
             <label className="flex flex-1 items-center gap-1 rounded-lg border border-white/[0.08] bg-bg px-2 focus-within:border-white/25">
               <input
                 inputMode="decimal"
                 value={d.slip}
-                placeholder="Custom"
+                placeholder={translateUI("Custom")}
                 onFocus={() => set({ auto: false })}
                 onChange={(e) => set({ slip: e.target.value.replace(',', '.').replace(/[^\d.]/g, ''), auto: false })}
-                aria-label="Custom slippage percent"
+                aria-label={translateUI("Custom slippage percent")}
                 className="min-w-0 flex-1 bg-transparent py-1.5 font-mono text-xs outline-none"
               />
               <span className="text-xs text-muted">%</span>
             </label>
           </div>
-          <p className="mt-1 text-[11px] text-muted">Auto picks 5–15% from the token&apos;s age, volatility and price impact, plus its measured tax.</p>
+          <p className="mt-1 text-[11px] text-muted">{translateUI("Auto picks 5–15% from the token's age, volatility and price impact, plus its measured tax.")}</p>
         </fieldset>
         <p className="text-[11px] leading-relaxed text-muted">
           <GasPump size={12} className="mr-1 inline align-[-2px]" />
-          Gas is set automatically. The per-trade cap ({settings.maxTradeEth} ETH) is in{' '}
+          {translateUI("Gas is set automatically. The per-trade cap (")}{settings.maxTradeEth}  {translateUI("ETH) is in")}{' '}
           <Link href="/settings" className="underline hover:text-ink" onClick={onClose}>
-            settings
-          </Link>
+            {translateUI("settings")}</Link>
           .
         </p>
         <div className="grid grid-cols-2 gap-2">
           <button type="button" onClick={onClose} className="rounded-xl border border-white/[0.08] py-2.5 text-sm text-muted hover:text-ink">
-            Cancel
-          </button>
+            {translateUI("Cancel")}</button>
           <button type="button" onClick={save} className="rounded-xl bg-ink py-2.5 text-sm font-semibold text-bg hover:bg-white">
-            Save P{which + 1}
+            {translateUI("Save P")}{which + 1}
           </button>
         </div>
       </div>
@@ -783,35 +786,36 @@ function PresetEditor({ settings, onClose }: { settings: TradeSettings; onClose:
 /* ------------------------------------------------------------------ share card */
 
 function ShareCard({ token, position, bal, priceUsd, onClose }: { token: TradeToken; position: LivePosition; bal: Bal | null; priceUsd: number | null; onClose: () => void }) {
+  const {t:translateUI}=usePlatformLanguage();
   const n = positionNumbers(token, bal, position, priceUsd);
   const [copied, setCopied] = useState(false);
   const up = (n.pnl ?? 0) >= 0;
   const url = typeof window !== 'undefined' ? `${window.location.origin}/token/${token.address}` : `https://rushr.trade/token/${token.address}`;
-  const text = `${up ? 'Up' : 'Down'} ${n.pnlPct != null ? pctSigned(n.pnlPct, 1) : ''} on $${token.symbol} (${n.pnl != null ? `${up ? '+' : '-'}${usd(Math.abs(n.pnl))}` : '—'}) on Rushr`;
+  const text = `${up ? 'Up' : 'Down'} ${n.pnlPct != null ? pctSigned(n.pnlPct, 1) : ''} on $${token.symbol} (${n.pnl != null ? `${up ? '+' : '-'}${usd(Math.abs(n.pnl))}` : '—'}) on CLASHR`;
   return (
-    <Modal title="Share PnL" onClose={onClose}>
+    <Modal title={translateUI("Share PnL")} onClose={onClose}>
       <div
         className="relative overflow-hidden rounded-2xl border border-white/[0.08] p-5"
         style={{ background: up ? 'radial-gradient(120% 90% at 100% 0%, rgba(54,212,42,.22), transparent 60%), #121315' : 'radial-gradient(120% 90% at 100% 0%, rgba(255,107,91,.2), transparent 60%), #0d0b0b' }}
       >
         <div className="flex items-center justify-between text-xs text-muted">
-          <span className="font-semibold text-ink">rushr</span>
-          <span className="font-mono">Robinhood Chain</span>
+          <span className="font-semibold text-ink">{translateUI("rushr")}</span>
+          <span className="font-mono">{translateUI("Robinhood Chain")}</span>
         </div>
         <div className="mt-5 font-mono text-sm text-muted">${token.symbol}</div>
         <div className={`mt-1 font-mono text-4xl font-bold tabular-nums ${up ? 'text-go' : 'text-risk-high'}`}>{n.pnlPct != null ? pctSigned(n.pnlPct, 1) : '—'}</div>
         <div className={`font-mono text-lg tabular-nums ${up ? 'text-go' : 'text-risk-high'}`}>{n.pnl != null ? `${up ? '+' : '-'}${usd(Math.abs(n.pnl))}` : '—'}</div>
         <dl className="mt-5 grid grid-cols-3 gap-2 font-mono text-xs">
           <div>
-            <dt className="text-muted">Bought</dt>
+            <dt className="text-muted">{translateUI("Bought")}</dt>
             <dd>{usd(n.bought)}</dd>
           </div>
           <div>
-            <dt className="text-muted">Sold</dt>
+            <dt className="text-muted">{translateUI("Sold")}</dt>
             <dd>{usd(n.sold)}</dd>
           </div>
           <div>
-            <dt className="text-muted">Holding</dt>
+            <dt className="text-muted">{translateUI("Holding")}</dt>
             <dd>{usd(n.heldUsd)}</dd>
           </div>
         </dl>
@@ -827,7 +831,7 @@ function ShareCard({ token, position, bal, priceUsd, onClose }: { token: TradeTo
           }
           className="flex items-center justify-center gap-1.5 rounded-xl border border-white/[0.08] py-2.5 text-sm text-muted hover:text-ink"
         >
-          <Copy size={14} /> {copied ? 'Copied' : 'Copy'}
+          <Copy size={14} /> {copied ? translateUI("Copied") : translateUI("Copy")}
         </button>
         <a
           href={`https://x.com/intent/post?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`}
@@ -835,8 +839,7 @@ function ShareCard({ token, position, bal, priceUsd, onClose }: { token: TradeTo
           rel="noreferrer"
           className="flex items-center justify-center gap-1.5 rounded-xl bg-ink py-2.5 text-sm font-semibold text-bg hover:bg-white"
         >
-          <XLogo size={14} /> Post
-        </a>
+          <XLogo size={14} /> {translateUI("Post")}</a>
       </div>
     </Modal>
   );

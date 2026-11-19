@@ -1,3 +1,4 @@
+import {translateLanding} from '../lib/landing-languages';
 import { describe, expect, it } from 'vitest';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
@@ -6,17 +7,17 @@ import { BscFeatureState } from '../components/terminal/bsc-feature-state';
 
 describe('chain-scoped terminal navigation', () => {
   it('exposes the same five sections with BNB-only destinations from every BNB route', () => {
-    for (const path of ['/bsc', '/bsc/feed', '/bsc/agents', '/bsc/leaderboard', '/bsc/rush', '/bsc/token/0x123', '/bsc/indexed']) {
+    for (const path of ['/bsc', '/bsc/feed', '/bsc/agents', '/bsc/leaderboard', '/bsc/clash', '/bsc/token/0x123', '/bsc/indexed']) {
       const navigation = terminalNavigation(path);
-      expect(navigation.map(item => item.label)).toEqual(['Trenches', 'Feed', 'Agents', 'Leaderboard', 'Rush']);
-      expect(navigation.map(item => item.href)).toEqual(['/bsc', '/bsc/feed', '/bsc/agents', '/bsc/leaderboard', '/bsc/rush']);
+      expect(navigation.map(item => item.label)).toEqual(['Trenches', 'Feed', 'Agents', 'Leaderboard', 'Clash']);
+      expect(navigation.map(item => item.href)).toEqual(['/bsc', '/bsc/feed', '/bsc/agents', '/bsc/leaderboard', '/bsc/clash']);
       expect(navigation.filter(item => item.active)).toHaveLength(path === '/bsc/indexed' ? 0 : 1);
     }
   });
   it('preserves the selected section in both network-switch directions', () => {
     for (const section of ['feed', 'agents', 'leaderboard', 'rush']) {
-      expect(terminalNetworkDestination(`/${section}`, 56)).toBe(`/bsc/${section}`);
-      expect(terminalNetworkDestination(`/bsc/${section}`, 4663)).toBe(`/${section}`);
+      expect(terminalNetworkDestination(`/${section}`, 56)).toBe(`/bsc/${section==='rush'?'clash':section}`);
+      expect(terminalNetworkDestination(`/bsc/${section}`, 4663)).toBe(`/${section==='rush'?'clash':section}`);
     }
     expect(terminalNetworkDestination('/trenches', 56)).toBe('/bsc');
     expect(terminalNetworkDestination('/bsc', 4663)).toBe('/trenches');
@@ -33,13 +34,25 @@ describe('chain-scoped terminal navigation', () => {
     expect(terminalNavigation('/feed')[1]).toMatchObject({ href: '/feed', active: true });
     expect(terminalNavigation('/leaderboard')[3]).toMatchObject({ href: '/leaderboard', active: true });
   });
+  it('keeps old Rush and Contest links compatible with the canonical Clash section',()=>{
+    for(const path of ['/rush','/contest','/bsc/rush','/bsc/clash']){
+      expect(terminalSection(path)).toBe('rush');
+      expect(terminalNetworkDestination(path,56)).toBe('/bsc/clash');
+      expect(terminalNetworkDestination(path,4663)).toBe('/clash');
+      expect(terminalNavigation(path)[4]?.active).toBe(true);
+    }
+    expect(terminalSection('/contestant')).toBeNull();
+    expect(terminalSection('/clash')).toBe('rush');
+    expect(terminalSection('/contest')).toBe('rush');
+    expect(terminalSection('/clashing')).toBeNull();
+  });
 });
 
 describe('unavailable BNB product services', () => {
   it.each(['feed', 'leaderboard', 'rush'] as const)('%s shows an explicit chain-specific state with only BNB navigation', feature => {
     const html = renderToStaticMarkup(createElement(BscFeatureState, { feature }));
-    expect(html).toContain('Not available on BNB');
-    expect(html).toContain('BNB Smart Chain');
+    expect(html).toContain(translateLanding('Not available on BNB','zh-CN'));
+    expect(html).toContain(translateLanding('BNB Smart Chain','zh-CN'));
     expect(html).toContain('Robinhood');
     const hrefs = [...html.matchAll(/href="([^"]+)"/g)].map(match => match[1]);
     expect(hrefs).toEqual(['/bsc', '/bsc/agents']);

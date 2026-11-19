@@ -15,6 +15,9 @@ export interface Tx {
   tx: string;
   /** Unix seconds. */
   time: number;
+  /** Canonical ordering for indexed trades sharing a timestamp. */
+  block?: string;
+  logIndex?: number;
   trader: string;
   side: 'buy' | 'sell';
   priceUsd: number | null;

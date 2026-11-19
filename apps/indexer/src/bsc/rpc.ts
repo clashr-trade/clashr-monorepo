@@ -42,6 +42,13 @@ export class BscRpc implements MarketRpc {
   }
   async logs(from: bigint, to: bigint, addresses: string[], topics: Hex[]): Promise<MarketLog[]> {
     if (!addresses.length) return [];
+    // Alchemy free-tier BSC logs permit at most ten blocks per request.
+    if(to-from>=10n){
+      const result:MarketLog[]=[];
+      for(let start=from;start<=to;start+=10n)result.push(...await this.logs(start,start+9n<to?start+9n:to,addresses,topics));
+      if(result.length>10000)throw new Error('BSC log batch exceeds budget');
+      return result;
+    }
     const logs = await this.request<MarketLog[]>('eth_getLogs', [{ fromBlock: `0x${from.toString(16)}`, toBlock: `0x${to.toString(16)}`, address: addresses, topics: [topics] }]);
     if (!Array.isArray(logs) || logs.length > 10_000) throw new Error('BSC log batch exceeds budget');
     for (const log of logs) {

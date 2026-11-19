@@ -1,3 +1,4 @@
+import {FLAP_PORTAL,FLAP_TOPICS,projectFlap} from './flap';
 import type { Sql } from 'postgres';
 import { decodeFunctionResult, encodeFunctionData, parseAbi, type Hex } from 'viem';
 import { BSC_PANCAKE, PANCAKE_TOPICS, PANCAKE_V2, PANCAKE_V3 } from '@rushr/core/chain/pancake';
@@ -34,14 +35,15 @@ export async function ingestBscBatch(sql: Sql, rpc: MarketRpc, config: BscConfig
   const job = parseBscJob(input);
   if (job.configHash !== config.hash) return { phase: 'stale-job' as const };
   return sql.begin(async (tx) => {
-    const [lock] = await tx`select pg_try_advisory_xact_lock(56,130013) as acquired`;
+    const cursorTable=tx(config.live?'chain_v2.flap_live_cursors':'chain_v2.market_cursors');
+    const [lock] = await tx`select pg_try_advisory_xact_lock(56,${config.live?130014:130013}) as acquired`;
     if (!lock?.acquired) return { phase: 'busy' as const };
-    await tx`insert into chain_v2.market_cursors(chain_id,config_hash,start_block) values(56,${config.hash},${config.startBlock.toString()}) on conflict do nothing`;
+    await tx`insert into ${cursorTable}(chain_id,config_hash,start_block) values(56,${config.hash},${config.startBlock.toString()}) on conflict do nothing`;
     const [cursor] = await tx<{ config_hash: string; block: string | null; block_hash: Hex | null; halt_reason: string | null }[]>`
-      select * from chain_v2.market_cursors where chain_id=56 for update`;
+      select * from ${cursorTable} where chain_id=56 for update`;
     if (cursor!.config_hash !== config.hash) throw new Error('BSC configuration changed; reviewed reset/replay required');
     if (cursor!.halt_reason) return { phase: 'halted' as const, reason: cursor!.halt_reason };
-    const jobId = `${job.minute}:${job.step}`;
+    const jobId = job.executionId ?? `${job.minute}:${job.step}`;
     const [completed] = await tx`select continue_indexing from chain_v2.market_jobs where chain_id=56 and config_hash=${config.hash} and job_id=${jobId}`;
     if (completed) return { phase: 'duplicate' as const, continueIndexing: completed.continue_indexing === true };
     if (await rpc.chainId() !== 56) throw new Error('BSC provider chain mismatch');
@@ -52,7 +54,7 @@ export async function ingestBscBatch(sql: Sql, rpc: MarketRpc, config: BscConfig
     const anchor = await rpc.header(previous);
     if (cursor!.block_hash && anchor.hash !== cursor!.block_hash) {
       const reason = 'Stored finalized block hash changed; operator reconciliation required';
-      await tx`update chain_v2.market_cursors set halt_reason=${reason},checked_at=now() where chain_id=56`;
+      await tx`update ${cursorTable} set halt_reason=${reason},checked_at=now() where chain_id=56`;
       return { phase: 'halted' as const, reason };
     }
     const end = previous + BigInt(config.batchBlocks) < finalized.number ? previous + BigInt(config.batchBlocks) : finalized.number;
@@ -77,6 +79,16 @@ export async function ingestBscBatch(sql: Sql, rpc: MarketRpc, config: BscConfig
       }
       return [...unique.values()].sort((a, b) => BigInt(a.blockNumber) < BigInt(b.blockNumber) ? -1 : BigInt(a.blockNumber) > BigInt(b.blockNumber) ? 1 : Number(BigInt(a.logIndex) - BigInt(b.logIndex)));
     };
+    if(config.source==='flap'){
+      const logs=heights.length?checkLogs(await rpc.logs(previous+1n,end,[FLAP_PORTAL],FLAP_TOPICS)):[];
+      const result=await projectFlap(tx as unknown as import('postgres').TransactionSql,rpc,logs,byHeight,end);
+      const endAgain=await rpc.header(end), anchorAgain=await rpc.header(previous);
+      if(endAgain.hash!==parent.hash || anchorAgain.hash!==anchor.hash || (end===finalized.number && endAgain.hash!==finalized.hash))throw new Error('Flap ancestry changed during fetch');
+      await tx`update ${cursorTable} set block=${heights.length?end.toString():cursor!.block},block_hash=${heights.length?parent.hash:cursor!.block_hash},observed_finalized=${finalized.number.toString()},checked_at=now() where chain_id=56`;
+      const continueIndexing=end<finalized.number;
+      await tx`insert into chain_v2.market_jobs(chain_id,version,config_hash,job_id,continue_indexing) values(56,2,${config.hash},${jobId},${continueIndexing})`;
+      return {phase:'indexed' as const,through:end.toString(),finalized:finalized.number.toString(),blocks:headers.length,...result,continueIndexing};
+    }
     const known = await tx<{ address: Hex; token0: Hex; token1: Hex; dex: 'v2' | 'v3'; factory: Hex; fee: number | null; tick_spacing: number | null; created_block: string }[]>`
       select * from chain_v2.pancake_pools where chain_id=56 order by address limit 501`;
     if (known.length > 500) throw new Error('BSC pool budget exceeded; shard before expanding scope');
@@ -151,7 +163,7 @@ export async function ingestBscBatch(sql: Sql, rpc: MarketRpc, config: BscConfig
       native_execution_price:decimals.has(swap.token) ? nativePrice(swap.tokenAmount,swap.quoteAmount,decimals.get(swap.token)!) : null }] : []);
     if (swapRows.length) await tx`insert into chain_v2.market_swaps
       select * from jsonb_populate_recordset(null::chain_v2.market_swaps,${JSON.stringify(swapRows)}::text::jsonb)`;
-    await tx`update chain_v2.market_cursors set block=${heights.length ? end.toString() : cursor!.block},block_hash=${heights.length ? parent.hash : cursor!.block_hash},observed_finalized=${finalized.number.toString()},checked_at=now() where chain_id=56`;
+    await tx`update ${cursorTable} set block=${heights.length ? end.toString() : cursor!.block},block_hash=${heights.length ? parent.hash : cursor!.block_hash},observed_finalized=${finalized.number.toString()},checked_at=now() where chain_id=56`;
     const continueIndexing = end < finalized.number;
     await tx`insert into chain_v2.market_jobs(chain_id,version,config_hash,job_id,continue_indexing) values(56,2,${config.hash},${jobId},${continueIndexing})`;
     return { phase: 'indexed' as const, through: end.toString(), finalized: finalized.number.toString(), blocks: headers.length,

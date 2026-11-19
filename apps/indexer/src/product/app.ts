@@ -6,6 +6,7 @@ import { dbUrl } from '../env';
 import {syncProductMarket} from './market';
 import {recoverProductTrades} from './trade';
 import {productWallets} from './wallets';
+import {flapMarket,flapTrades,flapHolders} from './flap';
 
 export const productApp = new Hono<{Bindings:AgentsEnv}>();
 productApp.use('*',async(c,next)=>{
@@ -19,11 +20,35 @@ productApp.use('*',async(c,next)=>{
   await next();c.header('x-rushr-chain-id','56');
 });
 productApp.get('/health',c=>c.json({ok:true,chainId:56,product:'bnb'}));
+productApp.get('/flap/holders',async c=>{
+ const address=c.req.query('address')??'';
+ if(!/^0x[0-9a-f]{40}$/.test(address))return c.json({error:'invalid_address'},400);
+ const sql=postgres(c.env.BSC_INDEX_DATABASE_URL??dbUrl(c.env),{max:1,prepare:false,fetch_types:false});
+ try{return c.json({chainId:56,...await flapHolders(sql,address)});}
+ catch{return c.json({error:'flap_holders_unavailable'},503);}
+ finally{await sql.end({timeout:2});}
+});
+productApp.get('/flap/trades',async c=>{
+ const address=c.req.query('address')??'';
+ if(!/^0x[0-9a-f]{40}$/.test(address))return c.json({error:'invalid_address'},400);
+ const sql=postgres(c.env.BSC_INDEX_DATABASE_URL??dbUrl(c.env),{max:1,prepare:false,fetch_types:false});
+ try{return c.json({chainId:56,trades:await flapTrades(sql,address,c.env.BSC_RPC_URL)});}
+ catch{return c.json({error:'flap_index_not_ready'},503);}
+ finally{await sql.end({timeout:2});}
+});
+productApp.get('/flap/market',async c=>{
+ const address=c.req.query('address');
+ if(address&&!/^0x[0-9a-f]{40}$/.test(address))return c.json({error:'invalid_address'},400);
+ const sql=postgres(c.env.BSC_INDEX_DATABASE_URL??dbUrl(c.env),{max:1,prepare:false,fetch_types:false});
+ try{return c.json(await flapMarket(sql,address,c.env.BSC_RPC_URL));}
+ catch{return c.json({error:'flap_index_not_ready'},503);}
+ finally{await sql.end({timeout:2});}
+});
 productApp.post('/admin/sync-market',async c=>{
   const host=new URL(c.req.url).hostname;
   if(c.env.ADMIN_TOKEN?c.req.header('authorization')!==`Bearer ${c.env.ADMIN_TOKEN}`:!['127.0.0.1','localhost'].includes(host))return c.json({error:'unauthorized'},401);
   const sql=postgres(dbUrl(c.env),{max:1,prepare:false,fetch_types:false});
-  try{return c.json(await syncProductMarket(sql,c.env.PRODUCT_ORIGIN!));}
+  try{return c.json(await syncProductMarket(sql,c.env.PRODUCT_ORIGIN!,c.env.BSC_RPC_URL));}
   catch{return c.json({error:'market_sync_unavailable'},503);}
   finally{await sql.end({timeout:2});}
 });

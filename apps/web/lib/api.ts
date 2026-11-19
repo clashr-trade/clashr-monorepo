@@ -1,4 +1,4 @@
-/** Server-side reads from the Rushr indexer API. Every call degrades to null so pages still render. */
+/** Server-side reads from the CLASHR indexer API. Every call degrades to null so pages still render. */
 
 import { BNB_PRODUCT } from './product';
 export const API_URL = BNB_PRODUCT
@@ -12,6 +12,7 @@ export interface TokenCard {
   chain_id?: 56 | 4663;
   market_column?: Column;
   holders_known?: boolean;
+  safety_status?:'ready'|'partial'|'retrying'|'history-unavailable'|'indexing';
   address: string;
   symbol: string;
   name: string;
@@ -66,7 +67,7 @@ export interface TokenCard {
   fees_paid_usd?: number | null;
   trades_24h?: number | null;
   twitter_handle?: string | null;
-  /** Rushr quote token address (0x0 = native ETH). */
+  /** CLASHR quote token address (0x0 = native ETH). */
   quote?: string | null;
   /** Block time (unix seconds) of the trade that triggered a live update. */
   block_time?: number | null;

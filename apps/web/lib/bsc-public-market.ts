@@ -1,12 +1,15 @@
-import type { Candle, Column, TokenCard } from './api';
+import type { Candle, Column, TokenCard, TokenDetail } from './api';
 
 export interface PublicBscToken extends TokenCard {
-  chain_id:56; market_column:Column; holders_known:boolean; pool_address:string; dex:'v2'|'v3'|'fourmeme';
+  chain_id:56; market_column:Column; holders_known:boolean; pool_address:string; dex:'v2'|'v3'|'fourmeme'|'flap';
   decimals:number|null; price_native:number|null;
+  quote_usd?:number|null;
+  signals?:TokenDetail['signals'];
+  safety_at?:string|null;safety_block?:string|null;
 }
 export interface PublicBscMarket {
-  chainId:56; source:'geckoterminal'|'fourmeme'; provenance:'third-party-indicative'; fetchedAt:string;
-  tokens:PublicBscToken[]; partial:boolean;
+  chainId:56; source:'geckoterminal'|'fourmeme'|'flap'; provenance:'third-party-indicative'|'finalized-onchain'; fetchedAt:string;
+  tokens:PublicBscToken[]; partial:boolean; stale?:boolean; lagBlocks?:number; indexedBlock?:string;
 }
 type Resource = {id:string;type:string;attributes?:Record<string,unknown>};
 interface Pool extends Resource {relationships?:Record<string,{data?:{id:string}}>}
@@ -73,7 +76,7 @@ async function loadPublicBscMarket(fetcher:typeof fetch):Promise<PublicBscMarket
   return {chainId:56,source:'geckoterminal',provenance:'third-party-indicative',fetchedAt:new Date().toISOString(),tokens,partial:results.some(r=>r.status==='rejected')};
 }
 
-export interface PublicBscDetail { chainId:56;source:'geckoterminal'|'fourmeme';token:PublicBscToken;pools:PublicBscToken[];poolsPartial?:boolean }
+export interface PublicBscDetail { chainId:56;source:'geckoterminal'|'fourmeme'|'flap';token:PublicBscToken;pools:PublicBscToken[];poolsPartial?:boolean }
 const detailCache=new Map<string,{expires:number;value:PublicBscDetail|null}>();
 const detailInflight=new Map<string,Promise<PublicBscDetail|null>>();
 export function getPublicBscToken(token:string,fetcher:typeof fetch=fetch):Promise<PublicBscDetail|null> {

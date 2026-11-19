@@ -22,4 +22,13 @@ describe('BNB API/session isolation',()=>{
     expect((await proxyProduct(request,['v1','me'],base,fetcher)).status).toBe(200);
     expect((await proxyProduct(request,['v1','me'],base,async()=>Response.json({chainId:4663}))).status).toBe(503);
   });
+  it('uses the current Privy identity rather than an old wallet cookie',async()=>{
+    const fetcher=vi.fn(async(_url,init)=>{
+      expect(new Headers(init?.headers).get('authorization')).toBe('Bearer current-privy-token');
+      return Response.json({member:{id:'email-member'}},{headers:{'x-rushr-chain-id':'56'}});
+    });
+    const request=new Request(`${origin}/api/product/v1/me`,{headers:{cookie:`rushr_bnb_session=${session}`,authorization:'Bearer current-privy-token'}});
+    expect((await proxyProduct(request,['v1','me'],base,fetcher)).status).toBe(200);
+    expect(fetcher).toHaveBeenCalledOnce();
+  });
 });

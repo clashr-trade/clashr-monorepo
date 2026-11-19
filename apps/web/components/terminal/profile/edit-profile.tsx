@@ -1,5 +1,6 @@
 'use client';
 
+import {usePlatformLanguage} from '@/components/landing/language-provider';
 import { useRef, useState } from 'react';
 import { UploadSimple } from '@phosphor-icons/react';
 import { patchMe, uploadImage, type ProfileMember } from '@/lib/profile';
@@ -14,6 +15,7 @@ const https = (v: string) => !v || /^https:\/\/\S+$/i.test(v.trim());
  * when uploads are enabled; otherwise (feature_disabled) an https image URL works as the fallback.
  */
 export function EditProfile({ member, onClose, onSaved }: { member: ProfileMember; onClose: () => void; onSaved: () => void }) {
+  const {t:translateUI}=usePlatformLanguage();
   const [displayName, setDisplayName] = useState(member.displayName ?? '');
   const [bio, setBio] = useState(member.bio ?? '');
   const [avatarUrl, setAvatarUrl] = useState(member.avatarUrl ?? '');
@@ -38,7 +40,7 @@ export function EditProfile({ member, onClose, onSaved }: { member: ProfileMembe
   };
 
   return (
-    <Modal title="Edit profile" onClose={onClose} wide>
+    <Modal title={translateUI("Edit profile")} onClose={onClose} wide>
       <form
         className="space-y-4"
         onSubmit={(e) => {
@@ -46,12 +48,12 @@ export function EditProfile({ member, onClose, onSaved }: { member: ProfileMembe
           if (!busy) void save();
         }}
       >
-        <ImageField label="Banner" hint="Wide image, up to 3 MB" kind="banner" value={bannerUrl} onChange={setBannerUrl} onNote={setNote} />
-        <ImageField label="Avatar" hint="Square image, up to 1 MB" kind="avatar" value={avatarUrl} onChange={setAvatarUrl} onNote={setNote} />
+        <ImageField label={translateUI("Banner")} hint="Wide image, up to 3 MB" kind="banner" value={bannerUrl} onChange={setBannerUrl} onNote={setNote} />
+        <ImageField label={translateUI("Avatar")} hint="Square image, up to 1 MB" kind="avatar" value={avatarUrl} onChange={setAvatarUrl} onNote={setNote} />
         {note && <p className="text-xs text-muted">{note}</p>}
         <label className="block">
           <span className="flex justify-between text-xs text-muted">
-            <span>Display name</span>
+            <span>{translateUI("Display name")}</span>
             <span>
               {displayName.length}/{NAME_MAX}
             </span>
@@ -66,7 +68,7 @@ export function EditProfile({ member, onClose, onSaved }: { member: ProfileMembe
         </label>
         <label className="block">
           <span className="flex justify-between text-xs text-muted">
-            <span>Bio (one line)</span>
+            <span>{translateUI("Bio (one line)")}</span>
             <span>
               {bio.length}/{BIO_MAX}
             </span>
@@ -75,17 +77,16 @@ export function EditProfile({ member, onClose, onSaved }: { member: ProfileMembe
             value={bio}
             maxLength={BIO_MAX}
             onChange={(e) => setBio(e.target.value.replace(/[\r\n]+/g, ' '))}
-            placeholder="What do you trade?"
+            placeholder={translateUI("What do you trade?")}
             className="mt-1 w-full rounded-xl border border-white/[0.08] bg-bg px-3 py-2.5 text-sm outline-none focus:border-white/25"
           />
         </label>
         {error && <p role="alert" className="text-xs text-risk-high">{error}</p>}
         <div className="grid grid-cols-2 gap-2 pt-1">
           <button type="button" onClick={onClose} className="rounded-xl border border-white/[0.08] py-2.5 text-sm text-muted hover:text-ink">
-            Cancel
-          </button>
+            {translateUI("Cancel")}</button>
           <button type="submit" disabled={busy} className="rounded-xl bg-ink py-2.5 text-sm font-semibold text-bg hover:bg-white disabled:opacity-50">
-            {busy ? 'Saving…' : 'Save'}
+            {busy ? translateUI("Saving…") : translateUI("Save")}
           </button>
         </div>
       </form>
@@ -108,12 +109,13 @@ function ImageField({
   onChange: (v: string) => void;
   onNote: (n: string | null) => void;
 }) {
+  const {t:translateUI}=usePlatformLanguage();
   const input = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   return (
     <div>
       <span className="text-xs text-muted">
-        {label} <span className="text-muted/70">· {hint}</span>
+        {translateUI(label)} <span className="text-muted/70">· {hint}</span>
       </span>
       <div className="mt-1 flex gap-2">
         <input
@@ -128,7 +130,7 @@ function ImageField({
           onClick={() => input.current?.click()}
           className="flex shrink-0 items-center gap-1.5 rounded-xl border border-white/[0.08] px-3 py-2 text-sm text-muted hover:text-ink disabled:opacity-50"
         >
-          <UploadSimple size={14} /> {uploading ? 'Uploading…' : 'Upload'}
+          <UploadSimple size={14} /> {uploading ? translateUI("Uploading…") : translateUI("Upload")}
         </button>
         <input
           ref={input}
