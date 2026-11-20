@@ -1,4 +1,4 @@
-import { httpCandidates } from '@rushr/core';
+import { httpCandidates } from '@clashr/core';
 
 /**
  * Token icon proxy. Launchpads store icons on IPFS and assorted CDNs; public IPFS gateways are

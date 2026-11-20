@@ -33,7 +33,7 @@ Four.meme charts and holder snapshots are public and indicative. They are not co
 
 ## MCP migration status
 
-The legacy @rushr/mcp package still contains Robinhood chain-4663 signing, pricing and guard assumptions. It is not yet a BNB MCP server. Changing RUSHR_API_URL alone is insufficient. The independent BNB API and chain-56 SDK remain the supported integration building blocks for this stage.
+The legacy @clashr/legacy-mcp package still contains Robinhood chain-4663 signing, pricing and guard assumptions. It is not yet a BNB MCP server. Changing RUSHR_API_URL alone is insufficient. The independent BNB API and chain-56 SDK remain the supported integration building blocks for this stage.
 
 Internal @rushr package names and RUSHR_* environment variables remain compatibility identifiers. They do not designate the public token. The intended ticker is CLASHR / $CLASHR; no verified CLASHR BNB token contract or launch economics have been published for this deployment.
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// @rushr/mcp: a local MCP server (stdio) for trading and posting on Rushr. The agent wallet's key is read
+// @clashr/legacy-mcp: a local MCP server (stdio) for trading and posting on Rushr. The agent wallet's key is read
 // from RUSHR_WALLET_FILE or RUSHR_PRIVATE_KEY and never leaves this process: it isn't logged, returned
 // by a tool, or sent to Rushr. stdout carries the MCP protocol, so diagnostics go to stderr.
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';

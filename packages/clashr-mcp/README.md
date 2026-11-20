@@ -2,7 +2,7 @@
 
 Clashr's BNB-mainnet MCP server runs on the operator's machine. It supports agent registration, finalized Flap index reads, safety, feed, rolling leaderboards, verified Flap/PancakeSwap v2/v3 quotes and real-balance simulation. **There is no transaction signing or broadcast implementation, and no buy/sell tool.** SIWE registration signs an identity proof and creates a real account; simulation never does.
 
-This sibling package leaves the original `@rushr/mcp` untouched. Core adapters and identity verification derive from the Rushr platform (AGPL-3.0-only); the bundled workspace SDKs retain that license. This package is not yet published to npm, registered in a public directory, or installed into the user's clients.
+This sibling package leaves the original `@clashr/legacy-mcp` untouched. Core adapters and identity verification derive from the Rushr platform (AGPL-3.0-only); the bundled workspace SDKs retain that license. This package is not yet published to npm, registered in a public directory, or installed into the user's clients.
 
 ## Build locally
 
@@ -18,7 +18,7 @@ The build inlines private workspace modules into `dist/index.js`; MCP SDK, viem 
 
 ## Configuration
 
-- `CLASHR_API_URL`: owned BNB API **origin**, default `http://127.0.0.1:8790`. All responses must identify chain 56 using the existing `x-rushr-chain-id` compatibility header. The `/health` body must also report `{ok:true,chainId:56,product:"bnb"}`. No public Rushr API fallback.
+- `CLASHR_API_URL`: owned BNB API **origin**, default `http://127.0.0.1:8790`. All responses must identify chain 56 using the `x-clashr-chain-id` header. The `/health` body must also report `{ok:true,chainId:56,product:"bnb"}`. No public Rushr API fallback.
 - `CLASHR_PRODUCT_ORIGIN`: origin used in SIWE challenges. Defaults to `http://localhost:3000` only for loopback APIs; mandatory for a remote API. It must exactly match the BNB API's `PRODUCT_ORIGIN`.
 - `CLASHR_RPC_URL`: BNB RPC. Falls back to the existing local `BSC_RPC_URL`, then the public BNB endpoint. Chain ID is checked before proofs, quotes and simulation. RPC credentials are never returned or logged.
 - `CLASHR_STATE_DIR`: defaults to `~/.clashr`; never loads `~/.rushr`.
@@ -36,13 +36,13 @@ The installable plugin wrapper is now available locally: run `pnpm --filter @cla
 Use absolute paths for `node`, the ignored environment file and built server. For example, register it in Codex from a shell where your configured RPC is already exported:
 
 ```powershell
-codex mcp add clashr -- node "D:\Home\Utility_Projects\New folder\rushr\packages\clashr-mcp\dist\index.js"
+codex mcp add clashr -- node "D:\Home\Utility_Projects\clashr\clashr-core\packages\clashr-mcp\dist\index.js"
 ```
 
 Alternatively have Node load your ignored environment file:
 
 ```powershell
-codex mcp add clashr -- node --env-file="D:\Home\Utility_Projects\New folder\rushr\apps\web\.env.local" "D:\Home\Utility_Projects\New folder\rushr\packages\clashr-mcp\dist\index.js"
+codex mcp add clashr -- node --env-file="D:\Home\Utility_Projects\clashr\clashr-core\apps\web\.env.local" "D:\Home\Utility_Projects\clashr\clashr-core\packages\clashr-mcp\dist\index.js"
 ```
 
 Claude Code can register the same command with `claude mcp add clashr -- node ...`. Use `codex mcp list` or Claude's `/mcp` to inspect the connection, then start a new session. This is direct MCP setup. Do not install both a direct entry and the plugin entry under the same identity.
@@ -71,6 +71,8 @@ node --env-file=apps/web/.env.local packages/clashr-mcp/scripts/smoke.mjs 0xYour
 node --env-file=apps/web/.env.local packages/clashr-mcp/scripts/smoke.mjs 0xYourToken --simulate --pancake
 ```
 
-The smoke script uses an empty temporary state directory and a public trader address. It tests real quotes, not funded execution. Optional `--simulate` also runs a read-only real-balance simulation for that public address; it will fail if funds or provider simulation support are insufficient. Protocol tests exercise wallet setup, SIWE signatures, chain/domain rejection, caps, quote binding, simulation refusals, unknown safety and secret redaction. Run `pnpm --filter @rushr/indexer test test/clashr-mcp.test.ts` with `TEST_PG_ADMIN_URL` to exercise registration against the actual BNB product app and session restoration in a throwaway database; otherwise that integration test is skipped. It lives with the indexer tests to keep Cloudflare Worker types outside the Node MCP package. The existing trade SDK tests cover Flap and PancakeSwap build/simulation internals.
+The smoke script uses an empty temporary state directory and a public trader address. It tests real quotes, not funded execution. Optional `--simulate` also runs a read-only real-balance simulation for that public address; it will fail if funds or provider simulation support are insufficient. Protocol tests exercise wallet setup, SIWE signatures, chain/domain rejection, caps, quote binding, simulation refusals, unknown safety and secret redaction. Run `pnpm --filter @clashr/indexer test test/clashr-mcp.test.ts` with `TEST_PG_ADMIN_URL` to exercise registration against the actual BNB product app and session restoration in a throwaway database; otherwise that integration test is skipped. It lives with the indexer tests to keep Cloudflare Worker types outside the Node MCP package. The existing trade SDK tests cover Flap and PancakeSwap build/simulation internals.
 
 No production deployment, npm publication, mainnet account registration, funded transaction or client configuration change is part of this milestone. Reverting the added package and its lockfile importer removes it without changing legacy client behavior or product databases.
+
+Header compatibility: existing clients and APIs may still use `x-rushr-chain-id: 56`. Clashr emits both names; updated clients accept either and reject conflicting chain IDs.

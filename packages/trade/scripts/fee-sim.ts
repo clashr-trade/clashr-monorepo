@@ -1,7 +1,7 @@
 /**
  * Read-only: Universal Router buy then sell on live tokens in one eth_simulateV1 block, showing the ETH
  * the treasury receives in each and the fee audit's verdict. Nothing is signed or sent.
- *   pnpm --filter @rushr/trade exec tsx scripts/fee-sim.ts <token> [token…] [--eth 0.01]
+ *   pnpm --filter @clashr/trade exec tsx scripts/fee-sim.ts <token> [token…] [--eth 0.01]
  */
 import { createPublicClient, formatEther, http, type Address, type PublicClient } from 'viem';
 import { robinhoodChain } from '../src/chain';

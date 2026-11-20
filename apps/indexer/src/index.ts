@@ -7,13 +7,13 @@ import { dbUrl, holderHistory, poolHistory, positionsJob, poller as pollerOf, ty
 import { liftfunOn, refreshWalletPnl } from './data';
 import { checkGraduations, updateCurveProgress } from './curves';
 import { Rpc } from './rpc';
-import { isContractCode } from '@rushr/core';
+import { isContractCode } from '@clashr/core';
 import { ensureFunding, recomputeSignals } from './signals';
 import { resolveMetadata } from './metadata';
 import { api, tokenSummaries } from './api';
 import { GATEWAY_COUNT, gateway } from './gateway';
 import { v1, adminV1 } from './agents/app';
-import { LLMS_TXT } from '@rushr/agents/llms-txt';
+import { LLMS_TXT } from '@clashr/agents/llms-txt';
 import { CONFIRM_DELAYS_S, confirmTrade, sweepStuckTrades, trades } from './ledger';
 import { PAUSED_REQUEUE_S, isPaused, readPause, writePause } from './pause';
 import { pendingSupply, pendingSupplyCount, refreshSupply } from './supply';

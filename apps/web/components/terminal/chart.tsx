@@ -1,5 +1,7 @@
 'use client';
 
+import { storageKey } from '@/lib/brand-compat';
+
 import {usePlatformLanguage} from '@/components/landing/language-provider';
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import {
@@ -123,7 +125,7 @@ export function PriceChart({
   // Remember the last interval and mode.
   useEffect(() => {
     try {
-      const saved = JSON.parse(localStorage.getItem(candlesUrl?'rushr.chart.56':'rushr.chart') ?? '{}') as { iv?: Interval; mode?: 'mcap' | 'price'; calls?: boolean; trades?: boolean };
+      const saved = JSON.parse(localStorage.getItem(candlesUrl?storageKey('chart.56'):storageKey('chart')) ?? '{}') as { iv?: Interval; mode?: 'mcap' | 'price'; calls?: boolean; trades?: boolean };
       if (saved.iv && saved.iv in INTERVALS && (!candlesUrl || !FROM_TRADES.has(saved.iv) || !!trades?.length)) setIv(saved.iv);
       if ((saved.mode === 'price' || (saved.mode === 'mcap'&&supply>0))) setMode(saved.mode);
       if (saved.calls === false) setShowCalls(false);
@@ -134,7 +136,7 @@ export function PriceChart({
   }, []);
   useEffect(() => {
     try {
-      localStorage.setItem(candlesUrl?'rushr.chart.56':'rushr.chart', JSON.stringify({ iv: interval, mode, calls: showCalls, trades: showTrades }));
+      localStorage.setItem(candlesUrl?storageKey('chart.56'):storageKey('chart'), JSON.stringify({ iv: interval, mode, calls: showCalls, trades: showTrades }));
     } catch {
       // storage unavailable
     }

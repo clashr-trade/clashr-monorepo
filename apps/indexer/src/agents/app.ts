@@ -1,4 +1,4 @@
-import {CLASHR_LLMS_TXT} from '@rushr/agents/clashr-llms-txt';
+import {CLASHR_LLMS_TXT} from '@clashr/agents/clashr-llms-txt';
 // /v1: members, social, leaderboard and agents. Mounted by index.ts as `app.route('/v1', v1)`.
 // Everything is off unless AGENTS_ENABLED=1. Rushr never holds keys, never signs, never trades for anyone.
 import { Hono } from 'hono';
@@ -14,7 +14,7 @@ import { walletAuth } from './wallet-auth';
 import {productTrade} from '../product/trade';
 import {productEvents} from '../product/events';
 import {productSocial} from '../product/social';
-import { LLMS_TXT } from '@rushr/agents/llms-txt';
+import { LLMS_TXT } from '@clashr/agents/llms-txt';
 export { adminV1 } from './admin';
 
 export const v1 = new Hono<Ctx>();

@@ -22,11 +22,11 @@
 // stay allowed. Curve trades made outside Rushr (another site, a direct call) match no build and owe nothing.
 import type { Sql } from 'postgres';
 import { keccak256, toHex, type Address, type Hex, type PublicClient } from 'viem';
-import { discoverPools } from '@rushr/trade/pools';
-import { prepareQuickTrade, type QuickTrade, type WalletCall } from '@rushr/trade/quick';
-import { curveFeeCall } from '@rushr/trade/curve-fee';
-import { LEGACY_TREASURIES, resolveConfig } from '@rushr/trade/config';
-import type { PonsPool, Referral } from '@rushr/trade/types';
+import { discoverPools } from '@clashr/trade/pools';
+import { prepareQuickTrade, type QuickTrade, type WalletCall } from '@clashr/trade/quick';
+import { curveFeeCall } from '@clashr/trade/curve-fee';
+import { LEGACY_TREASURIES, resolveConfig } from '@clashr/trade/config';
+import type { PonsPool, Referral } from '@clashr/trade/types';
 import { fail, type MemberRow } from './http';
 import { Rpc } from '../rpc';
 

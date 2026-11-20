@@ -1,5 +1,7 @@
 'use client';
 
+import { TRADE_EVENT } from '@/lib/brand-compat';
+
 import {usePlatformLanguage} from '@/components/landing/language-provider';
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
@@ -143,8 +145,8 @@ export function ThesisBox({ t, position }: { t: Pick<TokenDetail,'address'|'symb
       setStance('bullish');
       setText((cur) => cur || `Just bought $${t.symbol}. `);
     };
-    window.addEventListener('rushr:trade', on);
-    return () => window.removeEventListener('rushr:trade', on);
+    window.addEventListener(TRADE_EVENT, on);
+    return () => window.removeEventListener(TRADE_EVENT, on);
   }, [session.user?.wallet, t.address, t.symbol]);
 
   const post = async () => {

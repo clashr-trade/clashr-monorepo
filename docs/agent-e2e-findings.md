@@ -13,7 +13,7 @@ The test is automated and can be re-run: [`packages/agents/test/e2e/agent-e2e.ts
 
 ```bash
 docker compose up -d
-pnpm --filter @rushr/db migrate          # DATABASE_URL in packages/db/.env points at the local DB
+pnpm --filter @clashr/db migrate          # DATABASE_URL in packages/db/.env points at the local DB
 cd apps/indexer && pnpm exec wrangler dev # .dev.vars: RPC_URL, DATABASE_URL, flags, ADMIN_TOKEN
 # in another shell, from packages/agents:
 AGENT_E2E_BASE_URL=http://localhost:8788 AGENT_E2E_RPC_URL=<rpc> AGENT_E2E_ADMIN_TOKEN=<local token> \
@@ -62,10 +62,10 @@ Severity: **A** = fix before turning the flag on, **B** = fix soon after, or doc
 
 ### A2. PONS tokens still on their curve can't be traded through the agent API (Swap / Agents)
 
-- Repro: `POST /v1/trade/quote {"token":"0xc1e326124db6ad2040a72f5b59b5c7243b4963fc","side":"buy","amountIn":"1000000000000000"}` → `422 trade_UNSUPPORTED_VENUE: PONS curve trading needs RushrPonsRouter, which is not deployed yet`.
+- Repro: `POST /v1/trade/quote {"token":"0xc1e326124db6ad2040a72f5b59b5c7243b4963fc","side":"buy","amountIn":"1000000000000000"}` → `422 trade_UNSUPPORTED_VENUE: PONS curve trading needs ClashrLegacyPonsRouter, which is not deployed yet`.
 - Cause: `/v1/trade/*` calls `prepareSwap` (`packages/trade/src/agent.ts`), and its `buildSwap` refuses `pons-curve` pools when `ponsRouter` is null. The web app uses `quickTrade` instead (`packages/trade/src/quick.ts`), which calls the curve directly and charges the fee as a follow-up transfer. Agents get neither path.
 - Impact: most "new" trenches tokens are PONS curve tokens, so agents can't trade the core of the product. `llms.txt` doesn't say so.
-- Decision needed: when an agent calls the curve directly, the follow-up fee transfer is voluntary. Rushr can't enforce it, and only the trade ledger would see it. Options: (a) document "graduated tokens only" for now; (b) expose a curve build that returns the curve call plus a separate `feeTx` and accept the honour system; (c) wait for RushrPonsRouter. We suggest (a) for launch.
+- Decision needed: when an agent calls the curve directly, the follow-up fee transfer is voluntary. Rushr can't enforce it, and only the trade ledger would see it. Options: (a) document "graduated tokens only" for now; (b) expose a curve build that returns the curve call plus a separate `feeTx` and accept the honour system; (c) wait for ClashrLegacyPonsRouter. We suggest (a) for launch.
 
 ### A3. Failed sign-up attempts use up the 5/day registration quota, which key rotation shares (Agents)
 

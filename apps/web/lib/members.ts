@@ -133,7 +133,7 @@ const MESSAGES: Record<string, string> = {
   no_embedded_wallet: 'Your CLASHR wallet is still being created. Try again in a few seconds.',
   already_registered: 'You already have a CLASHR profile.',
   rate_limited: 'Too many sign-ups from this network today. Try again later.',
-  bad_origin: 'Sign-up only works on rushr.trade.',
+  bad_origin: 'Sign-up only works on the configured Clashr site.',
 };
 
 const INVITE_STATUS_TEXT: Record<string, string> = {

@@ -1,6 +1,6 @@
 /**
  * Read-only: quick buy then sell on live PONS curves in one eth_simulateV1 block (simulated balance).
- *   pnpm --filter @rushr/trade exec tsx scripts/curve-sim.ts <token> [token…] [--eth 0.01]
+ *   pnpm --filter @clashr/trade exec tsx scripts/curve-sim.ts <token> [token…] [--eth 0.01]
  */
 import { createPublicClient, formatEther, http, type Address, type PublicClient } from 'viem';
 import { robinhoodChain } from '../src/chain';

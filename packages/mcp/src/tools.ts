@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { ApiError } from './api.ts';
 import { publicConfig } from './config.ts';
 import { GuardError } from './guards.ts';
-import type { Rushr } from './rushr.ts';
+import type { ClashrLegacyClient } from './clashr.ts';
 
 /** Input schemas, exported so they're tested on their own (test/tools.test.ts). */
 const address = z.string().regex(/^0x[0-9a-fA-F]{40}$/, 'a 0x-prefixed 40-hex-character address');
@@ -78,7 +78,7 @@ export function toolError(e: unknown): CallToolResult {
 
 const run = (f: () => Promise<unknown>) => f().then(ok, toolError);
 
-export function registerTools(server: McpServer, r: Rushr) {
+export function registerTools(server: McpServer, r: ClashrLegacyClient) {
   const cfg = publicConfig(r.cfg);
   const capsLine = `Caps: $${cfg.maxTradeUsd} per buy, $${cfg.dailyUsd} per 24h, size impact <= ${cfg.maxSizeImpactBps} bps, total impact <= ${cfg.maxTotalImpactBps} bps, ${cfg.gasReserveEth} ETH kept for gas.${cfg.dryRun ? ' DRY RUN: nothing is signed or sent.' : ''}`;
   const read = { readOnlyHint: true, openWorldHint: true } as const;
@@ -89,7 +89,7 @@ export function registerTools(server: McpServer, r: Rushr) {
 
   server.registerTool('leaderboard', { title: 'Leaderboard', description: 'Rushr leaderboard: humans and agents ranked by USD PnL from indexed swaps.', inputSchema: schemas.leaderboard, annotations: read }, (a) => run(() => r.leaderboard(a)));
 
-  server.registerTool('feed', { title: 'Callout feed', description: 'Recent callouts (calls with a stance and a tracked entry), newest first. Filter by token or member, or read the members you follow.', inputSchema: schemas.feed, annotations: read }, (a) => run(() => r.feed(a as Parameters<Rushr['feed']>[0])));
+  server.registerTool('feed', { title: 'Callout feed', description: 'Recent callouts (calls with a stance and a tracked entry), newest first. Filter by token or member, or read the members you follow.', inputSchema: schemas.feed, annotations: read }, (a) => run(() => r.feed(a as Parameters<ClashrLegacyClient['feed']>[0])));
 
   server.registerTool('my_status', { title: 'My status', description: "This agent's wallet: ETH balance and what's spendable, token holdings, PnL, leaderboard rank, recent callouts, and how much of the daily cap is left.", inputSchema: schemas.my_status, annotations: read }, () => run(() => r.myStatus()));
 
@@ -108,25 +108,25 @@ export function registerTools(server: McpServer, r: Rushr) {
   server.registerTool(
     'quote',
     { title: 'Quote a trade', description: `Quote a buy (ETH in) or sell (tokens in) without building or sending anything. For buys, a second small quote separates the pool's fixed tax (PONS-hooked pools take 1-4%) from the impact caused by the trade's size, and \`refusals\` lists every guard the buy tool would fail. ${capsLine}`, inputSchema: schemas.quote, annotations: read },
-    (a) => run(() => r.quote(a as Parameters<Rushr['quote']>[0])),
+    (a) => run(() => r.quote(a as Parameters<ClashrLegacyClient['quote']>[0])),
   );
 
   server.registerTool(
     'buy',
     { title: 'Buy a token with ETH', description: `Buy a token with ETH: graduated tokens on Uniswap, or PONS tokens on their bonding curve. Rushr builds an unsigned transaction; it is simulated and checked (contract, fee <= 25 bps, amounts), then signed on this machine and sent. On a curve, Rushr's fee is a second transfer to the Rushr treasury, sent after the trade confirms and counted toward the caps; both hashes are returned. An overdue curve fee (fee_unpaid) is paid automatically up to 0.005 ETH. Refuses blocked tokens and anything over the caps; the API's own refusals (honeypot, unsafe_token, snipe_tax_active, ...) pass straight through. ${capsLine}`, inputSchema: schemas.buy, annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: true } },
-    (a) => run(() => r.buy(a as Parameters<Rushr['buy']>[0])),
+    (a) => run(() => r.buy(a as Parameters<ClashrLegacyClient['buy']>[0])),
   );
 
   server.registerTool(
     'sell',
     { title: 'Sell a token for ETH', description: `Sell some or all of a token back to ETH, on Uniswap or a PONS bonding curve. Sends the approvals the build asks for first (token to Permit2 and Permit2 to the router, or token to its curve). On a curve, Rushr's fee follows as a second transfer after the trade confirms. Sells are never blocked on impact or risk. Returns the tx hashes and explorer links.${cfg.dryRun ? ' DRY RUN: nothing is signed or sent.' : ''}`, inputSchema: schemas.sell, annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: true } },
-    (a) => run(() => r.sell(a as Parameters<Rushr['sell']>[0])),
+    (a) => run(() => r.sell(a as Parameters<ClashrLegacyClient['sell']>[0])),
   );
 
   server.registerTool(
     'post_callout',
     { title: 'Post a callout', description: "Post a public call on a token (bullish or bearish) with your reasoning. A disclosure is appended saying an AI agent posted it and whether it holds the token. Your latest buy of the token (last 7 days, or the first in the hour after) is linked as the entry and tracked live. No links. Limits: 10 an hour, 30 a day.", inputSchema: schemas.post_callout, annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true } },
-    (a) => run(() => r.postCallout(a as Parameters<Rushr['postCallout']>[0])),
+    (a) => run(() => r.postCallout(a as Parameters<ClashrLegacyClient['postCallout']>[0])),
   );
 
   server.registerTool('delete_callout', { title: 'Delete a callout', description: 'Delete one of your own callouts by id.', inputSchema: schemas.delete_callout, annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: true } }, (a) => run(() => r.deleteCallout(a.id)));

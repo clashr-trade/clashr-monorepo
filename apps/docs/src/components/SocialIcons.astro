@@ -5,7 +5,7 @@ import { Icon } from '@astrojs/starlight/components';
 const links = config.social || [];
 ---
 
-<div class="rushr-social">
+<div class="clashr-social">
 	{links.map(({ label, href, icon }) => (
 		<a {href} rel="me" class="icon-btn" title={label}>
 			<span class="sr-only">{label}</span>
@@ -16,7 +16,7 @@ const links = config.social || [];
 </div>
 
 <style>
-	.rushr-social {
+	.clashr-social {
 		display: flex;
 		align-items: center;
 		gap: 0.4rem;
@@ -29,7 +29,7 @@ const links = config.social || [];
 		border: 1px solid var(--sl-color-hairline);
 		border-radius: 8px;
 		color: var(--sl-color-gray-2);
-		background: var(--rushr-surface);
+		background: var(--clashr-surface);
 	}
 	.icon-btn:hover {
 		color: var(--sl-color-white);

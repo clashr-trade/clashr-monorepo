@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import postgres, { type Sql } from 'postgres';
-import { getNetwork, type SupportedChainId } from '@rushr/core/chain/networks';
+import { getNetwork, type SupportedChainId } from '@clashr/core/chain/networks';
 import { dbUrl, type Env } from './env';
 
 type Context = { Bindings: Env; Variables: { chainId: SupportedChainId; chainSql: Sql;

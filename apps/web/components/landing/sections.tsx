@@ -90,13 +90,13 @@ export function Hero() {
       <div className={`${WRAP} flex flex-col items-center pt-6 text-center md:pt-8`}>
         {/*
           The brand is the headline; the sentence under it is part of the same h1 (visually secondary), so the page
-          heading still reads "rushr. Where humans and AI agents trade, connect, and compete." for search and screen readers.
+          heading still reads "CLASHR. Where humans and AI agents trade, connect, and compete." for search and screen readers.
         */}
         <h1 className="rise flex flex-col items-center">
           <span className="flex items-center gap-3 sm:gap-4 md:gap-5">
             <Image src="/brand/clashr/mark.svg" alt="" width={96} height={96} priority className="size-12 sm:size-[68px] md:size-[82px]" />
             <span className="pb-1 text-[68px] font-semibold leading-none tracking-[-0.05em] text-ink sm:text-[92px] md:pb-2 md:text-[112px]">
-              rushr.
+              CLASHR.
             </span>
           </span>
           <span className="sr-only"> </span>
@@ -243,7 +243,7 @@ export function Floor({
           <div className="flex items-center gap-6 border-b border-white/5 px-4 py-3">
             <span className="flex items-center gap-1.5 text-sm font-semibold tracking-[-0.03em]">
               <Image src="/brand/clashr/mark.svg" alt="" width={16} height={16} />
-              rushr
+              CLASHR
             </span>
             <div className="hidden gap-5 text-xs text-muted md:flex">
               <span className="text-ink">Trenches</span>

@@ -18,11 +18,11 @@
 // eth_blockNumber, one batch of six eth_calls and one eth_getLogs over the blocks since the last refresh
 // (escrow logs filtered to the creator), tried on the chain's public RPC first, then Alchemy.
 import type { Sql } from 'postgres';
-import { ROBINHOOD_CHAIN, type RawLog } from '@rushr/core';
+import { ROBINHOOD_CHAIN, type RawLog } from '@clashr/core';
 import { Rpc } from './rpc';
 
 /** The $RUSHR launch: token, creator (its deployer), PONS curve, graduated v4 pool and PONS contracts. */
-export const RUSHR_LAUNCH = {
+export const LEGACY_ROBINHOOD_LAUNCH = {
   token: '0xa8ceeeb747fcf136947c35c5de6187ee90d6bfed',
   creator: '0xe5ed29849043380aea7cfe62e97a23e82c55578e',
   curve: '0x187c3d36266d3fbe11a77be6bedb01bd68e52958',
@@ -71,12 +71,12 @@ export interface CreatorTaxLive {
   at: string;
   /** escrow.balanceOf(creator): ETH the creator can claim now. */
   escrowEth: string;
-  pendingCreatorTax: { eth: string; rushr: string };
-  pendingFees: { eth: string; rushr: string };
+  pendingCreatorTax: { eth: string; clashr: string };
+  pendingFees: { eth: string; clashr: string };
   protocolFeeShareBps: number;
 }
 
-export const emptyTally = (): EscrowTally => ({ cursor: (RUSHR_LAUNCH.launchBlock - 1n).toString(), fromCurve: '0', fromHook: '0', fromOther: '0', claims: [] });
+export const emptyTally = (): EscrowTally => ({ cursor: (LEGACY_ROBINHOOD_LAUNCH.launchBlock - 1n).toString(), fromCurve: '0', fromHook: '0', fromOther: '0', claims: [] });
 
 /** Fold escrow logs for blocks (tally.cursor, to] into the tally (pure; exported for tests). */
 export function tallyEscrowLogs(tally: EscrowTally, logs: Pick<RawLog, 'topics' | 'data' | 'transactionHash' | 'blockNumber' | 'blockTimestamp'>[], to: bigint): EscrowTally {
@@ -86,12 +86,12 @@ export function tallyEscrowLogs(tally: EscrowTally, logs: Pick<RawLog, 'topics' 
   for (const l of logs) {
     const block = BigInt(l.blockNumber);
     if (block <= cursor || block > to) continue;
-    if (l.topics.length < 2 || addrOf(l.topics[1]!) !== RUSHR_LAUNCH.creator) continue;
+    if (l.topics.length < 2 || addrOf(l.topics[1]!) !== LEGACY_ROBINHOOD_LAUNCH.creator) continue;
     const amount = BigInt(l.data.slice(0, 66));
     if (l.topics[0] === CREDITED_TOPIC && l.topics[2]) {
       const from = addrOf(l.topics[2]);
-      if (from === RUSHR_LAUNCH.curve) curve += amount;
-      else if (from === RUSHR_LAUNCH.hook) hook += amount;
+      if (from === LEGACY_ROBINHOOD_LAUNCH.curve) curve += amount;
+      else if (from === LEGACY_ROBINHOOD_LAUNCH.hook) hook += amount;
       else other += amount;
     } else if (l.topics[0] === CLAIMED_TOPIC) {
       const at = l.blockTimestamp ? new Date(Number(BigInt(l.blockTimestamp)) * 1000).toISOString() : null;
@@ -118,9 +118,9 @@ export interface Amount {
 }
 
 /** The response block (pure; exported for tests). */
-export function creatorTaxBody(tally: EscrowTally, live: CreatorTaxLive | null, px: { ethUsd: number | null; rushrUsd: number | null }) {
+export function creatorTaxBody(tally: EscrowTally, live: CreatorTaxLive | null, px: { ethUsd: number | null; legacyTokenUsd: number | null }) {
   const eth = (raw: bigint): Amount => ({ raw: raw.toString(), amount: fmt(raw), usd: px.ethUsd == null ? null : round2((Number(raw) / 1e18) * px.ethUsd) });
-  const rushr = (raw: bigint): Amount => ({ raw: raw.toString(), amount: fmt(raw), usd: px.rushrUsd == null ? null : round2((Number(raw) / 1e18) * px.rushrUsd) });
+  const clashr = (raw: bigint): Amount => ({ raw: raw.toString(), amount: fmt(raw), usd: px.legacyTokenUsd == null ? null : round2((Number(raw) / 1e18) * px.legacyTokenUsd) });
   const sum = (...xs: (number | null)[]) => (xs.some((x) => x == null) ? null : round2(xs.reduce<number>((s, x) => s + x!, 0)));
 
   const curve = eth(BigInt(tally.fromCurve));
@@ -129,21 +129,21 @@ export function creatorTaxBody(tally: EscrowTally, live: CreatorTaxLive | null, 
   const claimed = eth(claimedRaw);
 
   // The creator's share of what the hook still holds: all of the creator tax, plus (1 - PONS share) of the fee.
-  let pending: { eth: Amount; rushr: Amount; usd: number | null } | null = null;
+  let pending: { eth: Amount; clashr: Amount; usd: number | null } | null = null;
   if (live) {
     const keep = BPS - BigInt(live.protocolFeeShareBps);
     const pe = BigInt(live.pendingCreatorTax.eth) + (BigInt(live.pendingFees.eth) * keep) / BPS;
-    const pr = BigInt(live.pendingCreatorTax.rushr) + (BigInt(live.pendingFees.rushr) * keep) / BPS;
-    const e = eth(pe), r = rushr(pr);
-    pending = { eth: e, rushr: r, usd: sum(e.usd, r.usd) };
+    const pr = BigInt(live.pendingCreatorTax.clashr) + (BigInt(live.pendingFees.clashr) * keep) / BPS;
+    const e = eth(pe), r = clashr(pr);
+    pending = { eth: e, clashr: r, usd: sum(e.usd, r.usd) };
   }
   // Claimable now: the escrow's own balance (account-wide), else what the logs imply.
   const escrow = eth(live ? BigInt(live.escrowEth) : BigInt(tally.fromCurve) + BigInt(tally.fromHook) + BigInt(tally.fromOther) - claimedRaw);
 
   return {
-    token: { address: RUSHR_LAUNCH.token, symbol: 'RUSHR', explorer: `${ROBINHOOD_CHAIN.explorer}/token/${RUSHR_LAUNCH.token}` },
-    creator: { address: RUSHR_LAUNCH.creator, explorer: `${ROBINHOOD_CHAIN.explorer}/address/${RUSHR_LAUNCH.creator}` },
-    escrow: { address: RUSHR_LAUNCH.escrow, explorer: `${ROBINHOOD_CHAIN.explorer}/address/${RUSHR_LAUNCH.escrow}` },
+    token: { address: LEGACY_ROBINHOOD_LAUNCH.token, symbol: 'RUSHR', explorer: `${ROBINHOOD_CHAIN.explorer}/token/${LEGACY_ROBINHOOD_LAUNCH.token}` },
+    creator: { address: LEGACY_ROBINHOOD_LAUNCH.creator, explorer: `${ROBINHOOD_CHAIN.explorer}/address/${LEGACY_ROBINHOOD_LAUNCH.creator}` },
+    escrow: { address: LEGACY_ROBINHOOD_LAUNCH.escrow, explorer: `${ROBINHOOD_CHAIN.explorer}/address/${LEGACY_ROBINHOOD_LAUNCH.escrow}` },
     /** Of the PONS fee, PONS keeps this share; the creator is credited the rest on top of the creator tax. */
     protocolFeeShareBps: live?.protocolFeeShareBps ?? null,
     earned: {
@@ -185,29 +185,29 @@ async function readFrom(url: string, tally: EscrowTally): Promise<{ tally: Escro
   const rpc = new Rpc(url);
   const head = await rpc.blockNumber();
   const tag = `0x${head.toString(16)}`;
-  const pool = RUSHR_LAUNCH.poolId.slice(2);
+  const pool = LEGACY_ROBINHOOD_LAUNCH.poolId.slice(2);
   const eth = word('0x0').slice(2);
-  const tok = word(RUSHR_LAUNCH.token).slice(2);
+  const tok = word(LEGACY_ROBINHOOD_LAUNCH.token).slice(2);
   const [views, logs] = await Promise.all([
     rpc.batch<string>([
-      call(RUSHR_LAUNCH.escrow, `0x70a08231${word(RUSHR_LAUNCH.creator).slice(2)}`, tag), // balanceOf(creator)
-      call(RUSHR_LAUNCH.hook, `0xc8eaa792${pool}${eth}`, tag), // pendingCreatorTax(poolId, ETH)
-      call(RUSHR_LAUNCH.hook, `0xc8eaa792${pool}${tok}`, tag), // pendingCreatorTax(poolId, RUSHR)
-      call(RUSHR_LAUNCH.hook, `0x359b4f30${pool}${eth}`, tag), // pendingFees(poolId, ETH)
-      call(RUSHR_LAUNCH.hook, `0x359b4f30${pool}${tok}`, tag), // pendingFees(poolId, RUSHR)
-      call(RUSHR_LAUNCH.hook, '0x9040f866', tag), // protocolFeeShareBps()
+      call(LEGACY_ROBINHOOD_LAUNCH.escrow, `0x70a08231${word(LEGACY_ROBINHOOD_LAUNCH.creator).slice(2)}`, tag), // balanceOf(creator)
+      call(LEGACY_ROBINHOOD_LAUNCH.hook, `0xc8eaa792${pool}${eth}`, tag), // pendingCreatorTax(poolId, ETH)
+      call(LEGACY_ROBINHOOD_LAUNCH.hook, `0xc8eaa792${pool}${tok}`, tag), // pendingCreatorTax(poolId, RUSHR)
+      call(LEGACY_ROBINHOOD_LAUNCH.hook, `0x359b4f30${pool}${eth}`, tag), // pendingFees(poolId, ETH)
+      call(LEGACY_ROBINHOOD_LAUNCH.hook, `0x359b4f30${pool}${tok}`, tag), // pendingFees(poolId, RUSHR)
+      call(LEGACY_ROBINHOOD_LAUNCH.hook, '0x9040f866', tag), // protocolFeeShareBps()
     ]),
     BigInt(tally.cursor) >= head
       ? Promise.resolve([] as RawLog[])
-      : rpc.filteredLogs(BigInt(tally.cursor) + 1n, head, { address: RUSHR_LAUNCH.escrow, topics: [[CREDITED_TOPIC, CLAIMED_TOPIC], word(RUSHR_LAUNCH.creator) as never] }),
+      : rpc.filteredLogs(BigInt(tally.cursor) + 1n, head, { address: LEGACY_ROBINHOOD_LAUNCH.escrow, topics: [[CREDITED_TOPIC, CLAIMED_TOPIC], word(LEGACY_ROBINHOOD_LAUNCH.creator) as never] }),
   ]);
   const [bal, ctE, ctR, feeE, feeR, share] = views.map(toBig);
   return {
     tally: tallyEscrowLogs(tally, logs, head),
     live: {
       block: head.toString(), at: new Date().toISOString(), escrowEth: bal!.toString(),
-      pendingCreatorTax: { eth: ctE!.toString(), rushr: ctR!.toString() },
-      pendingFees: { eth: feeE!.toString(), rushr: feeR!.toString() },
+      pendingCreatorTax: { eth: ctE!.toString(), clashr: ctR!.toString() },
+      pendingFees: { eth: feeE!.toString(), clashr: feeR!.toString() },
       protocolFeeShareBps: Number(share),
     },
   };
@@ -249,10 +249,10 @@ export async function creatorTaxState(sql: Sql, sources: string[]): Promise<Stor
 export async function creatorTax(sql: Sql, sources: string[], ethUsd: number | null) {
   const [state, [px]] = await Promise.all([
     creatorTaxState(sql, sources),
-    sql<{ price_usd: string | null }[]>`select price_usd::text from tokens where address = ${RUSHR_LAUNCH.token}`.catch(() => []),
+    sql<{ price_usd: string | null }[]>`select price_usd::text from tokens where address = ${LEGACY_ROBINHOOD_LAUNCH.token}`.catch(() => []),
   ]);
-  const rushrUsd = px?.price_usd == null ? null : Number(px.price_usd);
-  return creatorTaxBody(state, state.live, { ethUsd, rushrUsd });
+  const legacyTokenUsd = px?.price_usd == null ? null : Number(px.price_usd);
+  return creatorTaxBody(state, state.live, { ethUsd, legacyTokenUsd });
 }
 
 /** Tests only. */

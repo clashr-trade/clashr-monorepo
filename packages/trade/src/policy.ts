@@ -1,6 +1,6 @@
 import type { Address } from 'viem';
-import { rushrPonsRouterAbi } from './abis';
-import { rushrRouterAbi } from './rushr-router';
+import { clashrLegacyPonsRouterAbi } from './abis';
+import { clashrLegacyRouterAbi } from './clashr-router';
 
 /**
  * Privy policy for a Rushr session signer (quick-trade or one agent), in Privy's API schema
@@ -8,8 +8,8 @@ import { rushrRouterAbi } from './rushr-router';
  * trade, 1 ETH per rolling 24 h, 30-day grants, user-adjustable.
  *
  * Allowed (Privy denies anything no ALLOW rule matches):
- * - eth_signTransaction on chain 4663 calling RushrRouter.buy / RushrRouter.sell /
- *   RushrPonsRouter.buy / RushrPonsRouter.sell. Each rule pins `to` to that router and decodes the
+ * - eth_signTransaction on chain 4663 calling ClashrLegacyRouter.buy / ClashrLegacyRouter.sell /
+ *   ClashrLegacyPonsRouter.buy / ClashrLegacyPonsRouter.sell. Each rule pins `to` to that router and decodes the
  *   calldata with that one function's ABI (so any other selector, e.g. sellAnyPool, can't match);
  *   value <= per-trade cap (0 for sells); rolling 24 h value sum <= daily cap; before expiry.
  * - ERC-20 approve whose decoded `spender` is one of the routers, value 0.
@@ -37,7 +37,9 @@ export interface PolicyInput {
   purpose: string;
   /** The user's wallet (for the policy name; Privy policies have no "self" variable). */
   wallet: Address;
-  rushrRouter: Address;
+  clashrLegacyRouter?: Address;
+  /** @deprecated Use clashrLegacyRouter. Both names resolve to the same policy target. */
+  rushrRouter?: Address;
   ponsRouter?: Address | null;
   caps: SignerCaps;
   /** Privy aggregation id summing ETH value over a rolling 24 h (see buildDailyValueAggregation). */
@@ -69,15 +71,23 @@ export const APPROVE_ABI: AbiFn[] = [
 ];
 
 /** Router functions the server signer may call: [label, router key, abi, function, payable]. */
+function policyRouter(p: PolicyInput): Address {
+  if (p.clashrLegacyRouter && p.rushrRouter && p.clashrLegacyRouter.toLowerCase() !== p.rushrRouter.toLowerCase())
+    throw new Error('Conflicting legacy policy router aliases');
+  const router = p.clashrLegacyRouter ?? p.rushrRouter;
+  if (!router) throw new Error('Legacy policy router required');
+  return router;
+}
+
 function allowedCalls(p: PolicyInput) {
   const calls: { router: Address; abi: readonly unknown[]; fn: 'buy' | 'sell'; payable: boolean; label: string }[] = [
-    { router: p.rushrRouter, abi: rushrRouterAbi, fn: 'buy', payable: true, label: 'RushrRouter.buy' },
-    { router: p.rushrRouter, abi: rushrRouterAbi, fn: 'sell', payable: false, label: 'RushrRouter.sell' },
+    { router: policyRouter(p), abi: clashrLegacyRouterAbi, fn: 'buy', payable: true, label: 'RushrRouter.buy' },
+    { router: policyRouter(p), abi: clashrLegacyRouterAbi, fn: 'sell', payable: false, label: 'RushrRouter.sell' },
   ];
   if (p.ponsRouter)
     calls.push(
-      { router: p.ponsRouter, abi: rushrPonsRouterAbi, fn: 'buy', payable: true, label: 'RushrPonsRouter.buy' },
-      { router: p.ponsRouter, abi: rushrPonsRouterAbi, fn: 'sell', payable: false, label: 'RushrPonsRouter.sell' },
+      { router: p.ponsRouter, abi: clashrLegacyPonsRouterAbi, fn: 'buy', payable: true, label: 'RushrPonsRouter.buy' },
+      { router: p.ponsRouter, abi: clashrLegacyPonsRouterAbi, fn: 'sell', payable: false, label: 'RushrPonsRouter.sell' },
     );
   return calls;
 }
@@ -85,7 +95,7 @@ function allowedCalls(p: PolicyInput) {
 export function buildSignerPolicy(p: PolicyInput) {
   if (p.caps.perTradeWei <= 0n || p.caps.dailyWei < p.caps.perTradeWei) throw new Error('caps: need 0 < perTrade <= daily');
   if (!p.dailyAggregationId) throw new Error('dailyAggregationId required');
-  const routers = [p.rushrRouter, ...(p.ponsRouter ? [p.ponsRouter] : [])].map((a) => a.toLowerCase());
+  const routers = [policyRouter(p), ...(p.ponsRouter ? [p.ponsRouter] : [])].map((a) => a.toLowerCase());
   const common = [
     { field_source: 'ethereum_transaction', field: 'chain_id', operator: 'eq', value: '4663' },
     { field_source: 'system', field: 'current_unix_timestamp', operator: 'lt', value: String(p.caps.expiresAt) },

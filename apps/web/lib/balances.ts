@@ -1,8 +1,10 @@
 'use client';
 
+import { TRADE_EVENT } from './brand-compat';
+
 import { useEffect, useState } from 'react';
 import { createPublicClient, erc20Abi, type Address } from 'viem';
-import { robinhoodChain } from '@rushr/trade';
+import { robinhoodChain } from '@clashr/trade';
 import { bsc } from 'viem/chains';
 import { BNB_PRODUCT, PRODUCT_CHAIN_ID } from './product';
 import { rpcTransport } from './rpc';
@@ -109,11 +111,11 @@ export function useTokenBalance(wallet: Address | undefined, token: Address, tic
       if (d?.wallet?.toLowerCase() !== w || (d.phase !== 'confirmed' && d.phase !== 'failed')) return;
       for (const ms of AFTER_TRADE_MS) timers.push(setTimeout(bump, ms));
     };
-    window.addEventListener('rushr:trade', on);
+    window.addEventListener(TRADE_EVENT, on);
     return () => {
       clearInterval(id);
       timers.forEach(clearTimeout);
-      window.removeEventListener('rushr:trade', on);
+      window.removeEventListener(TRADE_EVENT, on);
     };
   }, [wallet]);
   return { bal, refresh: () => setN((x) => x + 1) };

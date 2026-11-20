@@ -1,7 +1,7 @@
 import type {Sql} from 'postgres';
 import {createPublicClient,erc20Abi,http,type Address} from 'viem';
 import {bsc} from 'viem/chains';
-import {BSC_PUBLIC_RPC} from '@rushr/core/chain/bsc-rpc';
+import {BSC_PUBLIC_RPC} from '@clashr/core/chain/bsc-rpc';
 
 export async function syncProductMarket(sql:Sql,origin:string,rpcUrl=BSC_PUBLIC_RPC){
   const response=await fetch(`${origin}/api/bsc/market`,{signal:AbortSignal.timeout(20_000)});

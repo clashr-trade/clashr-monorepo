@@ -7,7 +7,7 @@ import { afterEach, expect } from 'vitest';
 import { parseEther, type Hex } from 'viem';
 import { generatePrivateKey } from 'viem/accounts';
 import { loadConfig } from '../src/config.ts';
-import type { ChainIO, SendTx } from '../src/rushr.ts';
+import type { ChainIO, SendTx } from '../src/clashr.ts';
 import { createServer } from '../src/server.ts';
 import { built } from './fixtures.ts';
 
@@ -99,7 +99,7 @@ export async function connect(env: Record<string, string>, api = fakeApi(), chai
   const dir = mkdtempSync(join(tmpdir(), 'rushr-mcp-'));
   const walletFile = join(dir, 'wallet.json');
   writeFileSync(walletFile, JSON.stringify({ privateKey: KEY, handle: 'tester', apiKey: API_KEY }), { mode: 0o600 });
-  const cfg = loadConfig({ RUSHR_WALLET_FILE: walletFile, RUSHR_STATE_DIR: dir, ...env });
+  const cfg = loadConfig({ CLASHR_ROBINHOOD_WALLET_FILE: walletFile, CLASHR_ROBINHOOD_STATE_DIR: dir, ...env });
   const { server, wallet } = createServer(cfg, { fetch: api.f, chain, sleep: async () => {} });
   const [a, b] = InMemoryTransport.createLinkedPair();
   const client = new Client({ name: 'test', version: '0' });

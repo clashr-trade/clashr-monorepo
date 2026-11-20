@@ -1,4 +1,4 @@
-/** Every failure in @rushr/trade is a TradeError with a stable code the UI can map to copy. */
+/** Every failure in @clashr/trade is a TradeError with a stable code the UI can map to copy. */
 export type TradeErrorCode =
   | 'UNSUPPORTED_CHAIN'
   | 'QUOTE_EXPIRED'

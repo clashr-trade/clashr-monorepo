@@ -1,9 +1,9 @@
 import {beforeAll,afterAll,describe,it,expect,vi} from 'vitest';
 import {readFile} from 'node:fs/promises';
 import {freshDb,pgAvailable} from '../../../packages/agents/test/pg';
-import type {BscSpotQuote} from '@rushr/trade/bsc';
+import type {BscSpotQuote} from '@clashr/trade/bsc';
 const state=vi.hoisted(()=>({finalized:true,hash:'0x'+'a'.repeat(64),stale:false}));
-vi.mock('@rushr/trade/bsc',async importOriginal=>({...await importOriginal<any>(),reconcileBscSpot:vi.fn(async(_client,q,hash)=>({
+vi.mock('@clashr/trade/bsc',async importOriginal=>({...await importOriginal<any>(),reconcileBscSpot:vi.fn(async(_client,q,hash)=>({
   actualTokenAmount:10n**18n,actualNativeAmount:10n**15n,networkFeeWei:100n,finality:state.finalized?'finalized':'mined',meetsMinimum:true,
   transactions:[{hash,block:100n,blockHash:state.hash,status:'success'}],
 }))}));

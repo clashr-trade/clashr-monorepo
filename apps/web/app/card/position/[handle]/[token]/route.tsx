@@ -5,10 +5,10 @@ import { fallbackCard, positionCard } from '@/lib/card/render';
 export async function GET(req: Request, { params }: { params: Promise<{ handle: string; token: string }> }) {
   const { handle, token } = await params;
   const t = token.toLowerCase();
-  if (!/^0x[0-9a-f]{40}$/.test(t)) return fallbackCard('rushr.');
+  if (!/^0x[0-9a-f]{40}$/.test(t)) return fallbackCard('CLASHR.');
   const member = await cardMember(handle);
   const p = member && (await cardPosition(member.wallet, t));
-  if (!member || !p) return fallbackCard('rushr.');
+  if (!member || !p) return fallbackCard('CLASHR.');
   const open = BigInt(p.held_tokens || '0') > 0n;
   const pnl = open ? p.total_pnl_usd : p.realized_usd;
   const first = p.first_trade_at ? Date.parse(p.first_trade_at) : null;

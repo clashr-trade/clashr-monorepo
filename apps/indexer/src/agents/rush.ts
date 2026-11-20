@@ -14,7 +14,7 @@
 // on a bonding curve), buy-and-sell round trips in one transaction, Rushr's own wallets and agents.
 import { Hono } from 'hono';
 import type { Sql } from 'postgres';
-import { LEGACY_TREASURIES, RUSHR_TREASURY } from '@rushr/trade';
+import { LEGACY_TREASURIES, LEGACY_ROBINHOOD_TREASURY } from '@clashr/trade';
 import { expensiveRead, publicCache, type Ctx } from './http';
 
 export const RUSH = {
@@ -32,7 +32,7 @@ export interface RushConfig {id:string;name:string;startsAt:Date;endsAt:Date;pri
 const LEGACY_EXCLUDED_WALLETS = [
   '0xe5ed29849043380aea7cfe62e97a23e82c55578e', // dev wallet
   '0x4fc9e610c270ae08717f43275f0fcaa57af39e5d', // team wallet
-  RUSHR_TREASURY.toLowerCase(),
+  LEGACY_ROBINHOOD_TREASURY.toLowerCase(),
   ...LEGACY_TREASURIES.map((a) => a.toLowerCase()),
 ];
 const LEGACY_EXCLUDED_HANDLES = ['talos'];

@@ -1,4 +1,4 @@
-import { BSC_PANCAKE } from '@rushr/core/chain/pancake';
+import { BSC_PANCAKE } from '@clashr/core/chain/pancake';
 
 export interface BscEnv {
   BSC_INDEX_ENABLED?: string;

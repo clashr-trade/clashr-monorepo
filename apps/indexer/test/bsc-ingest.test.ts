@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import postgres from 'postgres';
 import { encodeAbiParameters, encodeEventTopics, encodeFunctionResult, type Hex } from 'viem';
-import { BSC_PANCAKE, PANCAKE_V2, PANCAKE_V3 } from '@rushr/core/chain/pancake';
+import { BSC_PANCAKE, PANCAKE_V2, PANCAKE_V3 } from '@clashr/core/chain/pancake';
 import { freshDb, pgAvailable } from '../../../packages/agents/test/pg';
 import { ingestBscBatch } from '../src/bsc/ingest';
 import { bscConfig, type BscConfig } from '../src/bsc/config';

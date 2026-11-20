@@ -14,7 +14,7 @@ try {
     if (-not (Test-Path $previewEnv)) {
         Copy-Item -LiteralPath 'apps/web/.env.preview.example' -Destination $previewEnv
     }
-    & $pnpmCommand --filter '@rushr/web' dev:preview --port $Port --hostname 127.0.0.1
+    & $pnpmCommand --filter '@clashr/web' dev:preview --port $Port --hostname 127.0.0.1
     if ($LASTEXITCODE -ne 0) { throw "Preview exited with code $LASTEXITCODE" }
 } finally {
     Pop-Location

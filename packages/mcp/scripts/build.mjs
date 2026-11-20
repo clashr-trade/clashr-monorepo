@@ -1,4 +1,4 @@
-// Bundles the server into dist/index.js for npm. Workspace packages (@rushr/trade, @rushr/core) are
+// Bundles the server into dist/index.js for npm. Workspace packages (@clashr/trade, @clashr/core) are
 // private, so they're inlined; npm dependencies stay external and are installed with the package.
 import { build } from 'esbuild';
 import { readFileSync, chmodSync } from 'node:fs';

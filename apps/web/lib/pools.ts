@@ -35,7 +35,7 @@ export interface PoolRow {
   volume24hUsd: number | null;
   url: string;
   /** Where the liquidity figure came from (null when nobody has one). */
-  liquidityFrom: 'rushr' | 'dexscreener' | null;
+  liquidityFrom: 'clashr' | 'dexscreener' | null;
   /** True for venues only DexScreener knows about. */
   external: boolean;
 }
@@ -77,7 +77,7 @@ export function mergePools(
   api: ApiPool[] | null | undefined,
   ds: Pair[] | null,
   quoteLabel: (q: string | null | undefined) => string,
-): { rows: PoolRow[]; liquidityUsd: number | null; loading: boolean; source: 'rushr' | 'dexscreener' | 'mixed' | null } {
+): { rows: PoolRow[]; liquidityUsd: number | null; loading: boolean; source: 'clashr' | 'dexscreener' | 'mixed' | null } {
   const fromDs = (p: Pair): PoolRow => ({
     id: p.pairAddress.toLowerCase(),
     dex: p.dex,
@@ -108,7 +108,7 @@ export function mergePools(
         liquidityUsd: liq,
         volume24hUsd: p.volume_24h_usd ?? match?.volume.h24 ?? null,
         url: match?.url ?? dsUrl(id),
-        liquidityFrom: ours != null ? 'rushr' : liq != null ? 'dexscreener' : null,
+        liquidityFrom: ours != null ? 'clashr' : liq != null ? 'dexscreener' : null,
         external: false,
       };
     });
@@ -120,6 +120,6 @@ export function mergePools(
   const measured = rows.filter((r) => r.liquidityUsd != null);
   const liquidityUsd = measured.length ? measured.reduce((t, r) => t + r.liquidityUsd!, 0) : null;
   const froms = new Set(measured.map((r) => r.liquidityFrom));
-  const source = !measured.length ? null : froms.size > 1 ? 'mixed' : froms.has('rushr') ? 'rushr' : 'dexscreener';
+  const source = !measured.length ? null : froms.size > 1 ? 'mixed' : froms.has('clashr') ? 'clashr' : 'dexscreener';
   return { rows, liquidityUsd, loading, source };
 }

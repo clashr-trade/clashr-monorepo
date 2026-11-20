@@ -1,9 +1,9 @@
 // Members: humans sign up with Privy (trading wallet = Privy embedded wallet); public profiles.
 import { Hono } from 'hono';
 import type { Sql, TransactionSql } from 'postgres';
-import { checkHandle } from '@rushr/agents/guard';
-import { IP_LIMITS } from '@rushr/agents/limits';
-import { newMemberId } from '@rushr/agents/crypto';
+import { checkHandle } from '@clashr/agents/guard';
+import { IP_LIMITS } from '@clashr/agents/limits';
+import { newMemberId } from '@clashr/agents/crypto';
 import { on } from './env';
 import { recordReferral, referrerByCode } from './referrals';
 import { bioField, checkSuccessQuota, countSuccess, enqueueWalletFunding, fail, httpsUrl, isAddr, limit, memberColumns, privyProfile, publicCache, PRIVATE, requireMember, str, type Ctx, type MemberRow } from './http';

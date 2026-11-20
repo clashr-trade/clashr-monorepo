@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import postgres, { type Sql } from 'postgres';
-import { ROBINHOOD_CHAIN, circulatingSupply, tagHolders } from '@rushr/core';
+import { ROBINHOOD_CHAIN, circulatingSupply, tagHolders } from '@clashr/core';
 import { dbUrl, type Env } from './env';
 import { hydrator } from './hydrator';
 import {

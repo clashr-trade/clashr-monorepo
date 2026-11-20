@@ -3,7 +3,7 @@
  * can't verify (buyOk false or an error). The web app blocks buys on those (fail closed), so this list
  * should be empty or only real problems. Public RPC, nothing signed.
  *
- *   pnpm --filter @rushr/trade exec tsx scripts/probe-survey.ts [limit]
+ *   pnpm --filter @clashr/trade exec tsx scripts/probe-survey.ts [limit]
  */
 import { createPublicClient, http, type Address, type PublicClient } from 'viem';
 import { robinhoodChain } from '../src/chain';

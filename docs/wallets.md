@@ -3,7 +3,7 @@
 Status 2026-11-12: **decided.**
 - Provider: **Privy**.
 - Model: a policy-limited, user-revocable session signer. Our authorization key sits in a KMS (provider to be chosen, behind an interface).
-- `RushrRouter`: approved to build, **audit-gated**. One-click server signing stays off until an independent audit; until then every trade needs a wallet confirmation.
+- `ClashrLegacyRouter`: approved to build, **audit-gated**. One-click server signing stays off until an independent audit; until then every trade needs a wallet confirmation.
 - Default caps: **0.25 ETH per trade, 1 ETH per rolling 24 h, 30-day grants**, adjustable per user.
 - Nothing has been signed with a real user wallet. A Privy dev app exists for testing.
 
@@ -23,11 +23,11 @@ Status 2026-11-12: **decided.**
 - Rushr's signer key quorum
 - an "agent" key quorum
 
-It only calls `eth_signTransaction`, so **nothing was broadcast**, and the test wallet has no funds. **20/20 checks passed.** Re-run: `RUSHR_MAIN_CHECKOUT=<main checkout> pnpm --filter @rushr/trade exec tsx scripts/privy-dev-check.ts`.
+It only calls `eth_signTransaction`, so **nothing was broadcast**, and the test wallet has no funds. **20/20 checks passed.** Re-run: `RUSHR_MAIN_CHECKOUT=<main checkout> pnpm --filter @clashr/trade exec tsx scripts/privy-dev-check.ts`.
 
 | Question | Answer |
 | --- | --- |
-| **1. Policies on 4663** | **Yes**, policies are enforced when signing for chain 4663. Allowed: `RushrRouter.buy`/`sell` and `approve(RushrRouter)`. Denied with `400 policy_violation`: a plain ETH transfer, `sellAnyPool`, a buy over the 0.25 ETH cap, the same buy with `chain_id 1`, a sell carrying ETH, `approve` to another spender, a call to another contract. A request without an authorization signature returns 401. The signed tx decodes to chain 4663 with `from` equal to the wallet. Not tested by design: Privy broadcasting on 4663 (`eth_sendTransaction`), since we broadcast through our own RPC. |
+| **1. Policies on 4663** | **Yes**, policies are enforced when signing for chain 4663. Allowed: `ClashrLegacyRouter.buy`/`sell` and `approve(ClashrLegacyRouter)`. Denied with `400 policy_violation`: a plain ETH transfer, `sellAnyPool`, a buy over the 0.25 ETH cap, the same buy with `chain_id 1`, a sell carrying ETH, `approve` to another spender, a call to another contract. A request without an authorization signature returns 401. The signed tx decodes to chain 4663 with `from` equal to the wallet. Not tested by design: Privy broadcasting on 4663 (`eth_sendTransaction`), since we broadcast through our own RPC. |
 | **2. User-owned policies** | **Yes.** `owner_id` = the user's key quorum is accepted. `PATCH /v1/policies/{id}` is refused with the app secret alone (401 missing signature) and with Rushr's authorization key (401 no valid signature). Rushr's key also can't re-add itself to the wallet without a policy (401). |
 | **3. Revoke one signer** | **Yes.** The owner `PATCH`es the wallet's `additional_signers` with one signer left out. Afterwards the removed agent gets 401, and Rushr's signer keeps working. |
 | **4. Shared 24 h cap** | **Works** with one app-level aggregation (`POST /v1/aggregations`, rolling 86,400 s sum of `value` on chain 4663), referenced from each policy as `field_source: "reference"`, `field: "aggregation.<id>"`. It counts per wallet, and the check **includes the current request**: after 0.76 ETH signed, the next 0.25 ETH buy (total 1.01 ETH) was denied. Privy's docs still note that concurrent requests can race, so the per-trade cap stays the hard bound and the server serialises signing per wallet. |
@@ -113,13 +113,13 @@ Sources were checked on 2026-11-12. "Unverified" marks claims we couldn't confir
 
 ### Mitigations (each needed)
 1. **Every trade goes through Rushr's routers, with the recipient forced to `msg.sender`.**
-   - `RushrPonsRouter` already does this for PONS curves.
-   - For Uniswap paths we need **`RushrRouter`**, a small contract that takes a **structured route** (v4 pool key / v3 fee path / v2 path, amount, `minOut`, deadline) and **builds the Universal Router commands itself**, with no arbitrary `commands` argument. Output goes to the router, the fee is taken, and the rest goes to `msg.sender`.
+   - `ClashrLegacyPonsRouter` already does this for PONS curves.
+   - For Uniswap paths we need **`ClashrLegacyRouter`**, a small contract that takes a **structured route** (v4 pool key / v3 fee path / v2 path, amount, `minOut`, deadline) and **builds the Universal Router commands itself**, with no arbitrary `commands` argument. Output goes to the router, the fee is taken, and the rest goes to `msg.sender`.
    - Wrapping UR with a pass-through `commands` argument would **not** be safe: the attacker would just route the input to themselves.
    - This contract is a **deploy, so it's audit-gated**, and it's a prerequisite for server signing on Uniswap routes.
 2. **Policy allowlist, default deny** (Privy policy JSON in section 3):
-   - `to ∈ {RushrRouter, RushrPonsRouter}`, `chain_id == 4663`
-   - ERC-20 `approve` only with `spender ∈ {RushrRouter, RushrPonsRouter}`; no Permit2 at all on this path
+   - `to ∈ {ClashrLegacyRouter, ClashrLegacyPonsRouter}`, `chain_id == 4663`
+   - ERC-20 `approve` only with `spender ∈ {ClashrLegacyRouter, ClashrLegacyPonsRouter}`; no Permit2 at all on this path
    - deny plain ETH transfers (`value > 0` to anything but the routers), ERC-20 `transfer`/`transferFrom`, all EIP-712 and `personal_sign`, and type-4 (7702) transactions
 3. **Caps:** per-trade ETH `value` cap and a rolling 24 h sum (Privy stateful aggregation, `group_by` wallet). User-adjustable defaults, e.g. **0.25 ETH per trade, 1 ETH per day**. Privy's cap can race under concurrency, so the server also serialises signing per wallet. That doesn't help if the server itself is compromised, which is why caps are a bound, not the only defence.
 4. **Expiry:** the policy carries `current_unix_timestamp < grant + 30 days`. Re-granting is one click with the user present.
@@ -127,7 +127,7 @@ Sources were checked on 2026-11-12. "Unverified" marks claims we couldn't confir
 6. **Authorization key in a cloud KMS** (P-256, non-exportable). Workers call a narrow signing service that only signs Privy request payloads, under separate credentials, with audit logs. Rotate it, and keep a separate key per purpose (quick-trade, each agent).
 7. **Policy ownership:** set `owner_id` to the user's key quorum, so neither our app secret nor our authorization key can loosen a policy. With Turnkey, the user is sole root by construction.
 8. **Sell side, adversarial pools** (the residual risk that caps don't bound, since sells are paid in tokens):
-   - `RushrRouter` only accepts pools of known kinds: v4 hooks in a **timelocked allowlist** (none, PONS v2, lift.fun, Doppler), v2/v3 from Uniswap's factories only.
+   - `ClashrLegacyRouter` only accepts pools of known kinds: v4 hooks in a **timelocked allowlist** (none, PONS v2, lift.fun, Doppler), v2/v3 from Uniswap's factories only.
    - The router rejects a sell whose `minOut` is below (1 − max slippage) × its own on-chain spot read of the chosen pool. This only partly helps: a thin attacker pool still has a "fair" spot.
    - A **timelocked pool registry** (24 h delay, guardian pause by a separate multisig) for anything beyond canonical pools, so a malicious pool is visible for a day before it's usable.
    - Large sells (above the ETH-equivalent of the trade cap) need user presence.
@@ -146,13 +146,13 @@ Sources were checked on 2026-11-12. "Unverified" marks claims we couldn't confir
      ```json
      { "version": "1.0", "name": "rushr-quick-trade:<user>", "chain_type": "ethereum", "rules": [
        { "name": "trade via routers", "method": "eth_signTransaction", "action": "ALLOW", "conditions": [
-         { "field_source": "ethereum_transaction", "field": "to", "operator": "in", "value": ["<RushrRouter>", "<RushrPonsRouter>"] },
+         { "field_source": "ethereum_transaction", "field": "to", "operator": "in", "value": ["<ClashrLegacyRouter>", "<ClashrLegacyPonsRouter>"] },
          { "field_source": "ethereum_transaction", "field": "chain_id", "operator": "eq", "value": "4663" },
          { "field_source": "ethereum_transaction", "field": "value", "operator": "lte", "value": "250000000000000000" },
          { "field_source": "aggregation", "field": "eth_value_24h", "operator": "lte", "value": "1000000000000000000" },
          { "field_source": "system", "field": "current_unix_timestamp", "operator": "lt", "value": "<grant+30d>" } ] },
        { "name": "approve routers only", "method": "eth_signTransaction", "action": "ALLOW", "conditions": [
-         { "field_source": "ethereum_calldata", "field": "approve.spender", "operator": "in", "value": ["<RushrRouter>", "<RushrPonsRouter>"], "abi": "<erc20 approve>" },
+         { "field_source": "ethereum_calldata", "field": "approve.spender", "operator": "in", "value": ["<ClashrLegacyRouter>", "<ClashrLegacyPonsRouter>"], "abi": "<erc20 approve>" },
          { "field_source": "ethereum_transaction", "field": "value", "operator": "eq", "value": "0" } ] } ] }
      ```
      This is illustrative: the exact field names follow Privy's schema, and anything unmatched is denied.
@@ -160,13 +160,13 @@ Sources were checked on 2026-11-12. "Unverified" marks claims we couldn't confir
    - The user calls `addSigners({ signerId: <rushr quick-trade key quorum>, policyIds: [policy] })`.
 3. **One-click quick-buy:**
    - The UI sends `{ token, amount }`.
-   - The server runs `prepareSwap(...)` (already in `packages/trade`) → structured route → `RushrRouter` calldata. It simulates with `eth_simulateV1`, signs via Privy (`eth_signTransaction`, authorization signature from KMS), and broadcasts to our RPC.
+   - The server runs `prepareSwap(...)` (already in `packages/trade`) → structured route → `ClashrLegacyRouter` calldata. It simulates with `eth_simulateV1`, signs via Privy (`eth_signTransaction`, authorization signature from KMS), and broadcasts to our RPC.
    - The ledger records the trade (`TradeRecord`).
    - Expected latency is about 100–200 ms signing plus RPC broadcast, then sequencer inclusion.
-   - The first sell of a token also needs a one-time `approve(RushrRouter)`, also within policy.
+   - The first sell of a token also needs a one-time `approve(ClashrLegacyRouter)`, also within policy.
 4. **Revoke and export:** a Permissions page with "Revoke 1-click trading" (`removeSigners`) and "Export key" (Privy HPKE export) needs the user's passkey. Expiry auto-lapses the grant.
 
-## 4. Option: server-side "one-click mode" on the Universal Router, before the RushrRouter audit
+## 4. Option: server-side "one-click mode" on the Universal Router, before the ClashrLegacyRouter audit
 
 An open decision; **not built**. Asked on 2026-11-12 because client-side signing still waits for Privy's signing round trip (~380 ms from Asia), while GMGN signs server-side.
 
@@ -191,7 +191,7 @@ An open decision; **not built**. Asked on 2026-11-12 because client-side signing
 - **Buys:** the attacker can route up to 0.25 ETH per tx and 1 ETH per day per user to themselves, via `SWEEP`/`TRANSFER` with an allowlisted command string.
 - **Sells: unbounded by the caps** (sells carry `value = 0`). The same command strings with the attacker as recipient sell every pre-approved token and send the ETH to them. Pre-approval at buy time (the fast path) makes every bought token exposed.
 - **Many users at once:** with 1,000 opted-in users, a day's exposure is ~1,000 ETH plus all their token holdings.
-- **RushrRouter, by contrast,** forces `recipient = msg.sender` and the fee in the contract. That leaves only "bad but valid trades" (sandwiching a `minOut = 0` trade, bounded by the caps).
+- **ClashrLegacyRouter, by contrast,** forces `recipient = msg.sender` and the fee in the contract. That leaves only "bad but valid trades" (sandwiching a `minOut = 0` trade, bounded by the caps).
 
 **Safer variant if it's wanted before the audit:** one-click **buys only**. Sells stay client-side, and no Permit2 rules go in the policy. Even then, the loss bound for a compromised key is 1 ETH per day per opted-in user, plus skipped fees. Keep the cap low (e.g. 0.1 ETH/tx, 0.5/day), add an anomaly alert on any swap whose output doesn't reach the signer's own wallet (checkable from receipts within a block), and keep a kill switch (stop signing). It's also more custodial in substance: the terms and risk disclosure need to say Rushr can trade for the user within the caps.
 
@@ -203,7 +203,7 @@ An open decision; **not built**. Asked on 2026-11-12 because client-side signing
 **Recommendation:**
 - Don't ship server-side signing on the Universal Router.
 - Ship the client-side fast path. Read the real timings from the next real trades (`window.__rushrTradeTimings`).
-- If it still feels slow, go for RushrRouter's audit (recipient and fee enforced on-chain), then one-click via session signers on RushrRouter, as section 3 describes.
+- If it still feels slow, go for ClashrLegacyRouter's audit (recipient and fee enforced on-chain), then one-click via session signers on ClashrLegacyRouter, as section 3 describes.
 - If an earlier step is needed anyway, use buys-only with low caps, as above.
 
 ---
@@ -236,13 +236,13 @@ Each one is revocable on its own from the Permissions page. Quick-trade and agen
    - **Privy:** the 4663 tier (transaction policies), user-owned policies, and an Enterprise quote at ~1M signatures/month
    - **Turnkey:** an Enterprise quote
 2. **Accept the key-holding model** (policy-limited, revocable, KMS-held) as replacing the earlier "no key" rule.
-3. **Approve `RushrRouter`** (structured Uniswap routes, recipient forced, pool allowlist with timelock, guardian pause) for build and independent audit. It's required before server signing on Uniswap routes. Until then, quick-buy needs a wallet confirmation per trade.
+3. **Approve `ClashrLegacyRouter`** (structured Uniswap routes, recipient forced, pool allowlist with timelock, guardian pause) for build and independent audit. It's required before server signing on Uniswap routes. Until then, quick-buy needs a wallet confirmation per trade.
 4. **Default caps and expiry:** proposed 0.25 ETH per trade, 1 ETH per day, 30-day grants, user-adjustable.
 5. **KMS:** which cloud (AWS KMS P-256 or GCP KMS) holds the authorization keys.
 
 ## Built so far (2026-11-12; nothing deployed, no real account or key)
 
-### `contracts/src/RushrRouter.sol` (audit-gated, not deployed)
+### `contracts/src/ClashrLegacyRouter.sol` (audit-gated, not deployed)
 - **Structured routes:** `Route { kind (V2|V3|V4), token, quote (WETH, or ETH for v4), fee, tickSpacing, hooks }`. The contract builds the Universal Router v2.1 commands itself and takes **no arbitrary calldata**. Output always lands in the router and goes to `msg.sender`. `minOut` is checked on what the trader actually receives. The fee (0.5%, or 0.45% when referred) is taken in ETH.
 - **Entry points:**
   - `buy`: any canonical v2/v3 pool, and v4 pools with allowlisted hooks.
@@ -265,9 +265,9 @@ Each one is revocable on its own from the Permissions page. Quick-trade and agen
 ### `packages/trade`
 | Module | What |
 | --- | --- |
-| `rushr-router.ts` | `routeFromPool(pool)` (ETH/WETH Uniswap pools), `rushrPoolKey` (same as the contract's `poolKeyOf`), `buildRushrRouterSwap(quote, cfg, { sellMode })` → unsigned tx plus the `approve(RushrRouter)` approval |
-| `policy.ts` | `buildSignerPolicy({ purpose, wallet, rushrRouter, ponsRouter, caps })`: the Privy policy JSON. It allows the routers' `buy`/`sell` and router approvals on chain 4663, with per-trade and rolling-24 h caps and expiry; `sellAnyPool` is deliberately not allowed. `defaultCaps(now)`: 0.25 ETH, 1 ETH, 30 days |
-| `signer.ts` | The `AuthorizationKey` (KMS boundary) interface; `PlaceholderKmsKey` (always refuses, until a KMS is chosen); `WebCryptoAuthorizationKey` (dev and tests only, imports Privy's `wallet-auth:` format); `PrivySessionSigner` (REST `POST /v1/wallets/{id}/rpc` `eth_signTransaction`, signed with an RFC 8785 canonical payload and DER P-256 signature); `createSessionSigner(env, key, cfg)` (returns `null` unless `WALLETS_ENABLED=1`, Privy is configured **and** `assertOneClickAllowed(cfg)` passes); `assertOneClickAllowed(cfg)` (refuses until `rushrRouter` is set **and** `rushrRouterAudited: true`) |
+| `clashr-router.ts` | `routeFromPool(pool)` (ETH/WETH Uniswap pools), `clashrLegacyPoolKey` (same as the contract's `poolKeyOf`), `buildClashrLegacyRouterSwap(quote, cfg, { sellMode })` → unsigned tx plus the `approve(ClashrLegacyRouter)` approval |
+| `policy.ts` | `buildSignerPolicy({ purpose, wallet, clashrLegacyRouter, ponsRouter, caps })`: the Privy policy JSON. It allows the routers' `buy`/`sell` and router approvals on chain 4663, with per-trade and rolling-24 h caps and expiry; `sellAnyPool` is deliberately not allowed. `defaultCaps(now)`: 0.25 ETH, 1 ETH, 30 days |
+| `signer.ts` | The `AuthorizationKey` (KMS boundary) interface; `PlaceholderKmsKey` (always refuses, until a KMS is chosen); `WebCryptoAuthorizationKey` (dev and tests only, imports Privy's `wallet-auth:` format); `PrivySessionSigner` (REST `POST /v1/wallets/{id}/rpc` `eth_signTransaction`, signed with an RFC 8785 canonical payload and DER P-256 signature); `createSessionSigner(env, key, cfg)` (returns `null` unless `WALLETS_ENABLED=1`, Privy is configured **and** `assertOneClickAllowed(cfg)` passes); `assertOneClickAllowed(cfg)` (refuses until `clashrLegacyRouter` is set **and** `clashrLegacyRouterAudited: true`) |
 
 Verified:
 - 63 unit tests pass. The signature produced by `PrivySessionSigner` verifies with WebCrypto against the canonical payload. Canonical JSON, DER conversion, policy contents, the gates and policy-denial handling are all covered.
@@ -280,4 +280,4 @@ Verified:
 3. Build the user-side grant flow in the web app: the client SDK `addSigners` with the user as policy owner. The dev check used a key quorum to stand in for the user.
 4. Add a Permissions page (grant, caps, revoke, export) in the terminal, behind `NEXT_PUBLIC_SWAP_ENABLED`.
 
-One-click trading stays off until RushrRouter's independent audit; until then trades go through the wallet confirmation flow.
+One-click trading stays off until ClashrLegacyRouter's independent audit; until then trades go through the wallet confirmation flow.

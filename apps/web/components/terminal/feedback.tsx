@@ -1,5 +1,7 @@
 'use client';
 
+import { storageKey } from '@/lib/brand-compat';
+
 import {usePlatformLanguage} from '@/components/landing/language-provider';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
@@ -11,7 +13,7 @@ import { V1 } from '@/lib/members';
 import {BNB_PRODUCT} from '@/lib/product';
 
 const MAX = 2000;
-const DRAFT_KEY = 'rushr.feedback.draft';
+const DRAFT_KEY = storageKey('feedback.draft');
 const KINDS = [
   { id: 'bug', label: 'Bug' },
   { id: 'idea', label: 'Idea' },

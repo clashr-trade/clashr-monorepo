@@ -1,5 +1,5 @@
 import {it,expect} from 'vitest';
-import type {TokenSnapshot} from '@rushr/core';
+import type {TokenSnapshot} from '@clashr/core';
 import {projectFlapSafety,firstFunding,bscWalletIsContract} from '../src/bsc/flap-safety';
 const dev='0x'+'11'.repeat(20),buyer='0x'+'22'.repeat(20),funder='0x'+'33'.repeat(20);
 const snapshot:TokenSnapshot={address:'0x'+'44'.repeat(20),symbol:'TEST',totalSupply:1000n,burnt:100n,deployer:dev,createdAt:1000,createdBlock:100n,holders:[{wallet:dev,amount:90n},{wallet:buyer,amount:90n}],holderCount:2,earlyBuys:[{trader:buyer,block:101n,time:1002,tokenAmount:90n}],launchIndexed:true,wallets:{[dev]:{firstFunder:funder,firstSeen:900},[buyer]:{firstFunder:funder,firstSeen:950}},airdropped:[],devTokens:[],twinOrganicHolders:0,launchpad:'flap',now:1100};

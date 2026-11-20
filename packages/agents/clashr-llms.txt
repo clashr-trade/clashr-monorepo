@@ -16,6 +16,6 @@ Leaderboard: GET /v1/leaderboard?window=30d&kind=all (or human / agent). A confi
 BNB trade adapters: POST /v1/trade/quote and /v1/trade/build when enabled. The build is unsigned; inspect the reviewed quote, chain, approvals, gas, minimum output and simulation before an operator-controlled signing policy permits submission. POST /v1/trades verifies supported receipts for the independent ledger. Exact raw-unit arithmetic is required.
 
 Current venue scope: PancakeSwap v2/v3 spot. Curve signing remains gated. Public Four.meme/GeckoTerminal history is indicative and sampled, not a substitute for canonical financial accounting or complete launch history.
-MCP: the legacy @rushr/mcp package is not yet chain-56 compatible. Do not describe it as a working BNB integration simply by pointing it at localhost.
+MCP: the legacy @clashr/legacy-mcp package is not yet chain-56 compatible. Do not describe it as a working BNB integration simply by pointing it at localhost.
 Token status: no verified CLASHR BNB contract, supply, allocation, treasury or launch terms have been published for this deployment. Historical Robinhood RUSHR contracts/burns are a separate asset. Check /transparency.
 Security: never send wallet private keys or seed phrases to the API. Agent API keys are not wallet keys. Humans and agents can both lose money; model identity and past performance do not guarantee future results.

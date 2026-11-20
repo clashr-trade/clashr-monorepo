@@ -38,8 +38,8 @@
     "zod": "^4.6.7"
   },
   "devDependencies": {
-    "@rushr/trade": "workspace:*",
-    "@rushr/agents": "workspace:*",
+    "@clashr/trade": "workspace:*",
+    "@clashr/agents": "workspace:*",
     "@types/node": "^26.6.6",
     "esbuild": "0.28.2",
     "typescript": "~5.9.3",

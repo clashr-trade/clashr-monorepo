@@ -7,7 +7,7 @@ import { buildSwap } from '../src/build';
 import { prepareSwap, toJsonSafe } from '../src/agent';
 import { ponsBuyCapped } from '../src/math';
 import { TRADE_ADDRESSES } from '../src/addresses';
-import { rushrPonsRouterAbi } from '../src/abis';
+import { clashrLegacyPonsRouterAbi } from '../src/abis';
 import type { PonsPool, SwapRequest, V2Pool } from '../src/types';
 
 const TREASURY: Address = '0x1111111111111111111111111111111111111111';
@@ -124,7 +124,7 @@ describe('PONS graduation cap (curve 0xdb0f…8050, eth_simulateV1 2026-11-12)',
     expect(q.fee.feeAmount).toBe((q.swapAmountIn * 50n) / 9_950n);
     expect(q.warnings.join(' ')).toMatch(/graduates/);
     const withRouter = resolveConfig({ feeRecipient: TREASURY, ponsRouter: '0x3333333333333333333333333333333333333333' });
-    const d = decodeFunctionData({ abi: rushrPonsRouterAbi, data: buildSwap(q, withRouter).tx.data });
+    const d = decodeFunctionData({ abi: clashrLegacyPonsRouterAbi, data: buildSwap(q, withRouter).tx.data });
     expect(d.args.at(-1)).toBe(false); // not referred
   });
 });
@@ -142,14 +142,14 @@ describe('prepareSwap (server / agent entry point)', () => {
     expect(json.record.referrer).toBe(REFERRER);
   });
 
-  it('refuses forSigning with a placeholder treasury, and one-click until RushrRouter is deployed AND audited', async () => {
+  it('refuses forSigning with a placeholder treasury, and one-click until ClashrLegacyRouter is deployed AND audited', async () => {
     const pools = { pools: [v2Pool] };
     await expect(prepareSwap(noRpc, req('buy', 10n ** 18n), { config: { feeRecipient: PLACEHOLDER_FEE_RECIPIENT }, discover: pools, forSigning: true })).rejects.toMatchObject({ code: 'FEE_RECIPIENT_PLACEHOLDER' });
     expect(() => assertSignable(cfg)).not.toThrow();
     // The default config (the real treasury) is fine for user-confirmed signing...
     await expect(prepareSwap(noRpc, req('buy', 10n ** 18n), { discover: pools, forSigning: true })).resolves.toBeTruthy();
-    // ...but never for one-click: no RushrRouter yet, then not audited.
-    await expect(prepareSwap(noRpc, req('buy', 10n ** 18n), { discover: pools, oneClick: true })).rejects.toThrow(/RushrRouter deployed/);
-    await expect(prepareSwap(noRpc, req('buy', 10n ** 18n), { config: { rushrRouter: TREASURY }, discover: pools, oneClick: true })).rejects.toThrow(/audited/);
+    // ...but never for one-click: no ClashrLegacyRouter yet, then not audited.
+    await expect(prepareSwap(noRpc, req('buy', 10n ** 18n), { discover: pools, oneClick: true })).rejects.toThrow(/ClashrLegacyRouter deployed/);
+    await expect(prepareSwap(noRpc, req('buy', 10n ** 18n), { config: { clashrLegacyRouter: TREASURY }, discover: pools, oneClick: true })).rejects.toThrow(/audited/);
   });
 });

@@ -9,7 +9,7 @@
 // repairTraders fixes that per batch (no RPC: the poll path already has the Transfers), and
 // reattributeSwaps re-credits older rows from the indexed transfers table (admin backfill).
 import type { Sql, TransactionSql } from 'postgres';
-import { INFRA_ADDRESSES } from '@rushr/core';
+import { INFRA_ADDRESSES } from '@clashr/core';
 
 export const INFRA = INFRA_ADDRESSES.map((a) => a.toLowerCase());
 const INFRA_SET = new Set(INFRA);

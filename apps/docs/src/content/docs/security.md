@@ -15,7 +15,7 @@ The terminal, indexer, safety signals, trade code and agent API are public at [g
 
 ## No custom contracts in the trade path
 
-Trades go through Uniswap's audited **Universal Router** and the **PONS curves**, nothing else. Rushr's own router contracts in [`contracts/`](https://github.com/rushr-dev/platform/tree/main/contracts) are a public design draft: not deployed, and to be deployed only after an independent audit. Every trade is simulated before it's signed. See [Addresses](/rushr/addresses/#trade-path).
+Trades go through Uniswap's audited **Universal Router** and the **PONS curves**, nothing else. Rushr's own router contracts in [`contracts/`](https://github.com/rushr-dev/platform/tree/main/contracts) are a public design draft: not deployed, and to be deployed only after an independent audit. Every trade is simulated before it's signed. See [Addresses](/legacy-token/addresses/#trade-path).
 
 ## Fees to a Safe
 

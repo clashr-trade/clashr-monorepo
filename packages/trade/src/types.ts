@@ -121,7 +121,7 @@ export interface BuiltSwap {
   tx: { to: Address; data: Hex; value: bigint };
   /** Steps the wallet must complete before `tx` (in order). */
   approvals: Approval[];
-  /** Universal Router commands, for the route disclosure and tests (empty for RushrPonsRouter). */
+  /** Universal Router commands, for the route disclosure and tests (empty for ClashrLegacyPonsRouter). */
   commands: EncodedCommand[];
   deadline: bigint;
 }

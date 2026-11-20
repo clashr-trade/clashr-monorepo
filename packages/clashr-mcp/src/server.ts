@@ -1,6 +1,6 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
-import { TradeError, sanitizeRpcMessage } from '@rushr/trade/errors';
+import { TradeError, sanitizeRpcMessage } from '@clashr/trade/errors';
 import { Refusal, type Config } from './config.ts';
 import { createChain, type Chain } from './chain.ts';
 import { Clashr } from './service.ts';

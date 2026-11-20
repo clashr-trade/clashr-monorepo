@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { requestedRpcChain, rpcUpstream, verifyRpcChain } from '../lib/rpc-upstream';
-import { BSC_PUBLIC_RPC } from '@rushr/core/chain/bsc-rpc';
+import { BSC_PUBLIC_RPC } from '@clashr/core/chain/bsc-rpc';
 
 afterEach(() => vi.unstubAllGlobals());
 

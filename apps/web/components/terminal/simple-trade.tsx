@@ -5,7 +5,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { formatUnits, parseEther, parseUnits } from 'viem';
 import { Gear, Info } from '@phosphor-icons/react';
-import { feeLine, maxBuyWei, type QuickTrade } from '@rushr/trade';
+import { feeLine, maxBuyWei, type QuickTrade } from '@clashr/trade';
 import { tradingAvailable } from '@/components/trade/flag';
 import { useQuickTrade, type TradeToken } from '@/components/trade/use-quick-trade';
 import { compact, usd } from '@/lib/format';

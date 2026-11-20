@@ -1,5 +1,7 @@
 'use client';
 
+import { TRADE_EVENT, storageKey } from './brand-compat';
+
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { API_URL } from './api';
 import type { Tx } from './trades';
@@ -142,7 +144,7 @@ export function usePosition({
   useEffect(() => {
     if (!w) return setServer(null);
     const k = `${w}:${t}`;
-    const cacheKey = `rushr.position.${k}`;
+    const cacheKey = storageKey(`position.${k}`);
     // Paint the last answer for this wallet and token at once (this tab only); the fetch replaces it.
     if (tick === 0)
       try {
@@ -208,8 +210,8 @@ export function usePosition({
         setPending((p) => p.filter((x) => x.key !== k && x.key !== `${d.side}:${d.amountIn}`));
       }
     };
-    window.addEventListener('rushr:trade', on);
-    return () => window.removeEventListener('rushr:trade', on);
+    window.addEventListener(TRADE_EVENT, on);
+    return () => window.removeEventListener(TRADE_EVENT, on);
   }, [w, t]);
 
   // Trades from this wallet on the live feed: refetch so the server numbers catch up.

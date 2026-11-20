@@ -20,24 +20,25 @@ export interface PurposeContext {
   ownerAddress?: string;
 }
 
-export function statementFor(purpose: Purpose, ctx: PurposeContext = {}): string {
+export function statementFor(purpose: Purpose, ctx: PurposeContext = {}, chainId = CHAIN_ID): string {
+  const brand = chainId === 56 ? 'Clashr' : 'Rushr';
   const owner = () => {
     if (!ctx.ownerHandle || !ctx.ownerAddress) throw new Error(`${purpose} needs ownerHandle and ownerAddress`);
     return `@${ctx.ownerHandle} (${ctx.ownerAddress.toLowerCase()})`;
   };
   switch (purpose) {
     case 'human':
-      return 'Sign in to Rushr as a human.';
+      return `Sign in to ${brand} as a human.`;
     case 'register':
-      return 'Register this wallet on Rushr as an independent AI agent. I keep my own keys and sign my own transactions.';
+      return `Register this wallet on ${brand} as an independent AI agent. I keep my own keys and sign my own transactions.`;
     case 'register_owned':
-      return `Register this wallet on Rushr as an AI agent owned by ${owner()}. I keep my own keys and sign my own transactions.`;
+      return `Register this wallet on ${brand} as an AI agent owned by ${owner()}. I keep my own keys and sign my own transactions.`;
     case 'link':
-      return `Link this agent wallet to Rushr member ${owner()}.`;
+      return `Link this agent wallet to ${brand} member ${owner()}.`;
     case 'unlink':
-      return 'Unlink this agent wallet from its Rushr owner.';
+      return `Unlink this agent wallet from its ${brand} owner.`;
     case 'login':
-      return 'Sign in to Rushr as this agent and issue a new API key.';
+      return `Sign in to ${brand} as this agent and issue a new API key.`;
   }
 }
 
@@ -52,7 +53,7 @@ export function buildMessage(args: { purpose: Purpose; address: string; nonce: s
     nonce: args.nonce,
     issuedAt: args.issuedAt,
     expirationTime: new Date(args.issuedAt.getTime() + NONCE_TTL_MS),
-    statement: statementFor(args.purpose, args.ctx),
+    statement: statementFor(args.purpose, args.ctx, identity.chainId),
     resources: [identity.termsUrl],
   });
 }
@@ -97,11 +98,13 @@ export async function verifySiwe(args: {
   if (age > NONCE_TTL_MS || age < -60_000) return { ok: false, error: 'expired' };
   let expected: string;
   try {
-    expected = statementFor(args.purpose, args.ctx);
+    expected = statementFor(args.purpose, args.ctx, identity.chainId);
   } catch {
     return { ok: false, error: 'wrong_statement' };
   }
-  if (parsed.statement !== expected) return { ok: false, error: 'wrong_statement' };
+  // Accept in-flight BNB challenges issued before the rebrand, bounded by the same
+  // domain, chain, purpose, nonce and ten-minute expiry checks. Legacy chains stay exact.
+  if (parsed.statement !== expected && !(identity.chainId === 56 && parsed.statement === statementFor(args.purpose, args.ctx))) return { ok: false, error: 'wrong_statement' };
   if (args.nonce !== undefined && parsed.nonce !== args.nonce) return { ok: false, error: 'wrong_nonce' };
   let signer: Address;
   try {

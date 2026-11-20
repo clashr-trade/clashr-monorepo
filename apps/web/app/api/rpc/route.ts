@@ -1,5 +1,5 @@
 import { getCloudflareContext } from '@opennextjs/cloudflare';
-import { LEGACY_CHAIN_ID } from '@rushr/core/chain/networks';
+import { LEGACY_CHAIN_ID } from '@clashr/core/chain/networks';
 import { requestedRpcChain, rpcUpstream, verifyRpcChain, type RpcEnvironment } from '../../../lib/rpc-upstream';
 
 /**

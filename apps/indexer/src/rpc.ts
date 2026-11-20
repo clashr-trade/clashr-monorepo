@@ -1,5 +1,5 @@
 import { decodeFunctionResult, encodeFunctionData, parseAbi, toFunctionSelector, type Address, type Hex } from 'viem';
-import { ABIS, NATIVE_ETH, QUOTES, UNISWAP, type RawLog } from '@rushr/core';
+import { ABIS, NATIVE_ETH, QUOTES, UNISWAP, type RawLog } from '@clashr/core';
 
 interface RpcResponse<T> {
   id: number;

@@ -7,9 +7,9 @@ const RANGES: Record<string, string> = { '24h': '24H', '7d': '7D', '30d': '30D',
 export async function GET(req: Request, { params }: { params: Promise<{ handle: string }> }) {
   const { handle } = await params;
   const range = new URL(req.url).searchParams.get('range') ?? 'all';
-  if (!RANGES[range]) return fallbackCard('rushr.');
+  if (!RANGES[range]) return fallbackCard('CLASHR.');
   const member = await cardMember(handle);
-  if (!member) return fallbackCard('rushr.');
+  if (!member) return fallbackCard('CLASHR.');
   const [summary, history] = await Promise.all([cardPnl(member.wallet), cardHistory(member.wallet, range)]);
   return profileCard(
     {

@@ -97,7 +97,7 @@ export function dateUtc(iso: string | number): string {
 }
 export const dateTimeUtc = (iso: string | number) => `${new Date(iso).toISOString().slice(0, 16).replace('T', ' ')} UTC`;
 
-/** Quote tokens (mirrors QUOTES / STOCK_QUOTES in @rushr/core, kept here to keep viem out of the client bundle). */
+/** Quote tokens (mirrors QUOTES / STOCK_QUOTES in @clashr/core, kept here to keep viem out of the client bundle). */
 const QUOTE_LABEL: Record<string, string> = {
   '0x0000000000000000000000000000000000000000': 'ETH',
   '0x0bd7d308f8e1639fab988df18a8011f41eacad73': 'WETH',

@@ -96,7 +96,7 @@ The descriptions below record that earlier separate-preview implementation.
   missing metadata stays unavailable. No inferred token deployer or wallet trader.
 - BSC reads require fresh, caught-up, non-halted cursor state; manual readiness flags are ignored.
   Responses include coverage; finalized pool execution history is available via the v2 swaps endpoint.
-- `@rushr/trade/bsc`: independent on-chain direct WBNB v2/v3 quote/build, pool identity and deployment
+- `@clashr/trade/bsc`: independent on-chain direct WBNB v2/v3 quote/build, pool identity and deployment
   verification, block/account/route/expiry binding, marginal pool-impact cap, exact/reset approvals,
   stateful wallet-delta simulation, BNB gas budgets and user-confirmed EOA execution.
 - Native v3 refund/unwrap handling; no Universal Router/Robinhood command reuse. Platform/referral fees

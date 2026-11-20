@@ -132,7 +132,7 @@ export async function quotePool(client: PublicClient, pool: Pool, req: SwapReque
 
   if (pool.venue === 'pons-curve') {
     if (pool.snipeTaxBps > 0) warnings.push(`PONS snipe tax active: ${(pool.snipeTaxBps / 100).toFixed(1)}% right now (decays to 0 in the first seconds after launch)`);
-    if (!cfg.ponsRouter) warnings.push('PONS curve trades need RushrPonsRouter, which is not deployed yet');
+    if (!cfg.ponsRouter) warnings.push('PONS curve trades need ClashrLegacyPonsRouter, which is not deployed yet');
   }
   if (pool.venue === 'uniswap-v4' && pool.key.hooks !== zeroAddress) warnings.push('Hooked v4 pool: the hook may change fees or behaviour at swap time');
 
@@ -142,7 +142,7 @@ export async function quotePool(client: PublicClient, pool: Pool, req: SwapReque
     if (v.out === 0n) throw new TradeError('INSUFFICIENT_LIQUIDITY', 'Quote returned zero output', { pool: pool.id });
     let expectedRefund = 0n;
     if (v.used !== undefined && v.used < swapAmount) {
-      // Graduating PONS buy: the fee is charged on what is actually spent (same rule as RushrPonsRouter).
+      // Graduating PONS buy: the fee is charged on what is actually spent (same rule as ClashrLegacyPonsRouter).
       swapAmount = v.used;
       feeAmount = (v.used * BigInt(feeBps)) / (BPS - BigInt(feeBps));
       expectedRefund = req.amountIn - v.used - feeAmount;

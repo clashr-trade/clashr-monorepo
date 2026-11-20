@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ArrowLeft, ArrowSquareOut, ArrowsClockwise, CheckCircle, CircleNotch, Copy, Database, LockKey, MagnifyingGlass, ShieldCheck } from '@phosphor-icons/react';
 import { formatUnits } from 'viem';
-import { getNetwork } from '@rushr/core/chain/networks';
+import { getNetwork } from '@clashr/core/chain/networks';
 import type { BscCoverage, BscPool, BscSwap, BscToken } from '@/lib/bsc-preview';
 import { GeneratedAvatar } from './avatar';
 

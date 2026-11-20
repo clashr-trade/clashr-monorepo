@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { encodeAbiParameters, pad, type Address, type Hex, type PublicClient } from 'viem';
 import { auditCurveFee, CURVE_BUY_TOPIC, CURVE_FEE_GAS, CURVE_SELL_TOPIC, curveFillFromLogs, followUpFeeCall, maxBuyWei, tradeFollowUpFee, type CurveFeeFollowUp, type FeeTxInfo } from '../src/curve-fee';
 import { quickBuy, quickSell } from '../src/quick';
-import { RUSHR_TREASURY } from '../src/config';
+import { LEGACY_ROBINHOOD_TREASURY } from '../src/config';
 import type { PonsPool } from '../src/types';
 
 const TRADER: Address = '0x2222222222222222222222222222222222222222';
@@ -26,12 +26,12 @@ const fillLog = (side: 'buy' | 'sell', who: Address, quote: bigint, tokens: bigi
   topics: [side === 'buy' ? CURVE_BUY_TOPIC : CURVE_SELL_TOPIC, pad(who), pad(who)],
   data: encodeAbiParameters([{ type: 'uint256' }, { type: 'uint256' }, { type: 'uint256' }, { type: 'uint256' }], side === 'buy' ? [quote, tokens, quote / 100n, quote / 50n] : [tokens, quote, quote / 100n, quote / 50n]),
 });
-const follow = (side: 'buy' | 'sell', feeBps = 25): CurveFeeFollowUp => ({ kind: 'curve-fee', side, curve: CURVE, trader: TRADER, treasury: RUSHR_TREASURY, feeBps, quotedFee: 0n });
+const follow = (side: 'buy' | 'sell', feeBps = 25): CurveFeeFollowUp => ({ kind: 'curve-fee', side, curve: CURVE, trader: TRADER, treasury: LEGACY_ROBINHOOD_TREASURY, feeBps, quotedFee: 0n });
 
 describe('curve fee math (from the receipt)', () => {
   it('buy: 0.25% of the ETH the curve took, sent to the treasury with no calldata', () => {
     const call = followUpFeeCall(follow('buy'), { status: 'success', logs: [fillLog('buy', TRADER, E(0.01), 10n ** 24n)] });
-    expect(call).toEqual({ label: 'Rushr fee', chainId: 4663, to: RUSHR_TREASURY, value: E(0.000025), data: '0x', gas: CURVE_FEE_GAS });
+    expect(call).toEqual({ label: 'Rushr fee', chainId: 4663, to: LEGACY_ROBINHOOD_TREASURY, value: E(0.000025), data: '0x', gas: CURVE_FEE_GAS });
   });
 
   it('a buy that completes the curve pays on what the curve took, not on the refunded part', () => {
@@ -98,8 +98,8 @@ describe('balance reservation', () => {
 });
 
 describe('curve fee audit', () => {
-  const trade = { hash: `0x${'aa'.repeat(32)}` as Hex, from: TRADER, nonce: 7, value: E(0.01), status: 'success' as const, logs: [fillLog('buy', TRADER, E(0.01), 1n)], treasury: RUSHR_TREASURY, feeBps: 25, referredFeeBps: 22 };
-  const feeTx = (o: Partial<FeeTxInfo> = {}): FeeTxInfo => ({ hash: `0x${'bb'.repeat(32)}`, from: TRADER, to: RUSHR_TREASURY, value: E(0.000025), input: '0x', nonce: 8, status: 'success', ...o });
+  const trade = { hash: `0x${'aa'.repeat(32)}` as Hex, from: TRADER, nonce: 7, value: E(0.01), status: 'success' as const, logs: [fillLog('buy', TRADER, E(0.01), 1n)], treasury: LEGACY_ROBINHOOD_TREASURY, feeBps: 25, referredFeeBps: 22 };
+  const feeTx = (o: Partial<FeeTxInfo> = {}): FeeTxInfo => ({ hash: `0x${'bb'.repeat(32)}`, from: TRADER, to: LEGACY_ROBINHOOD_TREASURY, value: E(0.000025), input: '0x', nonce: 8, status: 'success', ...o });
 
   it('passes a fee transfer at the next nonce with the expected rate', () => {
     const a = auditCurveFee({ ...trade, feeTx: feeTx() });

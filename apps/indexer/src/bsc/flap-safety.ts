@@ -1,4 +1,4 @@
-import {computeSignals,tagHolders,type TokenSnapshot} from '@rushr/core';
+import {computeSignals,tagHolders,type TokenSnapshot} from '@clashr/core';
 import {createPublicClient,http,type Address} from 'viem';
 import {bsc} from 'viem/chains';
 import type {Sql} from 'postgres';

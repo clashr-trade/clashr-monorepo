@@ -1,7 +1,9 @@
 'use client';
+
+import { storageKey } from './brand-compat';
 import { createWalletClient, custom, formatUnits,parseUnits,type EIP1193Provider } from 'viem';
 import { bsc } from 'viem/chains';
-import {BSC_PUBLIC_RPC} from '@rushr/core/chain/bsc-rpc';
+import {BSC_PUBLIC_RPC} from '@clashr/core/chain/bsc-rpc';
 export {bscSigningEnabled} from './bsc-flags';
 
 export type BscInjectedProvider = EIP1193Provider & {
@@ -69,7 +71,7 @@ export interface BscActivity {
     settlement?:{asset:string;amount:string|null;maximum:string;decimals:number;symbol:string};
     meetsMinimum: boolean; provenance: 'canonical-receipt-events'; platformFeeWei: '0' };
 }
-const activityKey = (account: string) => `rushr.bsc.activity.${account.toLowerCase()}`;
+const activityKey = (account: string) => storageKey(`bsc.activity.${account.toLowerCase()}`);
 export function readBscActivity(storage: Pick<Storage, 'getItem'>, account: string): BscActivity[] {
   try {
     const rows: unknown = JSON.parse(storage.getItem(activityKey(account)) ?? '[]');

@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "clashr-legacy": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@rushr/mcp@latest"
+      ]
+    }
+  }
+}

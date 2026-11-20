@@ -29,7 +29,7 @@ Under it runs a fast, non-custodial terminal for the Robinhood Chain trenches. R
 
 - **Trading yourself:** [join the beta](/getting-started/join-the-beta/), then [fund your wallet](/getting-started/funding/) and read [the trenches](/trading/trenches/).
 - **Building an agent:** start with [Agents on Rushr](/agents/overview/), then the [quickstart](/agents/quickstart/) or the [MCP server](/agents/mcp/).
-- **Curious about $RUSHR:** [the token](/rushr/token/) and [where fees go](/rushr/fees-and-buybacks/).
+- **Curious about $RUSHR:** [the token](/legacy-token/token/) and [where fees go](/legacy-token/fees-and-buybacks/).
 
 :::caution[Beta]
 Rushr is in beta. Tokens on Robinhood Chain are extremely risky, and agents can lose money too. Rushr shows public on-chain data and never gives financial advice.

@@ -1,5 +1,5 @@
 import { formatEther, parseEther } from 'viem';
-import { TRADE_ADDRESSES } from '@rushr/trade/addresses';
+import { TRADE_ADDRESSES } from '@clashr/trade/addresses';
 import type { Api } from './api.ts';
 import { GuardError } from './guards.ts';
 
@@ -15,7 +15,7 @@ export function createEthUsd(api: Api, f: typeof fetch = fetch) {
   let cache: { at: number; usd: number } | null = null;
   return async function ethUsd(): Promise<number> {
     if (cache && Date.now() - cache.at < 5 * 60_000) return cache.usd;
-    const rushr = await api<{ treasury?: { ethUsd?: number } }>('GET', '/transparency', { auth: false })
+    const clashr = await api<{ treasury?: { ethUsd?: number } }>('GET', '/transparency', { auth: false })
       .then((j) => j.treasury?.ethUsd ?? null)
       .catch(() => null);
     const dex = await f(`https://api.dexscreener.com/latest/dex/tokens/${WETH}`)
@@ -26,16 +26,16 @@ export function createEthUsd(api: Api, f: typeof fetch = fetch) {
         return pairs[0] ? Number(pairs[0].priceUsd) : null;
       })
       .catch(() => null);
-    return (cache = { at: Date.now(), usd: checkEthUsd(rushr, dex) }).usd;
+    return (cache = { at: Date.now(), usd: checkEthUsd(clashr, dex) }).usd;
   };
 }
 
 /** The sanity rules on their own, for tests. */
-export function checkEthUsd(rushr: number | null, dex: number | null): number {
-  if (rushr === null || dex === null) throw new GuardError('refused_price_unavailable', `can't price ETH: Rushr ${rushr ?? 'unavailable'}, DexScreener ${dex ?? 'unavailable'}; refusing to size a trade`);
-  if (Math.abs(rushr - dex) / dex > 0.1) throw new GuardError('refused_price_disagreement', `ETH/USD sources disagree: Rushr $${rushr.toFixed(2)} vs DexScreener $${dex.toFixed(2)} (over 10%)`);
-  if (!(rushr > 500 && rushr < 20_000)) throw new GuardError('refused_price_out_of_band', `ETH/USD ${rushr} is outside $500-20,000`);
-  return rushr;
+export function checkEthUsd(clashr: number | null, dex: number | null): number {
+  if (clashr === null || dex === null) throw new GuardError('refused_price_unavailable', `can't price ETH: Rushr ${clashr ?? 'unavailable'}, DexScreener ${dex ?? 'unavailable'}; refusing to size a trade`);
+  if (Math.abs(clashr - dex) / dex > 0.1) throw new GuardError('refused_price_disagreement', `ETH/USD sources disagree: Rushr $${clashr.toFixed(2)} vs DexScreener $${dex.toFixed(2)} (over 10%)`);
+  if (!(clashr > 500 && clashr < 20_000)) throw new GuardError('refused_price_out_of_band', `ETH/USD ${clashr} is outside $500-20,000`);
+  return clashr;
 }
 
 export const usdToWei = (usd: number, ethUsd: number) => parseEther((usd / ethUsd).toFixed(18));

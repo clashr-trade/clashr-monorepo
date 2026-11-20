@@ -1,5 +1,5 @@
 {
-  "name": "@rushr/web",
+  "name": "@clashr/web",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -22,9 +22,9 @@
   "dependencies": {
     "@phosphor-icons/react": "^2.1.10",
     "@privy-io/react-auth": "3.51.0",
-    "@rushr/agents": "workspace:*",
-    "@rushr/core": "workspace:*",
-    "@rushr/trade": "workspace:*",
+    "@clashr/agents": "workspace:*",
+    "@clashr/core": "workspace:*",
+    "@clashr/trade": "workspace:*",
     "@solana-program/memo": "0.10.0",
     "@solana-program/system": "0.10.0",
     "@solana-program/token": "0.9.0",

@@ -8,12 +8,12 @@ import { BNB_PRODUCT } from './product';
  * The showcase features $RUSHR calls and trades: the landing shouldn't advertise someone else's token.
  * Other tokens are only a fallback, and the agent's call comes from an independent agent, not ours.
  */
-const RUSHR_TOKEN = '0xa8ceeeb747fcf136947c35c5de6187ee90d6bfed';
+const LEGACY_ROBINHOOD_TOKEN = '0xa8ceeeb747fcf136947c35c5de6187ee90d6bfed';
 /** CLASHR's own agents: not used to talk up $RUSHR on the landing. */
 const TEAM_AGENTS = new Set(['talos']);
 /** Members never featured on the landing's call and PnL cards (they still appear on the leaderboard). */
 const NOT_FEATURED = new Set(['masblankon']);
-const isRushr = (address: string) => address.toLowerCase() === RUSHR_TOKEN;
+const isLegacyPlatformToken = (address: string) => address.toLowerCase() === LEGACY_ROBINHOOD_TOKEN;
 /** Anyone can post anything: the marketing page only shows presentable text and handles. */
 const BLOCKED = /fag|nig+(a|er)|retard|rape|nazi|hitler|porn|sex|cum|dick|dih|cock|pussy|fuck|shit|cunt|whore|slut|kike|spic|scam|rug/i;
 
@@ -119,14 +119,14 @@ export async function getLandingData(): Promise<LandingData> {
   ]);
   const calls = (feed?.items ?? []).filter(presentable);
   // A human's $RUSHR call that's up at least 50%, with the most to say; else the best performer on any token.
-  const rushrCalls = BNB_PRODUCT ? [] : calls.filter((c) => c.author.kind === 'human' && isRushr(c.token.address) && (c.result.sincePostPct ?? 0) >= 50);
+  const legacyTokenCalls = BNB_PRODUCT ? [] : calls.filter((c) => c.author.kind === 'human' && isLegacyPlatformToken(c.token.address) && (c.result.sincePostPct ?? 0) >= 50);
   const human =
-    rushrCalls.sort((a, b) => b.body.length - a.body.length)[0] ??
+    legacyTokenCalls.sort((a, b) => b.body.length - a.body.length)[0] ??
     calls.filter((c) => c.author.kind === 'human' && c.result.sincePostPct != null).sort((a, b) => b.result.sincePostPct! - a.result.sincePostPct!)[0] ??
     null;
   // An independent agent's call that explains itself (the longest take among recent ones).
   const agent =
-    calls.filter((c) => c.author.kind === 'agent' && !TEAM_AGENTS.has(c.author.handle) && !isRushr(c.token.address)).sort((a, b) => b.body.length - a.body.length)[0] ?? null;
+    calls.filter((c) => c.author.kind === 'agent' && !TEAM_AGENTS.has(c.author.handle) && !isLegacyPlatformToken(c.token.address)).sort((a, b) => b.body.length - a.body.length)[0] ?? null;
 
   const rows = (board?.rows ?? []).filter((r) => !BLOCKED.test(r.member.handle)).map(toRow);
   const traded = rows.filter((r) => r.trades > 0);
@@ -138,16 +138,16 @@ export async function getLandingData(): Promise<LandingData> {
   // The PnL card: the best closed, profitable $RUSHR trade among the season's traders (by return).
   let flex: LandingData['flex'] = null;
   const humans = BNB_PRODUCT ? [] : traded.filter((r) => r.member.kind === 'human' && !NOT_FEATURED.has(r.member.handle)).slice(0, 12);
-  const rushrTrades = await Promise.all(
+  const legacyTokenTrades = await Promise.all(
     humans.map(async (r) => {
       const w = await walletOf(r.member.handle);
-      const p = w ? await get<{ position?: { realized_usd: number; bought_usd: number; held_tokens: string } }>(`/wallets/${w}/positions/${RUSHR_TOKEN}`) : null;
+      const p = w ? await get<{ position?: { realized_usd: number; bought_usd: number; held_tokens: string } }>(`/wallets/${w}/positions/${LEGACY_ROBINHOOD_TOKEN}`) : null;
       const pos = p?.position;
       return pos && BigInt(pos.held_tokens || '0') === 0n && pos.realized_usd > 0 && pos.bought_usd > 0 ? { handle: r.member.handle, ret: pos.realized_usd / pos.bought_usd } : null;
     }),
   );
-  const best = rushrTrades.filter((x): x is { handle: string; ret: number } => !!x).sort((a, b) => b.ret - a.ret)[0];
-  if (best) flex = { handle: best.handle, token: RUSHR_TOKEN, symbol: 'RUSHR' };
+  const best = legacyTokenTrades.filter((x): x is { handle: string; ret: number } => !!x).sort((a, b) => b.ret - a.ret)[0];
+  if (best) flex = { handle: best.handle, token: LEGACY_ROBINHOOD_TOKEN, symbol: 'RUSHR' };
 
   return { call: human ? toCall(human) : null, agentCall: agent ? toCall(agent) : null, topHuman, topAgent, flex, rows: rows.slice(0, 5) };
 }

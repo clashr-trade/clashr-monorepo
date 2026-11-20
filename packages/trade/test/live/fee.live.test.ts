@@ -3,7 +3,7 @@
  * buy then a sell in one eth_simulateV1 block from a test address with a simulated balance; the treasury
  * must receive exactly the quoted 25 bps on the buy and 25 bps of the actual gross output on the sell,
  * and the fee audit must pass. Tokens are picked from the Rushr API at run time (pools get rugged).
- * Nothing is signed or broadcast. Skipped unless LIVE=1:  pnpm --filter @rushr/trade test:live
+ * Nothing is signed or broadcast. Skipped unless LIVE=1:  pnpm --filter @clashr/trade test:live
  */
 import { describe, expect, it } from 'vitest';
 import { createPublicClient, http, type Address, type PublicClient } from 'viem';

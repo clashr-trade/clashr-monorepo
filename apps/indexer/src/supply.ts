@@ -12,7 +12,7 @@
 // shares (top 10, dev, snipers...) are measured against it, and the token page shows it. Contracts such
 // as lockers, vesting and pools stay in circulation, as on DexScreener.
 import type { Sql, TransactionSql } from 'postgres';
-import { BURN_ADDRESSES, NATIVE_ETH, type DecodedTransfer } from '@rushr/core';
+import { BURN_ADDRESSES, NATIVE_ETH, type DecodedTransfer } from '@clashr/core';
 import type { Address } from 'viem';
 import type { Rpc } from './rpc';
 

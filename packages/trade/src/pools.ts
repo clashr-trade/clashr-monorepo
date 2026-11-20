@@ -13,7 +13,7 @@ import { sortCurrencies, v4PoolId, V4_DYNAMIC_FEE_FLAG } from './math';
 import type { Pool, PonsPool, QuoteAsset, V2Pool, V3Pool, V4Pool, Venue } from './types';
 import type { PoolKey } from './universal-router';
 import { hintsFromApiPools, type ApiPoolRow } from './api-pools';
-import { ABIS, launchpadForHook } from '@rushr/core/chain/robinhood';
+import { ABIS, launchpadForHook } from '@clashr/core/chain/robinhood';
 
 /** PONS v2 migration hook (packages/core registry, launchpad "pons"). */
 const PONS_V4_HOOK: Address = '0xe5e702641ea86f4ae6cc3cdaed2b886f976be044';

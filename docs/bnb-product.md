@@ -7,12 +7,12 @@ This product uses a dedicated chain-56 database. Do not point it at the Robinhoo
 
 1. Set `BNB_PRODUCT_ADMIN_URL` to an owned PostgreSQL admin connection and `BNB_PRODUCT_DATABASE`
    to a new `rushr_bnb_*` database name. Run
-   `pnpm --filter @rushr/trade exec tsx ../../packages/db/scripts/bootstrap-bnb-product.ts`.
+   `pnpm --filter @clashr/trade exec tsx ../../packages/db/scripts/bootstrap-bnb-product.ts`.
    The script refuses an existing database. It applies the original base schema through migration
    0011 and the dedicated product migrations, without the legacy mirror triggers.
 2. Set `DATABASE_URL` to that new database. Set `PRODUCT_ORIGIN` to the web origin and, optionally,
    `BSC_RPC_URL` to an owned historical-capable BSC provider. Run
-   `pnpm --filter @rushr/trade exec tsx watch ../../apps/indexer/scripts/product-dev.ts`.
+   `pnpm --filter @clashr/trade exec tsx watch ../../apps/indexer/scripts/product-dev.ts`.
    This development server listens only on `127.0.0.1:8790`; it is not a production worker deployment.
 3. Configure the web app with `NEXT_PUBLIC_PRODUCT_CHAIN_ID=56` and
    `PRODUCT_API_URL=http://127.0.0.1:8790`. Use the existing BSC signing opt-in only after rehearsal.
@@ -27,7 +27,7 @@ This product uses a dedicated chain-56 database. Do not point it at the Robinhoo
    configured by the development server. BNB profile images use the same-origin
    `/api/product/v1/media/...` route rather than an HTTP URL rejected by the external image proxy.
 5. To apply the user-authorized Robinhood event template **to this dedicated BNB database**, run
-   `pnpm --filter @rushr/trade exec tsx ../../apps/indexer/scripts/configure-product-event.ts`.
+   `pnpm --filter @clashr/trade exec tsx ../../apps/indexer/scripts/configure-product-event.ts`.
    This upserts `product_events.rush` and replaces an existing event configuration. It does not copy
    standings, fund a treasury or distribute prizes. Review the source template before rerunning.
 
@@ -44,8 +44,10 @@ versioned product migration runner is still required before production rollout. 
 0012 mirror migration against the BNB product database.
 
 Use disposable PostgreSQL databases with `TEST_PG_ADMIN_URL` for product integration tests. Keep
-production credentials out of tests. Contract mock/fuzz tests use `FOUNDRY_PROFILE=bnb`; they do not
-prove live protocol compatibility or constitute a contract audit.
+production credentials out of tests. The default contract profile and `FOUNDRY_PROFILE=bnb` now test
+the direct Flap Portal interface; the retained Four.meme mock/fuzz suite uses
+`FOUNDRY_PROFILE=fourmeme`. See [contract setup and ABI checks](../contracts/README.md).
+Interface fixtures do not prove live swap execution or constitute a contract audit.
 
 To roll back local activation, stop the independent product server and restore the prior web
 environment settings, then restart the web server. Preserve the dedicated database and receipt

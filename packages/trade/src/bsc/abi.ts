@@ -1,5 +1,5 @@
 import { parseAbi } from 'viem';
-import { BSC_PANCAKE } from '@rushr/core/chain/pancake';
+import { BSC_PANCAKE } from '@clashr/core/chain/pancake';
 
 // Original v3 SwapRouter, not SmartRouter/UniversalRouter: tuple includes deadline.
 // https://developer.pancakeswap.finance/contracts/{v2,v3}/addresses

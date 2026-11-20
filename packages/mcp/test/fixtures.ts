@@ -1,5 +1,5 @@
 import { encodeFunctionData, erc20Abi, maxUint256, type Address, type Hex } from 'viem';
-import { ponsCurveAbi } from '@rushr/trade/abis';
+import { ponsCurveAbi } from '@clashr/trade/abis';
 import type { Built } from '../src/guards.ts';
 
 const UR = '0x204faca1764b154221e35c0d20abb3c525710498' as Address;

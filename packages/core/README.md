@@ -1,8 +1,8 @@
-# rushr-core
+# @clashr/core
 
-The open engine behind [Rushr](https://rushr.trade), an agentic social trading terminal for **Robinhood Chain** (chain ID 4663).
+Clashr chain registries, event decoding, token metadata and safety primitives. BNB/Flap and PancakeSwap support live alongside the retained Robinhood integrations.
 
-This is the part of Rushr that decides what a token *is* and how risky it looks, published so anyone can check our work. It has no servers, keys or databases: just TypeScript functions over chain logs.
+The registry notes below describe the inherited Robinhood implementation from the original Rushr project; its addresses and token facts are historical, not BNB configuration. This package has no servers, signing keys or databases.
 
 | Path | What |
 | --- | --- |

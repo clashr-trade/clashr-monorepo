@@ -1,5 +1,7 @@
 'use client';
 
+import { storageKey } from './brand-compat';
+
 import { useEffect, useState } from 'react';
 import {BNB_PRODUCT} from './product';
 
@@ -11,7 +13,7 @@ import {BNB_PRODUCT} from './product';
  * cleared when the session turns out to be signed out.
  */
 
-const KEY = BNB_PRODUCT ? 'rushr.session.bnb.v1' : 'rushr.session.v1';
+const KEY = BNB_PRODUCT ? storageKey('session.bnb.v1') : storageKey('session.v1');
 const MAX_AGE_MS = 14 * 24 * 3600 * 1000;
 
 export interface SessionHint {

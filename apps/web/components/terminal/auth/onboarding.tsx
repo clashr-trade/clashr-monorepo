@@ -8,11 +8,11 @@ import { auth, useAuth, type AuthUser } from '@/lib/auth';
 import { captureInviteFromUrl, clearInvite, INVITE_RE, storedInvite } from '@/lib/invite';
 import { checkInvite, createMe, errorText, getMe, inviteStatusText, setMe, useMe, type InviteStatus } from '@/lib/members';
 import { UserAvatar } from './account-menu';
+import { X_URL } from '@/components/landing/ui';
 
 const HANDLE_RE = /^[a-z0-9_]{3,20}$/;
-const X_URL = 'https://x.com/rushrtrade';
 /** Shown when every seat of the shared beta code is taken (API: status 'full', error invite_full). */
-const FULL_TEXT = 'All beta seats are taken. Follow @rushrtrade for the next drop.';
+const FULL_TEXT = 'All beta seats are taken. Follow @clashrtrade for the next drop.';
 
 /** A starting handle from the email's local part (sign-in is email or wallet). */
 function suggestHandle(u: AuthUser | null): string {
@@ -170,7 +170,7 @@ function Onboarding({ user, invitesRequired }: { user: AuthUser; invitesRequired
             <p className="font-semibold text-ink">{translateUI("Beta is full")}</p>
             <p className="mt-1 text-muted">{FULL_TEXT}</p>
             <a href={X_URL} target="_blank" rel="noreferrer" className="mt-2 inline-flex items-center gap-1.5 font-semibold text-ink hover:text-brand">
-              <XLogo size={12} weight="bold" /> {translateUI("Follow @rushrtrade")}</a>
+              <XLogo size={12} weight="bold" /> {translateUI("Follow @clashrtrade")}</a>
           </div>
         )}
 

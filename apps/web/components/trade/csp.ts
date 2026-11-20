@@ -12,7 +12,7 @@
  * - Images: same origin (token icons and X avatars go through /api/img), data/blob, Privy, WalletConnect.
  * Based on Privy's CSP guidance (docs.privy.io/security/implementation-guide/content-security-policy).
  */
-import { BSC_PUBLIC_RPC } from '@rushr/core/chain/bsc-rpc';
+import { BSC_PUBLIC_RPC } from '@clashr/core/chain/bsc-rpc';
 
 export function buildCsp(opts: { nonce: string; dev?: boolean; apiUrl?: string;chainId?:56 }): string {
   const api = (opts.apiUrl ?? 'https://api.rushr.trade').replace(/\/+$/, '');

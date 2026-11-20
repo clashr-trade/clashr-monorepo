@@ -4,7 +4,7 @@
  * ETH balance; our quotes must equal what the curve returns, to the wei. Tokens are picked from the
  * Rushr API at run time (curves graduate). Nothing is signed or broadcast. Skipped unless LIVE=1:
  *
- *   pnpm --filter @rushr/trade test:live
+ *   pnpm --filter @clashr/trade test:live
  */
 import { describe, expect, it } from 'vitest';
 import { createPublicClient, http, type Address, type PublicClient } from 'viem';

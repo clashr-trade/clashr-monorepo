@@ -1,7 +1,7 @@
 import { defineChain, type PublicClient } from 'viem';
 import { TradeError } from './errors';
-import { ROBINHOOD_CHAIN } from '@rushr/core/chain/robinhood';
-import { getNetwork } from '@rushr/core/chain/networks';
+import { ROBINHOOD_CHAIN } from '@clashr/core/chain/robinhood';
+import { getNetwork } from '@clashr/core/chain/networks';
 import { bsc, bscTestnet } from 'viem/chains';
 
 /** viem chain definition for Robinhood Chain (multicall3 verified on-chain 2026-11-12). */

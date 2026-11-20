@@ -20,7 +20,7 @@ import {
   type RawLog,
   type PoolInfo,
   launchPrice,
-} from '@rushr/core';
+} from '@clashr/core';
 import { HistoryTooLarge, type Rpc } from './rpc';
 import { repairTraders, type Pair } from './attribution';
 import { applySupply, capSupplySql } from './supply';

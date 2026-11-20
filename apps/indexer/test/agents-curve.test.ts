@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
-import { RUSHR_TREASURY } from '@rushr/trade/config';
+import { LEGACY_ROBINHOOD_TREASURY } from '@clashr/trade/config';
 import { pgAvailable, setup } from './harness';
 
 // Agent trades on PONS bonding curves (agents/curve.ts). No RPC in tests: pool discovery, the web path's
@@ -9,7 +9,7 @@ const CURVE_TOKEN = '0x00000000000000000000000000000000000000c1';
 const CURVE_ADDR = '0x00000000000000000000000000000000000000c9';
 const SNIPED = '0x00000000000000000000000000000000000000c3';
 const GRADUATED = '0x00000000000000000000000000000000000000c4';
-const TREASURY = RUSHR_TREASURY.toLowerCase();
+const TREASURY = LEGACY_ROBINHOOD_TREASURY.toLowerCase();
 const NOW_S = Math.floor(Date.now() / 1000);
 const probes: string[] = [];
 const quickCalls: { req: { side: string; amountIn: bigint }; opts: { simulate?: boolean; assume?: unknown } }[] = [];
@@ -20,14 +20,14 @@ const safeLogs: { blockNumber: bigint; transactionHash: string; topics: string[]
 const scans: { from: bigint; to: bigint; sender: string }[] = [];
 let head = 1_000n;
 
-vi.mock('@rushr/trade/pools', () => ({
+vi.mock('@clashr/trade/pools', () => ({
   discoverPools: async (_c: unknown, token: string) =>
     token === CURVE_TOKEN || token === SNIPED || token === GRADUATED
       ? [{ venue: 'pons-curve', id: CURVE_ADDR, curve: CURVE_ADDR, token, graduated: token === GRADUATED, nativeQuote: true, snipeTaxBps: token === SNIPED ? 5000 : 0 }]
       : [],
 }));
 
-vi.mock('@rushr/trade/quick', () => ({
+vi.mock('@clashr/trade/quick', () => ({
   prepareQuickTrade: async (_c: unknown, req: { side: 'buy' | 'sell'; token: string; amountIn: bigint; trader: string }, opts: { simulate?: boolean; assume?: unknown }) => {
     quickCalls.push({ req, opts });
     const fee = (req.amountIn * 25n) / 10_000n;
@@ -45,14 +45,14 @@ vi.mock('@rushr/trade/quick', () => ({
   },
 }));
 
-vi.mock('@rushr/trade/simulate', () => ({
+vi.mock('@clashr/trade/simulate', () => ({
   probeTokenSafety: async (_c: unknown, q: { pool: { token: string } }) => {
     probes.push(q.pool.token);
     return { buyOk: true, sellOk: true, buyTaxBps: 0, sellTaxBps: 0, roundTripBps: 9900, honeypot: false };
   },
 }));
 
-vi.mock('@rushr/trade/agent', () => ({
+vi.mock('@clashr/trade/agent', () => ({
   prepareSwap: async (_c: unknown, req: { token: string; amountIn: bigint; side: string }) => ({
     quote: { amountIn: req.amountIn, amountOut: 1n, minAmountOut: 1n, priceImpactBps: 10, warnings: [], request: req, pool: { token: req.token, venue: 'uniswap-v4' } },
     alternatives: [],
@@ -144,7 +144,7 @@ describe.skipIf(!pg)('agent trades on PONS bonding curves', () => {
     expect(b.json.followUp).toEqual({
       kind: 'rushr_fee',
       amount: '2500',
-      tx: { chainId: 4663, to: RUSHR_TREASURY, data: '0x', value: '2500', gas: '60000' },
+      tx: { chainId: 4663, to: LEGACY_ROBINHOOD_TREASURY, data: '0x', value: '2500', gas: '60000' },
       after: 'tx',
       report: 'POST /v1/agents/me/fees',
     });
@@ -194,7 +194,7 @@ describe.skipIf(!pg)('agent trades on PONS bonding curves', () => {
       code: 'fee_unpaid',
       owed: '5000',
       overdue: '5000',
-      feeTx: { chainId: 4663, to: RUSHR_TREASURY, data: '0x', value: '5000', gas: '60000' },
+      feeTx: { chainId: 4663, to: LEGACY_ROBINHOOD_TREASURY, data: '0x', value: '5000', gas: '60000' },
       trades: [{ tx: hash(0xa1), token: CURVE_TOKEN, side: 'buy', fee: '5000' }],
       report: 'POST /v1/agents/me/fees',
     });

@@ -3,6 +3,17 @@ import {proxyProduct} from '../lib/product-proxy';
 const origin='https://bnb.example',base='https://api.bnb.example';
 const session='ws_'+'1'.repeat(64);
 describe('BNB API/session isolation',()=>{
+  it.each([
+    [{'x-clashr-chain-id':'56'},200],
+    [{'x-rushr-chain-id':'56'},200],
+    [{'x-clashr-chain-id':'56','x-rushr-chain-id':'56'},200],
+    [{'x-clashr-chain-id':'4663','x-rushr-chain-id':'56'},503],
+    [{'x-clashr-chain-id':'56','x-rushr-chain-id':'4663'},503],
+    [{},503],
+  ] as [Record<string,string>,number][])('validates current and compatibility chain headers: %j',async(headers,status)=>{
+    const response=await proxyProduct(new Request(`${origin}/api/product/v1/me`),['v1','me'],base,async()=>Response.json({member:{}},{headers}));
+    expect(response.status).toBe(status);
+  });
   it('forwards binary profile uploads without UTF-8 conversion and keeps route-specific limits',async()=>{
     const bytes=new Uint8Array(40_000).fill(255);bytes.set([137,80,78,71,13,10,26,10]);
     const fetcher=vi.fn(async(_url,init)=>{

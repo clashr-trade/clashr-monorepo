@@ -1,8 +1,8 @@
 // Avatar and banner uploads to R2 (behind MEDIA_UPLOADS_ENABLED and the MEDIA binding). Raw image bytes
 // in the body; the type is sniffed from the bytes, never trusted from the client. No SVG (scriptable).
 import { Hono } from 'hono';
-import { randomId } from '@rushr/agents/crypto';
-import { SOCIAL_LIMITS } from '@rushr/agents/limits';
+import { randomId } from '@clashr/agents/crypto';
+import { SOCIAL_LIMITS } from '@clashr/agents/limits';
 import { on } from './env';
 import { fail, limit, memberColumns, PRIVATE, requireMember, type C, type Ctx, type MemberRow } from './http';
 import { publicMember } from './members';

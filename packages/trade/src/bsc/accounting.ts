@@ -1,5 +1,5 @@
 import { decodeEventLog, decodeFunctionData, parseAbi, type Address, type Hash, type PublicClient, type TransactionReceipt } from 'viem';
-import { PANCAKE_V2, PANCAKE_V3 } from '@rushr/core/chain/pancake';
+import { PANCAKE_V2, PANCAKE_V3 } from '@clashr/core/chain/pancake';
 import { TradeError } from '../errors';
 import { BSC_ERC20_ABI, BSC_SPOT } from './abi';
 import { assertBscClient, assertBscQuote, bscSwapTransaction, type BscApproval, type BscSpotQuote, type BscTransaction } from './spot';

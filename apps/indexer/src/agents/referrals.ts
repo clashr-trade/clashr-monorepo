@@ -2,7 +2,7 @@
 // handle (case-insensitive). Read by the trade ledger to apply the referee discount and accrue the
 // referrer's share (off-chain accounting, see docs/trading.md).
 import type { Sql, TransactionSql } from 'postgres';
-import { checkHandle } from '@rushr/agents/guard';
+import { checkHandle } from '@clashr/agents/guard';
 
 export interface ReferralRow {
   referrer: string; // wallet

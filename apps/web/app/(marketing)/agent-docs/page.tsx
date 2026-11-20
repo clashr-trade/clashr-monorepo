@@ -2,7 +2,7 @@ import {LocalizedAgentGuide} from '@/components/landing/localized-documents';
 import {UIText} from '@/components/landing/language-provider';
 import type {Metadata} from 'next';
 import Link from 'next/link';
-import {CLASHR_SKILL_MD} from '@rushr/agents/clashr-skill-md';
+import {CLASHR_SKILL_MD} from '@clashr/agents/clashr-skill-md';
 import {parseMarkdown} from '@/components/landing/markdown';
 import {WhitepaperBody} from '@/components/landing/whitepaper';
 import {ClashrNav,ClashrFooter} from '@/components/landing/clashr-chrome';

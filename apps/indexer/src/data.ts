@@ -1,5 +1,5 @@
 import type { Sql } from 'postgres';
-import { V4_PLATFORMS } from '@rushr/core';
+import { V4_PLATFORMS } from '@clashr/core';
 import { Rpc } from './rpc';
 import { WALLET_SQL, walletPositions } from './wallets';
 import { DEAD_WALLETS } from './supply';

@@ -17,7 +17,9 @@ productApp.use('*',async(c,next)=>{
     if(row?.chain_id!==56||row.halted)throw new Error('Wrong or halted product database');
   } catch { return c.json({error:{code:'database_not_ready',message:'Dedicated BNB product database is not initialized.'}},503); }
   finally {await sql.end({timeout:2});}
-  await next();c.header('x-rushr-chain-id','56');
+  await next();
+  c.header('x-clashr-chain-id','56');
+  c.header('x-rushr-chain-id','56'); // Compatibility for existing clients.
 });
 productApp.get('/health',c=>c.json({ok:true,chainId:56,product:'bnb'}));
 productApp.get('/flap/holders',async c=>{

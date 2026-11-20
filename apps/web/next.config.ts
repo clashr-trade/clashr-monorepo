@@ -1,4 +1,5 @@
 import type { NextConfig } from 'next';
+import { fileURLToPath } from 'node:url';
 import { initOpenNextCloudflareForDev } from '@opennextjs/cloudflare';
 
 /**
@@ -13,9 +14,14 @@ const UNUSED_PRIVY_PEERS = [
 ];
 
 const nextConfig: NextConfig = {
-  transpilePackages: ['@rushr/agents', '@rushr/core', '@rushr/trade'],
+  transpilePackages: ['@clashr/agents', '@clashr/core', '@clashr/trade'],
   images: { unoptimized: true },
+  async redirects() {
+    return [{ source: '/og-rushr.jpg', destination: '/og-clashr-legacy.jpg', permanent: true }];
+  },
   turbopack: {
+    // Keep monorepo dependency resolution stable after checkout moves or lockfile removal.
+    root: fileURLToPath(new URL('../../', import.meta.url)),
     resolveAlias: Object.fromEntries(UNUSED_PRIVY_PEERS.map((p) => [p, './lib/empty-module.ts'])),
   },
   webpack(config) {

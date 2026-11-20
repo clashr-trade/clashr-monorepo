@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { PrivyProvider, useExportWallet, usePrivy, useSendTransaction, useSignTransaction, useWallets } from '@privy-io/react-auth';
-import { robinhoodChain } from '@rushr/trade';
+import { robinhoodChain } from '@clashr/trade';
 import {BNB_PRODUCT} from '@/lib/product';
 import {privyConfig} from '@/lib/privy-config';
 import {setBscEmbeddedProvider,type BscInjectedProvider} from '@/lib/bsc-wallet';

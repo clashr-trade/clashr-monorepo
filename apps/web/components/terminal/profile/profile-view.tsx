@@ -67,8 +67,8 @@ function profileShare(handle: string, own: boolean): ShareTarget {
     defaultRange: 'all',
     image: (r) => `/card/profile/${handle}?range=${r}`,
     link: (r) => `${window.location.origin}/u/${handle}?card=${r}`,
-    text: () => (own ? 'My PnL on @rushrtrade 📈' : `@${handle}'s PnL on @rushrtrade 📈`),
-    filename: (r) => `rushr-${handle}-pnl-${r}.png`,
+    text: () => (own ? 'My PnL on CLASHR 📈' : `@${handle}'s PnL on CLASHR 📈`),
+    filename: (r) => `clashr-${handle}-pnl-${r}.png`,
   };
 }
 
@@ -79,8 +79,8 @@ function positionShare(handle: string, own: boolean, p: Position, pnl: number, p
     title: own ? `Share your $${p.symbol} trade` : `Share @${handle}'s $${p.symbol} trade`,
     image: () => `/card/position/${handle}/${p.token}`,
     link: () => `${window.location.origin}/token/${p.token}?pnl=${handle}`,
-    text: () => `${result} on $${p.symbol} ${own ? '' : `by @${handle} `}on @rushrtrade ${pnl >= 0 ? '📈' : '📉'}`.replace(/\s+/g, ' '),
-    filename: () => `rushr-${handle}-${p.symbol.toLowerCase()}.png`,
+    text: () => `${result} on $${p.symbol} ${own ? '' : `by @${handle} `}on CLASHR ${pnl >= 0 ? '📈' : '📉'}`.replace(/\s+/g, ' '),
+    filename: () => `clashr-${handle}-${p.symbol.toLowerCase()}.png`,
   };
 }
 

@@ -1,5 +1,13 @@
 /** Product-owned interface copy only. Member posts, names, contracts and API payloads stay original. */
 export const PLATFORM_COPY: Record<string, readonly [string, string]> = {
+  'Connect wallet to trade': ['连接钱包交易', 'ウォレットを接続して取引'],
+  'Enter an amount to trade': ['请输入交易数量', '取引数量を入力してください'],
+  'Processing trade…': ['正在处理交易…', '取引を処理中…'],
+  'Confirm approvals and the swap in your wallet.': ['请在钱包中确认授权和兑换。', 'ウォレットで承認とスワップを確認してください。'],
+  'Add BNB to this wallet for network fees.': ['请向此钱包充值 BNB 以支付网络费用。', 'ネットワーク手数料のため、このウォレットにBNBを入金してください。'],
+  'USD price unavailable. Enter the payment asset amount below.': ['美元价格暂不可用，请在下方输入支付资产数量。', '米ドル価格を取得できません。下に支払う資産の数量を入力してください。'],
+  'Recheck the pending receipt before trading again': ['再次交易前请重新检查待确认交易的回执', '再取引する前に保留中の取引結果を確認してください'],
+  'Checking balances, approvals and swap simulation': ['正在检查余额、授权和兑换模拟', '残高、承認、スワップのシミュレーションを確認中'],
   'Clash': ['对决', 'クラッシュ'],
   'Clash the': ['对决', 'クラッシュ・ザ'],
   'OPEN SOCIAL TRADING PLATFORM FOR HUMANS AND AI AGENTS': ['面向人类与 AI 智能体的开放社交交易平台', '人間とAIエージェントのためのオープンなソーシャルトレーディング'],
@@ -718,7 +726,7 @@ export const PLATFORM_COPY: Record<string, readonly [string, string]> = {
     '英数字と_で3～20文字。取引や投稿に表示されます。',
   ],
   'Beta is full': ['测试名额已满', 'ベータの定員に達しました'],
-  'Follow @rushrtrade': ['关注 @rushrtrade', '@rushrtradeをフォロー'],
+  'Follow @clashrtrade': ['关注 @clashrtrade', '@clashrtradeをフォロー'],
   'Creating your profile…': ['正在创建资料…', 'プロフィールを作成中…'],
   'Join CLASHR': ['加入 CLASHR', 'CLASHRに参加'],
   'Signs you out. Charts, trenches and safety checks stay open to everyone.': [

@@ -53,7 +53,7 @@ describe('MCP server', () => {
   });
 
   it('dry run: buy builds and simulates but never sends', async () => {
-    const { call, chain, api } = await connect({ RUSHR_DRY_RUN: '1' });
+    const { call, chain, api } = await connect({ CLASHR_ROBINHOOD_DRY_RUN: '1' });
     const r = await call('buy', { token: TOKEN, usd: 6 });
     expect(r.json.status).toBe('dry_run');
     expect(r.json.impact).toEqual({ totalBps: 300, floorBps: 280, sizeBps: 20 });
@@ -65,7 +65,7 @@ describe('MCP server', () => {
   it('dry run: register is refused without signing anything', async () => {
     const dir = mkdtempSync(join(tmpdir(), 'rushr-mcp-'));
     const api = fakeApi();
-    const { server } = createServer(loadConfig({ RUSHR_PRIVATE_KEY: KEY, RUSHR_STATE_DIR: dir, RUSHR_DRY_RUN: '1' }), { fetch: api.f, chain: fakeChain() });
+    const { server } = createServer(loadConfig({ CLASHR_ROBINHOOD_PRIVATE_KEY: KEY, CLASHR_ROBINHOOD_STATE_DIR: dir, CLASHR_ROBINHOOD_DRY_RUN: '1' }), { fetch: api.f, chain: fakeChain() });
     const [a, b] = InMemoryTransport.createLinkedPair();
     const client = new Client({ name: 't', version: '0' });
     await Promise.all([server.connect(a), client.connect(b)]);
@@ -77,7 +77,7 @@ describe('MCP server', () => {
   });
 
   it('live buy: signs, returns the hash and explorer link, and counts toward the daily cap', async () => {
-    const { call, chain } = await connect({ RUSHR_DAILY_USD: '10' });
+    const { call, chain } = await connect({ CLASHR_ROBINHOOD_DAILY_USD: '10' });
     const r = await call('buy', { token: TOKEN, usd: 6 });
     expect(r.json.status).toBe('confirmed');
     expect(r.json.hash).toMatch(/^0x[0-9a-f]{64}$/);
@@ -89,7 +89,7 @@ describe('MCP server', () => {
   });
 
   it('refuses a buy over the per-trade cap', async () => {
-    const { call, chain } = await connect({ RUSHR_MAX_TRADE_USD: '5' });
+    const { call, chain } = await connect({ CLASHR_ROBINHOOD_MAX_TRADE_USD: '5' });
     const r = await call('buy', { token: TOKEN, usd: 6 });
     expect(r.json.error.code).toBe('refused_trade_cap');
     expect(chain.sent).toHaveLength(0);
@@ -142,7 +142,7 @@ describe('MCP server', () => {
   });
 
   it('quote reports refusals instead of failing', async () => {
-    const { call } = await connect({ RUSHR_MAX_TRADE_USD: '5' });
+    const { call } = await connect({ CLASHR_ROBINHOOD_MAX_TRADE_USD: '5' });
     const r = await call('quote', { token: TOKEN, side: 'buy', usd: 6 });
     expect(r.json.wouldTrade).toBe(false);
     expect(r.json.refusals.join(' ')).toMatch(/refused_trade_cap/);
@@ -163,7 +163,7 @@ describe('MCP server', () => {
   });
 
   it('trade tools say what to do with no wallet', async () => {
-    const { server } = createServer(loadConfig({ RUSHR_STATE_DIR: mkdtempSync(join(tmpdir(), 'rushr-mcp-')) }), { fetch: fakeApi().f, chain: fakeChain() });
+    const { server } = createServer(loadConfig({ CLASHR_ROBINHOOD_STATE_DIR: mkdtempSync(join(tmpdir(), 'rushr-mcp-')) }), { fetch: fakeApi().f, chain: fakeChain() });
     const [a, b] = InMemoryTransport.createLinkedPair();
     const client = new Client({ name: 't', version: '0' });
     await Promise.all([server.connect(a), client.connect(b)]);

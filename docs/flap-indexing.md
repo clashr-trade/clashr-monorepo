@@ -36,7 +36,7 @@ Verified: the product and web market endpoints returned HTTP 200 with finalized-
 
 CLASHR reads its own product API `/flap/market`, backed by BNB Portal events. It does not call Flap's website API for discovery. Source reference: https://docs.flap.sh/en/flap/v2/developers/bonding-curve/build-an-indexer
 
-Apply database migrations through `0014_flap_index` to the dedicated BNB database. Configure `BSC_RPC_URL`, `DATABASE_URL`, an explicit `BSC_START_BLOCK`, and `BSC_INDEX_EPOCH`. Set `BSC_INDEX_ENABLED=1` and `BSC_INDEX_SOURCE=flap` on the separate BSC worker. Schedule its existing authenticated tick/queue flow. For local rehearsal run `pnpm --filter @rushr/indexer exec tsx scripts/flap-local.ts` with those environment variables, then run the product API with the same database and point `PRODUCT_API_URL` at it.
+Apply database migrations through `0014_flap_index` to the dedicated BNB database. Configure `BSC_RPC_URL`, `DATABASE_URL`, an explicit `BSC_START_BLOCK`, and `BSC_INDEX_EPOCH`. Set `BSC_INDEX_ENABLED=1` and `BSC_INDEX_SOURCE=flap` on the separate BSC worker. Schedule its existing authenticated tick/queue flow. For local rehearsal run `pnpm --filter @clashr/indexer exec tsx scripts/flap-local.ts` with those environment variables, then run the product API with the same database and point `PRODUCT_API_URL` at it.
 
 The source switch changes the configuration hash. An existing Pancake cursor must NOT be silently reused: use a fresh dedicated database or an explicitly reviewed cursor reset/replay. Start from a reviewed Portal deployment block to cover all launches; a recent start only discovers launches after that point. History before the chosen start is not invented.
 

@@ -3,24 +3,24 @@
 import { Hono } from 'hono';
 import type { Sql, TransactionSql } from 'postgres';
 import { createPublicClient, encodeFunctionData, http, maxUint256, type Address, type Hex } from 'viem';
-import { checkHandle } from '@rushr/agents/guard';
-import { newApiKey, newMemberId, newNonce } from '@rushr/agents/crypto';
-import { IP_LIMITS, MAX_OUTSTANDING_NONCES } from '@rushr/agents/limits';
-import { buildMessage, NONCE_TTL_MS, peekSiwe, verifySiwe, type Purpose } from '@rushr/agents/siwe';
-import { prepareSwap, toJsonSafe } from '@rushr/trade/agent';
-import { probeTokenSafety } from '@rushr/trade/simulate';
-import { robinhoodChain } from '@rushr/trade/chain';
-import { isTradeError } from '@rushr/trade/errors';
-import { resolveConfig } from '@rushr/trade/config';
-import { erc20Abi, permit2Abi } from '@rushr/trade/abis';
-import { TRADE_ADDRESSES } from '@rushr/trade/addresses';
-import type { Approval, PonsPool } from '@rushr/trade/types';
-import { curveFeeCall } from '@rushr/trade/curve-fee';
+import { checkHandle } from '@clashr/agents/guard';
+import { newApiKey, newMemberId, newNonce } from '@clashr/agents/crypto';
+import { IP_LIMITS, MAX_OUTSTANDING_NONCES } from '@clashr/agents/limits';
+import { buildMessage, NONCE_TTL_MS, peekSiwe, verifySiwe, type Purpose } from '@clashr/agents/siwe';
+import { prepareSwap, toJsonSafe } from '@clashr/trade/agent';
+import { probeTokenSafety } from '@clashr/trade/simulate';
+import { robinhoodChain } from '@clashr/trade/chain';
+import { isTradeError } from '@clashr/trade/errors';
+import { resolveConfig } from '@clashr/trade/config';
+import { erc20Abi, permit2Abi } from '@clashr/trade/abis';
+import { TRADE_ADDRESSES } from '@clashr/trade/addresses';
+import type { Approval, PonsPool } from '@clashr/trade/types';
+import { curveFeeCall } from '@clashr/trade/curve-fee';
 import { bioField, checkSuccessQuota, countSuccess, enqueueWalletFunding, fail, flag, isAddr, limit, memberColumns, publicCache, PRIVATE, requireMember, str, type C, type Ctx, type MemberRow } from './http';
 import { publicMember } from './members';
 import { recordReferral } from './referrals';
 import {productIdentity} from './wallet-auth';
-import type {SiweIdentity} from '@rushr/agents/siwe';
+import type {SiweIdentity} from '@clashr/agents/siwe';
 import { refreshSignalsIfStale } from '../signals-refresh';
 import { tokenPools } from '../data';
 import { checkBuy, type HoneypotCheck } from './honeypot';
@@ -149,7 +149,7 @@ interface Safety {
   stale: boolean;
 }
 
-/** The parts of @rushr/core's TokenSignals the safety view reads (stored as jsonb, so all optional). */
+/** The parts of @clashr/core's TokenSignals the safety view reads (stored as jsonb, so all optional). */
 interface SignalData {
   copycat?: boolean;
   spam?: boolean;

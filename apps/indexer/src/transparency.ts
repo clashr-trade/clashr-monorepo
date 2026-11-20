@@ -1,8 +1,8 @@
 // GET /transparency: where the platform fee goes, for the public Transparency page. Read-only, no per-user
 // data (traders appear only as a count), served from the edge cache for 60s.
 import type { Sql } from 'postgres';
-import { NATIVE_ETH, QUOTES, ROBINHOOD_CHAIN } from '@rushr/core';
-import { BETA_FEE_BPS, DEFAULT_TRADE_CONFIG, LEGACY_TREASURIES, STANDARD_FEE_BPS } from '@rushr/trade';
+import { NATIVE_ETH, QUOTES, ROBINHOOD_CHAIN } from '@clashr/core';
+import { BETA_FEE_BPS, DEFAULT_TRADE_CONFIG, LEGACY_TREASURIES, STANDARD_FEE_BPS } from '@clashr/trade';
 import { Rpc } from './rpc';
 import { creatorTax } from './creator-tax';
 

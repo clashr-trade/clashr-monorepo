@@ -1,0 +1,444 @@
+/* Rushr brand for Starlight.
+   Light (default) = the rushr.trade paper palette; dark = the app.rushr.trade terminal palette.
+   Values come from apps/web/app/globals.css (.theme-paper and the dark @theme). */
+
+/* ---------- Tokens ---------- */
+
+:root,
+:root[data-theme='light'] {
+  --sl-font: 'Geist Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --sl-font-mono: 'Geist Mono Variable', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --clashr-bg: rgb(247, 245, 242);
+  --clashr-surface: #fffefc;
+  --clashr-surface-2: #efede8;
+  --clashr-line: #e2dfd8;
+  --clashr-ink: #18201a;
+  --clashr-muted: #5c645b;
+  --clashr-brand: #2a8a22;
+  --clashr-brand-deep: #1d6e17;
+  --clashr-lime: #36d42a;
+  --clashr-note-bg: #f4ebe1;
+  --clashr-note-line: #e3cdb4;
+  --clashr-note-ink: #a8700e;
+
+  --sl-color-accent-low: #e3f0de;
+  --sl-color-accent: var(--clashr-brand);
+  --sl-color-accent-high: var(--clashr-brand-deep);
+  --sl-color-white: var(--clashr-ink);
+  --sl-color-gray-1: #232c25;
+  --sl-color-gray-2: #3a443b;
+  --sl-color-gray-3: var(--clashr-muted);
+  --sl-color-gray-4: #9a9f98;
+  --sl-color-gray-5: var(--clashr-line);
+  --sl-color-gray-6: var(--clashr-surface-2);
+  --sl-color-gray-7: var(--clashr-surface);
+  --sl-color-black: var(--clashr-bg);
+  --sl-color-bg: var(--clashr-bg);
+  --sl-color-bg-nav: color-mix(in srgb, var(--clashr-bg) 88%, transparent);
+  --sl-color-bg-sidebar: var(--clashr-bg);
+  --sl-color-bg-inline-code: var(--clashr-surface-2);
+  --sl-color-hairline-light: var(--clashr-line);
+  --sl-color-hairline: var(--clashr-line);
+  --sl-color-hairline-shade: #d6d2ca;
+  --sl-color-text: #2b342c;
+  --sl-color-text-accent: var(--clashr-brand-deep);
+  --sl-color-text-invert: #fff;
+  --sl-color-red: #c8402f;
+  --sl-color-orange: var(--clashr-note-ink);
+
+  --sl-content-width: 46rem;
+  --sl-sidebar-width: 17rem;
+  --sl-nav-height: 4rem;
+  --sl-text-h1: clamp(2.2rem, 4.5vw, 3.1rem);
+  --sl-text-h2: 1.7rem;
+  --sl-text-h3: 1.25rem;
+  --sl-line-height: 1.7;
+}
+
+:root[data-theme='dark'] {
+  --clashr-bg: #050706;
+  --clashr-surface: #0c100d;
+  --clashr-surface-2: #121813;
+  --clashr-line: #1d241e;
+  --clashr-ink: #eef2ec;
+  --clashr-muted: #8a958a;
+  --clashr-brand: #36d42a;
+  --clashr-brand-deep: #5fe052;
+  --clashr-lime: #36d42a;
+  --clashr-note-bg: #17130c;
+  --clashr-note-line: #3a2e18;
+  --clashr-note-ink: #ffb547;
+
+  --sl-color-accent-low: #0f2b0c;
+  --sl-color-accent: var(--clashr-brand);
+  --sl-color-accent-high: var(--clashr-brand-deep);
+  --sl-color-white: var(--clashr-ink);
+  --sl-color-gray-1: #dde3db;
+  --sl-color-gray-2: #b7c0b6;
+  --sl-color-gray-3: var(--clashr-muted);
+  --sl-color-gray-4: #4f594f;
+  --sl-color-gray-5: var(--clashr-line);
+  --sl-color-gray-6: var(--clashr-surface);
+  --sl-color-black: var(--clashr-bg);
+  --sl-color-bg: var(--clashr-bg);
+  --sl-color-bg-nav: color-mix(in srgb, var(--clashr-bg) 88%, transparent);
+  --sl-color-bg-sidebar: var(--clashr-bg);
+  --sl-color-bg-inline-code: var(--clashr-surface-2);
+  --sl-color-hairline-light: var(--clashr-line);
+  --sl-color-hairline: var(--clashr-line);
+  --sl-color-hairline-shade: #121813;
+  --sl-color-text: #cdd5cb;
+  --sl-color-text-accent: var(--clashr-brand-deep);
+  --sl-color-text-invert: #050706;
+  --sl-color-red: #ff6b5b;
+  --sl-color-orange: var(--clashr-note-ink);
+}
+
+body {
+  background: var(--clashr-bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---------- Header ---------- */
+
+header.header {
+  backdrop-filter: saturate(1.4) blur(10px);
+  border-bottom: 1px solid var(--clashr-line);
+}
+header.header .social-icons::after {
+  display: none;
+}
+/* Search box: a quiet pill. */
+site-search button[data-open-modal] {
+  background: var(--clashr-surface);
+  border: 1px solid var(--clashr-line);
+  border-radius: 9px;
+  color: var(--clashr-muted);
+}
+site-search button[data-open-modal]:hover {
+  border-color: var(--sl-color-gray-4);
+  color: var(--clashr-ink);
+}
+starlight-theme-select select,
+starlight-theme-select label {
+  color: var(--clashr-muted);
+}
+
+/* ---------- Sidebar: mono uppercase group labels like the whitepaper's CONTENTS ---------- */
+
+.sidebar-content {
+  padding-top: 1.5rem;
+}
+.sidebar-content .group-label .large,
+.sidebar-content summary .large {
+  font-family: var(--sl-font-mono);
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--clashr-muted);
+}
+.sidebar-content a {
+  color: var(--clashr-muted);
+  font-size: 0.93rem;
+  border-radius: 7px;
+  padding-block: 0.32em;
+}
+.sidebar-content a:hover {
+  color: var(--clashr-ink);
+}
+.sidebar-content a[aria-current='page'],
+.sidebar-content a[aria-current='page']:hover,
+.sidebar-content a[aria-current='page']:focus {
+  background: var(--clashr-surface-2);
+  color: var(--clashr-ink);
+  font-weight: 600;
+}
+/* Top-level single links (Introduction, FAQ...) read as items, not headers. */
+.sidebar-content > ul > li > a .large {
+  font-size: 0.93rem;
+  font-weight: 500;
+}
+
+/* ---------- Page title and prose ---------- */
+
+.content-panel {
+  border-top: 0;
+}
+.content-panel + .content-panel {
+  border-top: 1px solid var(--clashr-line);
+}
+h1#_top {
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 1.05;
+  color: var(--clashr-ink);
+}
+.sl-markdown-content :is(h2, h3, h4) {
+  color: var(--clashr-ink);
+  font-weight: 650;
+  letter-spacing: -0.025em;
+}
+.sl-markdown-content h2 {
+  margin-top: 2.6rem;
+}
+.sl-markdown-content :is(p, li) {
+  color: var(--sl-color-text);
+}
+.sl-markdown-content strong {
+  color: var(--clashr-ink);
+  font-weight: 600;
+}
+.sl-markdown-content a:not(.go, .path, .card, .sl-link-card, [class]) {
+  color: var(--clashr-ink);
+  text-decoration-color: color-mix(in srgb, var(--clashr-brand) 55%, transparent);
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 3px;
+}
+.sl-markdown-content a:not([class]):hover {
+  color: var(--clashr-brand);
+}
+/* Page description under the title. */
+.sl-container > p:first-child {
+  color: var(--clashr-muted);
+}
+
+/* Inline code */
+.sl-markdown-content :not(pre) > code {
+  background: var(--clashr-surface-2);
+  border: 1px solid var(--clashr-line);
+  border-radius: 5px;
+  padding: 0.08em 0.38em;
+  font-size: 0.86em;
+  color: var(--clashr-ink);
+  overflow-wrap: anywhere;
+}
+
+/* Tables: a clean card with hairlines; scrolls sideways on phones. */
+.sl-markdown-content table {
+  display: block;
+  overflow-x: auto;
+  border: 1px solid var(--clashr-line);
+  border-radius: 12px;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: var(--clashr-surface);
+  font-size: 0.92rem;
+}
+.sl-markdown-content :is(th, td) {
+  border: 0;
+  border-bottom: 1px solid var(--clashr-line);
+  padding: 0.65rem 0.9rem;
+}
+.sl-markdown-content tr:last-child td {
+  border-bottom: 0;
+}
+.sl-markdown-content th {
+  background: var(--clashr-surface-2);
+  font-family: var(--sl-font-mono);
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--clashr-muted);
+}
+.sl-markdown-content th:empty {
+  display: none;
+}
+.sl-markdown-content thead:has(th:empty) {
+  display: none;
+}
+
+/* Asides: the whitepaper's tan IMPORTANT box, with a mono label. */
+.starlight-aside {
+  border: 1px solid var(--clashr-line);
+  border-inline-start-width: 1px;
+  border-radius: 12px;
+  background: var(--clashr-surface);
+  padding: 1rem 1.15rem;
+}
+.starlight-aside--caution,
+.starlight-aside--danger {
+  background: var(--clashr-note-bg);
+  border-color: var(--clashr-note-line);
+}
+.starlight-aside--danger {
+  --clashr-note-ink: var(--sl-color-red);
+}
+.starlight-aside__title {
+  font-family: var(--sl-font-mono);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--clashr-note-ink);
+}
+.starlight-aside--note .starlight-aside__title,
+.starlight-aside--tip .starlight-aside__title {
+  color: var(--clashr-brand);
+}
+.starlight-aside__icon {
+  display: none;
+}
+
+/* Right-hand "On this page" */
+starlight-toc h2,
+mobile-starlight-toc .toggle {
+  font-family: var(--sl-font-mono);
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--clashr-muted);
+}
+starlight-toc a {
+  color: var(--clashr-muted);
+}
+starlight-toc a[aria-current='true'] {
+  color: var(--clashr-brand);
+}
+
+/* Prev / next */
+.pagination-links a {
+  border: 1px solid var(--clashr-line);
+  border-radius: 12px;
+  background: var(--clashr-surface);
+  box-shadow: none;
+}
+.pagination-links a:hover {
+  border-color: var(--sl-color-gray-4);
+}
+.pagination-links .link-title {
+  color: var(--clashr-ink);
+  font-weight: 600;
+}
+
+/* Starlight cards and link cards, if used. */
+.card,
+.sl-link-card {
+  --sl-card-border: var(--clashr-line);
+  --sl-card-bg: var(--clashr-surface-2);
+  border: 1px solid var(--clashr-line);
+  border-radius: 14px;
+  background: var(--clashr-surface);
+  box-shadow: none;
+}
+
+/* ---------- Splash page ---------- */
+
+[data-has-hero] .content-panel {
+  border: 0;
+}
+[data-has-hero] .sl-container {
+  max-width: 64rem;
+}
+.clashr-paths {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
+  gap: 1rem;
+}
+.clashr-paths .path {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1.6rem 1.6rem 1.4rem;
+  border: 1px solid var(--clashr-line);
+  border-radius: 16px;
+  background: var(--clashr-surface);
+  text-decoration: none;
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+.clashr-paths .path:hover {
+  border-color: var(--clashr-brand);
+  transform: translateY(-2px);
+}
+.clashr-paths .path-title {
+  font-size: 1.45rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--clashr-ink);
+}
+.clashr-paths .path-body {
+  color: var(--clashr-muted);
+  line-height: 1.6;
+}
+.clashr-paths .go {
+  margin-top: 0.6rem;
+  font-weight: 600;
+  color: var(--clashr-brand);
+}
+.clashr-index .kicker,
+.clashr-paths .kicker {
+  font-family: var(--sl-font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--clashr-muted);
+  margin: 0;
+}
+.clashr-index {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: 1.75rem 1.5rem;
+  margin-top: 3rem !important;
+  padding-top: 2.25rem;
+  border-top: 1px solid var(--clashr-line);
+}
+.clashr-index > div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+.clashr-index .kicker {
+  margin-bottom: 0.35rem;
+}
+.clashr-index a {
+  color: var(--clashr-ink);
+  text-decoration: none;
+  font-weight: 500;
+  margin: 0 !important;
+}
+.clashr-index a:hover {
+  color: var(--clashr-brand);
+}
+
+/* ---------- Footer ---------- */
+
+footer .meta,
+footer .kudos {
+  color: var(--clashr-muted);
+}
+
+@media (max-width: 50rem) {
+  .clashr-paths .path {
+    padding: 1.25rem;
+  }
+}
+
+/* Starlight spaces sibling blocks in prose; the splash grids handle their own gaps. */
+.clashr-index > div,
+.clashr-paths > a,
+.clashr-paths > a > * {
+  margin-top: 0 !important;
+}
+
+/* Search modal: brand focus instead of Pagefind's default. */
+#starlight__search {
+  --pagefind-ui-border: var(--clashr-line);
+  --pagefind-ui-primary: var(--clashr-brand);
+}
+#starlight__search .pagefind-ui__search-input:focus,
+#starlight__search input:focus-visible {
+  outline: 2px solid var(--clashr-brand);
+  outline-offset: -2px;
+}
+
+/* Mobile menu button: the same quiet square as the header icon buttons. */
+.sl-menu-button {
+  box-shadow: none;
+  border: 1px solid var(--clashr-line);
+  border-radius: 10px;
+  background: var(--clashr-surface);
+  color: var(--clashr-ink);
+}

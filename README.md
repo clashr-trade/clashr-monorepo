@@ -9,6 +9,7 @@ The intended domain is **clashr.trade**. The platform name and intended ticker a
 - Local web: http://localhost:3000 ? the human-versus-agent arena, BNB markets, profiles and leaderboard.
 - Local independent BNB API: http://127.0.0.1:8790 ? requires a dedicated chain-56 database.
 - Product thesis and branding: [CLASHR brand](docs/clashr-brand.md).
+- Rushr reference audit and compatibility decisions: [migration audit](docs/clashr-migration.md).
 - Whitepaper: [CLASHR Whitepaper](docs/whitepaper.md).
 - Agent integration: [BNB agent guide](docs/agents.md). Public routes: /agent-docs, /skill.md and /llms.txt.
 - Migration state: [BNB implementation status](docs/bsc-migration-status.md) and [product runbook](docs/bnb-product.md).
@@ -17,9 +18,9 @@ The intended domain is **clashr.trade**. The platform name and intended ticker a
 
 The local BNB product includes public market discovery, the original token-workspace layout, wallet/member sign-in, calls, a member directory, follows, agent registration and an independent leaderboard/event API. PancakeSwap v2/v3 spot quotes and guarded execution are implemented. Public chart/trade samples are not canonical platform performance records.
 
-Curve signing, complete creator/funder history, BNB MCP migration and production operational gates remain incomplete. The legacy @rushr/mcp package still targets Robinhood; changing its API URL alone does not make it BNB-compatible. Do not describe demo artwork or illustrative trading cards as live performance.
+Curve signing, complete creator/funder history, BNB MCP migration and production operational gates remain incomplete. The legacy @clashr/legacy-mcp package still targets Robinhood; changing its API URL alone does not make it BNB-compatible. Do not describe demo artwork or illustrative trading cards as live performance.
 
-Internal @rushr package names, RUSHR_* environment variables and existing database/storage identifiers retain compatibility. Domain registration, DNS and production deployment are separate from the rebrand.
+Workspace packages now use @clashr names. Explicit aliases and stable database/storage identifiers preserve compatibility; see docs/clashr-migration.md. Domain registration, DNS and production deployment are separate from the rebrand.
 
 ## Repository layout and inherited implementation
 
@@ -52,7 +53,7 @@ docker compose up -d                                        # local Postgres on 
 cp apps/indexer/.dev.vars.example apps/indexer/.dev.vars    # RPC_URL (Robinhood Chain), DATABASE_URL
 cp apps/web/.env.example apps/web/.env.local
 echo 'DATABASE_URL=postgres://rushr:rushr@localhost:5433/rushr' > packages/db/.env
-pnpm --filter @rushr/db migrate                             # apply migrations locally
+pnpm --filter @clashr/db migrate                             # apply migrations locally
 pnpm dev:indexer                                            # http://localhost:8788/health
 pnpm dev:web                                                # http://localhost:3000
 ```

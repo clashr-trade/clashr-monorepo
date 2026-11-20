@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
-import { buildMessage, verifySiwe, peekSiwe } from '../src/siwe';
+import { buildMessage, verifySiwe, peekSiwe, PURPOSES, statementFor } from '../src/siwe';
 import { newApiKey, parseApiKey, sha256Hex, safeEqual, newLinkCode, isLinkCodeFormat, newNonce } from '../src/crypto';
 import { checkHandle, findKeyMaterial } from '../src/guard';
 import { windowStart, retryAfter } from '../src/limits';
@@ -9,6 +9,28 @@ const wallet = () => privateKeyToAccount(generatePrivateKey());
 
 describe('siwe', () => {
   const now = new Date('2026-11-12T10:00:00Z');
+  it('brands all BNB proofs as Clashr while retaining legacy proofs and purpose binding', async () => {
+    const a = wallet(), nonce = newNonce();
+    const identity = { chainId: 56, domain: 'clashr.trade', uri: 'https://clashr.trade', termsUrl: 'https://clashr.trade/terms#agents' };
+    const ctx = { ownerHandle: 'alice', ownerAddress: '0x00000000000000000000000000000000000000aa' };
+    for (const purpose of PURPOSES) {
+      const message = buildMessage({ purpose, address: a.address, nonce, issuedAt: now, ctx, identity });
+      expect(message).toContain(statementFor(purpose, ctx, 56));
+      expect(message).not.toContain('Rushr');
+      const signature = await a.signMessage({ message });
+      expect((await verifySiwe({ message, signature, purpose, ctx, identity, nonce, now })).ok).toBe(true);
+      const previous = message.replaceAll('Clashr', 'Rushr');
+      const previousSignature = await a.signMessage({ message: previous });
+      expect((await verifySiwe({ message: previous, signature: previousSignature, purpose, ctx, identity, nonce, now })).ok).toBe(true);
+      expect((await verifySiwe({ message: previous, signature: previousSignature, purpose, ctx, nonce, now })).ok).toBe(false);
+    }
+    const message = buildMessage({ purpose: 'register', address: a.address, nonce, issuedAt: now, identity });
+    const signature = await a.signMessage({ message });
+    expect(await verifySiwe({ message, signature, purpose: 'login', identity, nonce, now })).toEqual({ ok: false, error: 'wrong_statement' });
+    const legacy = buildMessage({ purpose: 'register', address: a.address, nonce, issuedAt: now });
+    expect(legacy).toContain('Register this wallet on Rushr');
+    expect(legacy).toContain('Chain ID: 4663');
+  });
   it('accepts a correctly signed message for its purpose', async () => {
     const a = wallet();
     const nonce = newNonce();
@@ -69,7 +91,7 @@ describe('guard', () => {
     expect(checkHandle('0xdeadbeef')).toEqual({ ok: false, error: 'handle_invalid' });
     expect(checkHandle('rushr_0fficial')).toEqual({ ok: false, error: 'handle_reserved' });
     expect(checkHandle('admin')).toEqual({ ok: false, error: 'handle_reserved' });
-    for (const h of ['ru5hr', 'rushr_8ot', 'adm1n', '5upp0rt', '0ff1c1al', '5y5tem']) expect(checkHandle(h)).toEqual({ ok: false, error: 'handle_reserved' });
+    for (const h of ['clashr', 'clashrtrade', 'clashr_official', 'cl45hr', 'c1ashr_bot', 'clash_r', 'ru5hr', 'rushr_8ot', 'adm1n', '5upp0rt', '0ff1c1al', '5y5tem']) expect(checkHandle(h)).toEqual({ ok: false, error: 'handle_reserved' });
     expect(checkHandle('web3_trader')).toEqual({ ok: true, handle: 'web3_trader' });
   });
   it('allows only the exact opted-in top-level fields', () => {
@@ -109,11 +131,11 @@ describe('llms.txt', () => {
     const { readFileSync } = await import('node:fs');
     const { SKILL_MD } = await import('../src/skill-md');
     expect(SKILL_MD).toBe(readFileSync(new URL('../skill.md', import.meta.url), 'utf8'));
-    const front = /^---\nname: rushr\ndescription: (.+)\n---\n/.exec(SKILL_MD);
+    const front = /^---\nname: clashr-legacy\ndescription: (.+)\n---\n/.exec(SKILL_MD);
     expect(front?.[1]?.length ?? 0).toBeGreaterThan(40);
     // The copy at the repo root that skill directories index.
-    expect(readFileSync(new URL('../../../skills/rushr/SKILL.md', import.meta.url), 'utf8')).toBe(SKILL_MD);
+    expect(readFileSync(new URL('../../../skills/clashr-legacy/SKILL.md', import.meta.url), 'utf8')).toBe(SKILL_MD);
     // And the copy bundled in the Codex / Claude Code plugin.
-    expect(readFileSync(new URL('../../../plugins/rushr/skills/rushr/SKILL.md', import.meta.url), 'utf8')).toBe(SKILL_MD);
+    expect(readFileSync(new URL('../../../plugins/clashr-legacy/skills/clashr-legacy/SKILL.md', import.meta.url), 'utf8')).toBe(SKILL_MD);
   });
 });

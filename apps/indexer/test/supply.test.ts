@@ -1,7 +1,7 @@
 // Live total supply, market caps on total supply, circulating supply (src/supply.ts), and the pipeline path that feeds them.
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import type { Sql } from 'postgres';
-import { circulatingSupply } from '@rushr/core';
+import { circulatingSupply } from '@clashr/core';
 import { freshDb, pgAvailable } from '../../../packages/agents/test/pg';
 import { DEAD_WALLETS, capSupplySql, circulatingSql, refreshSupply, repriceCaps, supplyDeltas, supplyTouched } from '../src/supply';
 import { Pipeline } from '../src/pipeline';

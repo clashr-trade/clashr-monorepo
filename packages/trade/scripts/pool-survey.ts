@@ -2,7 +2,7 @@
  * Read-only pool survey: for each token, its pools (venue, hooks, currency0, tick spacing, v4 active
  * liquidity) and a 0.001 ETH buy quote per pool (SIDE=sell: a 1000-token sell). Public RPC, nothing signed.
  *
- *   pnpm --filter @rushr/trade exec tsx scripts/pool-survey.ts <token> [token…]
+ *   pnpm --filter @clashr/trade exec tsx scripts/pool-survey.ts <token> [token…]
  */
 import { createPublicClient, http, type Address, type PublicClient } from 'viem';
 import { robinhoodChain } from '../src/chain';

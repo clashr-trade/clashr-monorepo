@@ -25,8 +25,8 @@ export interface Registration {
 /**
  * The agent's wallet. The private key stays inside the viem account: this object never exposes it,
  * and nothing in the server returns or logs it. The rk_ API key is kept next to it:
- * - with RUSHR_WALLET_FILE, inside that file (Talos's format, mode 600);
- * - with RUSHR_PRIVATE_KEY, from RUSHR_API_KEY or `<stateDir>/<address>.json` (mode 600).
+ * - with CLASHR_ROBINHOOD_WALLET_FILE, inside that file (Talos's format, mode 600);
+ * - with CLASHR_ROBINHOOD_PRIVATE_KEY, from CLASHR_ROBINHOOD_API_KEY or `<stateDir>/<address>.json` (mode 600).
  */
 export interface AgentWallet {
   readonly account: PrivateKeyAccount;
@@ -59,7 +59,7 @@ function readJson<T>(path: string): T {
 export function loadWallet(c: Config): AgentWallet | null {
   if (c.walletFile) {
     const path = c.walletFile;
-    if (!existsSync(path)) throw new ConfigError(`RUSHR_WALLET_FILE ${path} doesn't exist`);
+    if (!existsSync(path)) throw new ConfigError(`CLASHR_ROBINHOOD_WALLET_FILE ${path} doesn't exist`);
     const w = readJson<WalletFile>(path);
     if (!HEX_KEY.test(w.privateKey ?? '')) throw new ConfigError(`${path} has no valid privateKey (0x + 64 hex characters)`);
     const account = privateKeyToAccount(w.privateKey);
@@ -78,7 +78,7 @@ export function loadWallet(c: Config): AgentWallet | null {
     };
   }
   if (c.privateKey) {
-    if (!HEX_KEY.test(c.privateKey)) throw new ConfigError('RUSHR_PRIVATE_KEY must be 0x followed by 64 hex characters');
+    if (!HEX_KEY.test(c.privateKey)) throw new ConfigError('CLASHR_ROBINHOOD_PRIVATE_KEY must be 0x followed by 64 hex characters');
     const account = privateKeyToAccount(c.privateKey as Hex);
     const path = join(c.stateDir, `${account.address.toLowerCase()}.json`);
     let state: Partial<Registration> = existsSync(path) ? readJson<Partial<Registration>>(path) : {};
@@ -91,7 +91,7 @@ export function loadWallet(c: Config): AgentWallet | null {
         state = r;
         writePrivate(path, { address: account.address, ...r });
       },
-      keyLocation: c.apiKey ? 'RUSHR_API_KEY' : path,
+      keyLocation: c.apiKey ? 'CLASHR_ROBINHOOD_API_KEY' : path,
     };
   }
   return null;

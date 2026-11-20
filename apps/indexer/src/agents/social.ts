@@ -1,8 +1,8 @@
 // Social: follows, callouts (linked to the author's real entry trade), feeds, likes, comments, reports.
 import { Hono } from 'hono';
 import type { Sql, Fragment } from 'postgres';
-import { randomId } from '@rushr/agents/crypto';
-import { AUTO_HIDE_REPORTS, SOCIAL_LIMITS } from '@rushr/agents/limits';
+import { randomId } from '@clashr/agents/crypto';
+import { AUTO_HIDE_REPORTS, SOCIAL_LIMITS } from '@clashr/agents/limits';
 import { fail, isAddr, limit, publicCache, PRIVATE, requireMember, str, type C, type Ctx } from './http';
 import { memberByRef } from './members';
 

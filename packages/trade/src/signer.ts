@@ -8,7 +8,7 @@ import type { TradeConfig } from './config';
  *
  * Gates, all of which must pass before anything is signed:
  * - WALLETS_ENABLED=1 in the environment (off by default);
- * - `assertOneClickAllowed(cfg)`: RushrRouter deployed AND independently audited (a project rule);
+ * - `assertOneClickAllowed(cfg)`: ClashrLegacyRouter deployed AND independently audited (a project rule);
  * - the Privy policy attached to our signer (see policy.ts), enforced inside Privy's TEE.
  * Rushr never holds user keys: the user's key lives in Privy's enclave. We hold only an *authorization*
  * key (P-256) that asks Privy to sign within the user-owned policy. That key belongs in a KMS.
@@ -245,7 +245,7 @@ export interface WalletEnv {
  */
 export function createSessionSigner(env: WalletEnv, authorizationKey: AuthorizationKey, cfg: TradeConfig, opts: Partial<PrivySignerConfig> = {}): SessionSigner | null {
   if (env.WALLETS_ENABLED !== '1') return null;
-  // Server-held signing is one-click trading: never before RushrRouter is deployed AND audited.
+  // Server-held signing is one-click trading: never before ClashrLegacyRouter is deployed AND audited.
   try {
     assertOneClickAllowed(cfg);
   } catch {
@@ -255,8 +255,8 @@ export function createSessionSigner(env: WalletEnv, authorizationKey: Authorizat
   return new PrivySessionSigner({ ...opts, appId: env.PRIVY_APP_ID, appSecret: env.PRIVY_APP_SECRET, authorizationKey });
 }
 
-/** One-click (server-signed) trading needs RushrRouter deployed AND audited, plus a real treasury. */
+/** One-click (server-signed) trading needs ClashrLegacyRouter deployed AND audited, plus a real treasury. */
 export function assertOneClickAllowed(cfg: TradeConfig): void {
-  if (!cfg.rushrRouter) throw new TradeError('UNSUPPORTED_VENUE', 'One-click trading needs RushrRouter deployed');
-  if (!cfg.rushrRouterAudited) throw new TradeError('UNSUPPORTED_VENUE', 'One-click trading stays off until RushrRouter is independently audited');
+  if (!cfg.clashrLegacyRouter) throw new TradeError('UNSUPPORTED_VENUE', 'One-click trading needs ClashrLegacyRouter deployed');
+  if (!cfg.clashrLegacyRouterAudited) throw new TradeError('UNSUPPORTED_VENUE', 'One-click trading stays off until ClashrLegacyRouter is independently audited');
 }

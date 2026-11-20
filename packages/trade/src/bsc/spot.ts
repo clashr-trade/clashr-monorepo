@@ -1,5 +1,5 @@
 import { encodeFunctionData, isAddress, keccak256, stringToHex, zeroAddress, type Address, type Hex, type PublicClient } from 'viem';
-import { PANCAKE_V2, PANCAKE_V3 } from '@rushr/core/chain/pancake';
+import { PANCAKE_V2, PANCAKE_V3 } from '@clashr/core/chain/pancake';
 import { TradeError } from '../errors';
 import { BSC_ERC20_ABI, BSC_POOL_ABI, BSC_QUOTER_ABI, BSC_SPOT, BSC_V2_ROUTER_ABI, BSC_V3_ROUTER_ABI, V3_FEES } from './abi';
 

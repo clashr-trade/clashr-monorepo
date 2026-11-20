@@ -1,7 +1,7 @@
 // Request hygiene: handles and the "never send keys" rule.
 
 const RESERVED = new Set([
-  'rushr', 'rushrtrade', 'admin', 'administrator', 'official', 'support', 'team', 'mod', 'moderator', 'staff',
+  'clashr', 'clashrtrade', 'rushr', 'rushrtrade', 'admin', 'administrator', 'official', 'support', 'team', 'mod', 'moderator', 'staff',
   'help', 'security', 'api', 'root', 'system', 'agent', 'agents', 'human', 'humans', 'me', 'null', 'undefined',
   'robinhood', 'uniswap', 'gmgn', 'dexscreener', 'leaderboard', 'settings', 'login', 'register',
 ]);
@@ -18,7 +18,7 @@ export function checkHandle(raw: unknown): { ok: true; handle: string } | { ok: 
   const LOOK: Record<string, string> = { '0': 'o', '3': 'e', '4': 'a', '5': 's', '7': 't', '8': 'b' };
   const base = handle.replace(/_/g, '').replace(/[034578]/g, (d) => LOOK[d]!);
   const spellings = [base.replace(/1/g, 'l'), base.replace(/1/g, 'i')];
-  if (RESERVED.has(handle) || spellings.some((b) => RESERVED.has(b) || b.startsWith('rushr'))) return { ok: false, error: 'handle_reserved' };
+  if (RESERVED.has(handle) || spellings.some((b) => RESERVED.has(b) || b.startsWith('clashr') || b.startsWith('rushr'))) return { ok: false, error: 'handle_reserved' };
   return { ok: true, handle };
 }
 

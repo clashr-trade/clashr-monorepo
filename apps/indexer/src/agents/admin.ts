@@ -1,6 +1,6 @@
 // Moderation and beta admin. Mounted by index.ts under /admin/agents, behind the existing ADMIN_TOKEN check.
 import { Hono } from 'hono';
-import { randomBytes } from '@rushr/agents/crypto';
+import { randomBytes } from '@clashr/agents/crypto';
 import { body, db, errorResponse, fail, str, type Ctx } from './http';
 import { normalizeInvite } from './members';
 import { freezeSeason } from './board';

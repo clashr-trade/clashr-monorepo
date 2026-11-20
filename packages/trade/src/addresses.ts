@@ -1,5 +1,5 @@
 import type { Address } from 'viem';
-import { QUOTES, UNISWAP, NATIVE_ETH } from '@rushr/core/chain/robinhood';
+import { QUOTES, UNISWAP, NATIVE_ETH } from '@clashr/core/chain/robinhood';
 
 /**
  * Trading contracts on Robinhood Chain (4663). Uniswap entries come from Uniswap's official deployment

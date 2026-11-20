@@ -1,5 +1,7 @@
 'use client';
 
+import { storageKey } from '@/lib/brand-compat';
+
 import {usePlatformLanguage} from '@/components/landing/language-provider';
 import Link from 'next/link';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -71,7 +73,7 @@ const BY: Record<Exclude<SortKey, 'default'>, (a: TokenCard, b: TokenCard) => nu
   holders: (a, b) => b.holders - a.holders,
   txns: (a, b) => ((b.buys_24h ?? 0) + (b.sells_24h ?? 0) || (b.trades_24h ?? 0)) - ((a.buys_24h ?? 0) + (a.sells_24h ?? 0) || (a.trades_24h ?? 0)),
 };
-const SORTS_KEY = 'rushr.trenches.sort';
+const SORTS_KEY = storageKey('trenches.sort');
 
 const COLUMNS: { id: Column; title: string; icon: typeof Plant }[] = [
   { id: 'new', title: 'New pairs', icon: Sparkle },
@@ -129,7 +131,7 @@ function passes(t: TokenCard, f: Filters, now: number) {
 function loadFilters(chainId = 4663): Record<Column, Filters> {
   const base = { new: NO_FILTERS, almost: NO_FILTERS, migrated: NO_FILTERS };
   try {
-    const raw = JSON.parse(localStorage.getItem(chainId === 56 ? 'rushr.trenches.filters.56' : 'rushr.trenches.filters') ?? '{}') as Partial<Record<Column, Partial<Filters>>>;
+    const raw = JSON.parse(localStorage.getItem(chainId === 56 ? storageKey('trenches.filters.56') : storageKey('trenches.filters')) ?? '{}') as Partial<Record<Column, Partial<Filters>>>;
     // Older saves lack the newer keys; fill them in.
     return { new: { ...NO_FILTERS, ...raw.new }, almost: { ...NO_FILTERS, ...raw.almost }, migrated: { ...NO_FILTERS, ...raw.migrated } };
   } catch {
@@ -251,7 +253,7 @@ export function Trenches({ initial, serverNow, chainId = 4663 }: { initial: Toke
     setFilters((prev) => {
       const next = { ...prev, [col]: f };
       try {
-        localStorage.setItem(chainId === 56 ? 'rushr.trenches.filters.56' : 'rushr.trenches.filters', JSON.stringify(next));
+        localStorage.setItem(chainId === 56 ? storageKey('trenches.filters.56') : storageKey('trenches.filters'), JSON.stringify(next));
       } catch {
         // storage unavailable; filters still apply for this visit
       }

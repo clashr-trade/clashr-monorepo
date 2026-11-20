@@ -5,7 +5,7 @@ import { isSwapEnabled } from '@/components/trade/flag';
 
 export const metadata: Metadata = { title: 'Swap (test bed)', robots: { index: false } };
 
-/** Test bed for @rushr/trade: quote, fee breakdown and eth_simulateV1. Nothing here signs or sends. */
+/** Test bed for @clashr/trade: quote, fee breakdown and eth_simulateV1. Nothing here signs or sends. */
 export default async function SwapPage({ searchParams }: { searchParams: Promise<{ token?: string }> }) {
   // Off by default: without NEXT_PUBLIC_SWAP_ENABLED=1 the route is a 404.
   if (!isSwapEnabled()) notFound();

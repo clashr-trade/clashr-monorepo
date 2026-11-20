@@ -3,7 +3,7 @@
  * Prints, per token, what the curve took / paid, the fee transfer built from the simulated receipt and
  * the treasury's simulated ETH delta. See src/curve-fee-sim.ts.
  *
- *   pnpm --filter @rushr/trade exec tsx scripts/curve-fee-sim.ts [token…] [--eth 0.01] [--n 2] [--referred]
+ *   pnpm --filter @clashr/trade exec tsx scripts/curve-fee-sim.ts [token…] [--eth 0.01] [--n 2] [--referred]
  */
 import { createPublicClient, formatEther, http, type Address, type PublicClient } from 'viem';
 import { robinhoodChain } from '../src/chain';

@@ -14,7 +14,7 @@ afterAll(async () => {
 });
 
 async function plugin(dir: string) {
-  const cfg = loadConfig({ RUSHR_STATE_DIR: dir });
+  const cfg = loadConfig({ CLASHR_ROBINHOOD_STATE_DIR: dir });
   const { server, wallet } = createServer(cfg, { fetch: fakeApi().f, chain: fakeChain(), sleep: async () => {} });
   const [a, b] = InMemoryTransport.createLinkedPair();
   const client = new Client({ name: 'test', version: '0' });
@@ -66,9 +66,9 @@ describe('plugin setup: create_wallet and the default keyfile', () => {
     expect(readFileSync(join(dir, 'agent-wallet.json'), 'utf8')).toBe(before);
   });
 
-  it('an explicit RUSHR_WALLET_FILE or RUSHR_PRIVATE_KEY still wins over the default', () => {
+  it('an explicit CLASHR_ROBINHOOD_WALLET_FILE or CLASHR_ROBINHOOD_PRIVATE_KEY still wins over the default', () => {
     const dir = mkdtempSync(join(tmpdir(), 'rushr-plugin-'));
-    expect(loadConfig({ RUSHR_STATE_DIR: dir, RUSHR_WALLET_FILE: '/x/w.json' }).walletFile).toBe('/x/w.json');
-    expect(loadConfig({ RUSHR_STATE_DIR: dir }).walletFile).toBeUndefined();
+    expect(loadConfig({ CLASHR_ROBINHOOD_STATE_DIR: dir, CLASHR_ROBINHOOD_WALLET_FILE: '/x/w.json' }).walletFile).toBe('/x/w.json');
+    expect(loadConfig({ CLASHR_ROBINHOOD_STATE_DIR: dir }).walletFile).toBeUndefined();
   });
 });

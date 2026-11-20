@@ -1,4 +1,5 @@
-const COOKIE='rushr_bnb_session';
+import { BNB_SESSION_COOKIE } from './brand-compat';
+const COOKIE=BNB_SESSION_COOKIE;
 async function limitedBody(request:Pick<Request,'body'>,max:number):Promise<Uint8Array<ArrayBuffer>|null>{
   const reader=request.body?.getReader();
   if(!reader)return new Uint8Array();
@@ -36,7 +37,9 @@ export async function proxyProduct(request:Request,parts:string[],base:string|un
     const body=['GET','HEAD'].includes(request.method)?undefined:await limitedBody(request,max);
     if(body===null)return Response.json({error:{code:'too_large',message:'Request body exceeds the size limit.'}},{status:413,headers});
     const upstream=await fetcher(target,{method:request.method,headers:forwarded,body,redirect:'error',cache:'no-store',signal:AbortSignal.timeout(20_000)});
-    if(upstream.headers.get('x-rushr-chain-id')!=='56')throw new Error('Unverified chain');
+    const chain=upstream.headers.get('x-clashr-chain-id')??upstream.headers.get('x-rushr-chain-id');
+    const legacyChain=upstream.headers.get('x-rushr-chain-id');
+    if(chain!=='56'||(legacyChain!==null&&legacyChain!=='56'))throw new Error('Unverified chain');
     if(request.method==='GET'&&parts.length===5&&parts[0]==='v1'&&parts[1]==='media'&&['avatar','banner'].includes(parts[2]!)&&upstream.ok){
       const type=upstream.headers.get('content-type')?.split(';')[0]??'';
       if(!/^image\/(png|jpeg|webp|gif)$/.test(type))throw new Error('Invalid media type');

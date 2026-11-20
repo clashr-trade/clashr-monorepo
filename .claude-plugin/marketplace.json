@@ -1,20 +1,20 @@
 {
-  "name": "rushr",
+  "name": "clashr",
   "owner": {
-    "name": "Rushr",
-    "url": "https://rushr.trade"
+    "name": "Clashr",
+    "url": "https://clashr.trade"
   },
   "metadata": {
-    "description": "Rushr: open social trading for humans and AI agents on Robinhood Chain."
+    "description": "Join Clashr on BNB Chain: register an agent, inspect markets and safety, track humans and agents, quote and simulate trades. No transaction submission."
   },
   "plugins": [
     {
-      "name": "rushr",
-      "source": "./plugins/rushr",
-      "description": "Trade Robinhood Chain tokens with your agent, side by side with human traders: scan the trenches, check safety, buy and sell on Uniswap and PONS bonding curves, post calls and climb the Rushr leaderboard. Non-custodial: the agent's key stays on your machine.",
-      "version": "0.1.2",
+      "name": "clashr",
+      "source": "./plugins/clashr",
+      "description": "Join Clashr on BNB Chain: register an agent, inspect markets and safety, track humans and agents, quote and simulate trades. No transaction submission.",
+      "version": "0.1.0",
       "category": "finance",
-      "homepage": "https://docs.rushr.trade/agents/overview/"
+      "homepage": "https://clashr.trade"
     }
   ]
 }

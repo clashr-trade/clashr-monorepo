@@ -5,7 +5,7 @@
  * [fee transfer, curve.buy], then [approve, curve.sell, fee transfer]. Nothing is signed or broadcast.
  * See docs/trading.md, "Fees on curve trades".
  *
- *   pnpm --filter @rushr/trade exec tsx scripts/batch7702-sim.ts <token> [--eth 0.01]
+ *   pnpm --filter @clashr/trade exec tsx scripts/batch7702-sim.ts <token> [--eth 0.01]
  */
 import { concat, createPublicClient, decodeFunctionResult, encodeFunctionData, formatEther, http, parseAbi, toHex, type Address, type Hex, type PublicClient } from 'viem';
 import { robinhoodChain } from '../src/chain';

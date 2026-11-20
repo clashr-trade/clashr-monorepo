@@ -4,7 +4,7 @@ import { createApi } from './api.ts';
 import type { Config } from './config.ts';
 import { SpendLedger } from './guards.ts';
 import { createEthUsd } from './price.ts';
-import { Rushr, viemChain, type ChainIO } from './rushr.ts';
+import { ClashrLegacyClient, viemChain, type ChainIO } from './clashr.ts';
 import { registerTools } from './tools.ts';
 import { loadWallet } from './wallet.ts';
 
@@ -17,8 +17,8 @@ export function createServer(cfg: Config, overrides: { chain?: ChainIO; fetch?: 
   const wallet = loadWallet(cfg);
   const api = createApi({ baseUrl: cfg.apiUrl, apiKey: () => wallet?.apiKey(), fetch: overrides.fetch, userAgent: `rushr-mcp/${VERSION} (+https://github.com/rushr-dev/platform)` });
   const ledger = new SpendLedger(wallet ? join(cfg.stateDir, `spend-${wallet.address.toLowerCase()}.json`) : null);
-  const rushr = new Rushr({ cfg, api, wallet, chain: overrides.chain ?? viemChain(cfg, wallet), ethUsd: createEthUsd(api, overrides.fetch), ledger, sleep: overrides.sleep });
-  const server = new McpServer({ name: 'rushr', version: VERSION }, { instructions: INSTRUCTIONS });
-  registerTools(server, rushr);
-  return { server, rushr, wallet };
+  const clashr = new ClashrLegacyClient({ cfg, api, wallet, chain: overrides.chain ?? viemChain(cfg, wallet), ethUsd: createEthUsd(api, overrides.fetch), ledger, sleep: overrides.sleep });
+  const server = new McpServer({ name: 'clashr-legacy', version: VERSION }, { instructions: INSTRUCTIONS });
+  registerTools(server, clashr);
+  return { server, clashr, rushr: clashr, wallet };
 }

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { decodeAbiParameters, decodeFunctionData, type Address, type PublicClient } from 'viem';
 import { autoSlippageBps, evaluateGuards, isFresh, prepareQuickTrade, quickBuy, quickSell, DEFAULT_QUICK_SETTINGS, explorerTxUrl, feeLine } from '../src/quick';
 import { quotePool } from '../src/quote';
-import { resolveConfig, RUSHR_TREASURY, STANDARD_FEE_BPS } from '../src/config';
+import { resolveConfig, LEGACY_ROBINHOOD_TREASURY, STANDARD_FEE_BPS } from '../src/config';
 import { TRADE_ADDRESSES } from '../src/addresses';
 import { universalRouterAbi } from '../src/universal-router';
 import { erc20Abi, permit2Abi, ponsCurveAbi } from '../src/abis';
@@ -65,7 +65,7 @@ describe('prepareQuickTrade (Universal Router, client-side signing)', () => {
     const d = decodeFunctionData({ abi: universalRouterAbi, data: call.data });
     expect(d.args[0]).toBe('0x050b08'); // TRANSFER fee, WRAP_ETH, V2_SWAP_EXACT_IN
     const [token, recipient, fee] = decodeAbiParameters([{ type: 'address' }, { type: 'address' }, { type: 'uint256' }], d.args[1][0]!);
-    expect([token, recipient, fee]).toEqual(['0x0000000000000000000000000000000000000000', RUSHR_TREASURY, E(0.00025)]); // beta rate: 0.25% of msg.value
+    expect([token, recipient, fee]).toEqual(['0x0000000000000000000000000000000000000000', LEGACY_ROBINHOOD_TREASURY, E(0.00025)]); // beta rate: 0.25% of msg.value
     expect(t.slippageBps).toBe(500);
     expect(t.record).toMatchObject({ side: 'buy', feeBps: 25, baseFeeBps: 25, venue: 'uniswap-v2', source: { kind: 'web' } });
     expect(isFresh(t, 1_000_000 + 9_999)).toBe(true);
@@ -108,7 +108,7 @@ describe('prepareQuickTrade (Universal Router, client-side signing)', () => {
     // Buys: the whole amount goes into the curve; the 0.25% fee comes on top, after the trade.
     expect(b.quote!.fee).toMatchObject({ feeBps: 25, baseFeeBps: 25, feeAmount: E(0.00025) });
     expect(feeLine(b.quote!)).toBe('Rushr fee 0.25% (beta, half price)');
-    expect(b.feeFollowUp).toEqual({ kind: 'curve-fee', side: 'buy', curve: live.curve, trader: TRADER, treasury: RUSHR_TREASURY, feeBps: 25, quotedFee: E(0.00025) });
+    expect(b.feeFollowUp).toEqual({ kind: 'curve-fee', side: 'buy', curve: live.curve, trader: TRADER, treasury: LEGACY_ROBINHOOD_TREASURY, feeBps: 25, quotedFee: E(0.00025) });
     expect(decodeFunctionData({ abi: ponsCurveAbi, data: b.calls[0]!.data }).args).toEqual([E(0.1), (out * 9_500n) / 10_000n, TRADER]);
     expect(b.sellApprovals.map((c) => c.label)).toEqual(['approve token for the curve']);
     expect(b.record).toMatchObject({ venue: 'pons-curve', feeBps: 25, feeAmount: E(0.00025), router: live.curve });

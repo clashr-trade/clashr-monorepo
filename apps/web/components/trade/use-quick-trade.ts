@@ -1,5 +1,7 @@
 'use client';
 
+import { TRADE_EVENT } from '@/lib/brand-compat';
+
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { parseEther, type Address, type Hex, type PublicClient } from 'viem';
 import {
@@ -24,7 +26,7 @@ import {
   type TokenRiskInfo,
   type TokenSafety,
   type WalletCall,
-} from '@rushr/trade';
+} from '@clashr/trade';
 import { API_URL } from '@/lib/api';
 import { auth, useAuth } from '@/lib/auth';
 import { publicClient } from '@/lib/balances';
@@ -84,7 +86,7 @@ export type TradeStatus =
   | { kind: 'success'; hash: Hex; url: string; ms: number }
   | { kind: 'failed'; message: string; hash?: Hex; url?: string };
 
-/** Per-trade stage timings (ms), kept on `window.__rushrTradeTimings` (last 20) and logged. */
+/** Per-trade stage timings (ms), kept on `window.__clashrTradeTimings` (last 20) and logged. */
 export interface TradeTimings {
   side: 'buy' | 'sell';
   token: Address;
@@ -126,7 +128,7 @@ export interface TradeEventDetail {
 
 function emit(detail: TradeEventDetail) {
   try {
-    window.dispatchEvent(new CustomEvent<TradeEventDetail>('rushr:trade', { detail }));
+    window.dispatchEvent(new CustomEvent<TradeEventDetail>(TRADE_EVENT, { detail }));
   } catch {
     /* no window */
   }
@@ -134,11 +136,11 @@ function emit(detail: TradeEventDetail) {
 
 function logTimings(t: TradeTimings) {
   try {
-    const w = window as unknown as { __rushrTradeTimings?: TradeTimings[] };
-    (w.__rushrTradeTimings ??= []).push(t);
-    if (w.__rushrTradeTimings.length > 20) w.__rushrTradeTimings.shift();
+    const w = window as unknown as { __clashrTradeTimings?: TradeTimings[] };
+    (w.__clashrTradeTimings ??= []).push(t);
+    if (w.__clashrTradeTimings.length > 20) w.__clashrTradeTimings.shift();
     console.info(
-      `[rushr trade] ${t.side} ${t.prebuilt ? 'prebuilt' : 'cold'}: submitted ${t.clickToSubmittedMs.toFixed(0)}ms (ready ${t.readyMs.toFixed(0)} · prep ${t.prepMs.toFixed(0)} · sign ${t.signMs.toFixed(0)}), confirmed +${t.confirmMs.toFixed(0)}ms via ${t.via} = ${t.clickToConfirmedMs.toFixed(0)}ms, ${t.txs} tx`,
+      `[clashr trade] ${t.side} ${t.prebuilt ? 'prebuilt' : 'cold'}: submitted ${t.clickToSubmittedMs.toFixed(0)}ms (ready ${t.readyMs.toFixed(0)} · prep ${t.prepMs.toFixed(0)} · sign ${t.signMs.toFixed(0)}), confirmed +${t.confirmMs.toFixed(0)}ms via ${t.via} = ${t.clickToConfirmedMs.toFixed(0)}ms, ${t.txs} tx`,
     );
   } catch {
     /* best effort */
@@ -534,7 +536,7 @@ async function sendWithRetry(pipe: TxPipeline, call: WalletCall, onSubmitted: (h
     const userCancelled = /user rejected|denied|cancel/i.test(String((e as Error)?.message));
     const unsupported = (e instanceof SendError && e.code === 'UNSUPPORTED') || (!signed && !(e instanceof SendError) && !userCancelled);
     if (!unsupported) throw e;
-    console.warn('[rushr trade] sign-only unavailable, using the wallet\'s own send:', friendly(e));
+    console.warn('[clashr trade] sign-only unavailable, using the wallet\'s own send:', friendly(e));
     signOnlyUnavailable = true;
     return walletSend(pipe, call, onSubmitted);
   }
@@ -544,9 +546,9 @@ async function sendWithRetry(pipe: TxPipeline, call: WalletCall, onSubmitted: (h
 async function sendFollowUpFee(pipe: TxPipeline, call: WalletCall, tradeHash: Hex) {
   try {
     const r = await sendWithRetry(pipe, call, (hash) => void recordTrade(tradeHash, hash));
-    if (r.receipt.status !== 'success') console.warn('[rushr trade] fee transfer reverted:', r.hash);
+    if (r.receipt.status !== 'success') console.warn('[clashr trade] fee transfer reverted:', r.hash);
   } catch (e) {
-    console.warn('[rushr trade] fee transfer not sent:', friendly(e));
+    console.warn('[clashr trade] fee transfer not sent:', friendly(e));
   }
 }
 
@@ -567,7 +569,7 @@ async function preApprove(pipe: TxPipeline, calls: WalletCall[]) {
       const r = await sendWithRetry(pipe, c, () => undefined);
       if (r.receipt.status !== 'success') return;
     } catch (e) {
-      console.warn('[rushr trade] pre-approval for selling skipped:', friendly(e));
+      console.warn('[clashr trade] pre-approval for selling skipped:', friendly(e));
       return; // the next sell includes whatever is still missing
     }
   }

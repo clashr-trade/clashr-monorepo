@@ -1,5 +1,5 @@
-import { getNetwork, LEGACY_CHAIN_ID, type SupportedChainId } from '@rushr/core/chain/networks';
-import { BSC_PUBLIC_RPC } from '@rushr/core/chain/bsc-rpc';
+import { getNetwork, LEGACY_CHAIN_ID, type SupportedChainId } from '@clashr/core/chain/networks';
+import { BSC_PUBLIC_RPC } from '@clashr/core/chain/bsc-rpc';
 
 export interface RpcEnvironment {
   RPC_URL?: string;

@@ -7,7 +7,7 @@ Status 2026-11-12: research done, decisions recorded (below), scaffold in `packa
 **What it is:** quick buy and sell with **no confirmation popup**:
 - **Signing:** client-side, in the user's own **Privy embedded wallet**, with its UI off. Since the fast path (below) the wallet only signs (`signTransaction`) and the page broadcasts; Rushr's servers hold **no signing key for humans**.
 - **Route:** through **Uniswap's audited Universal Router**, with our fee in the same tx: `TRANSFER` on buys, `PAY_PORTION` + `SWEEP` on sells, recipient = the user.
-- **Contracts:** no RushrRouter or RushrPonsRouter. Those stay for agents and offline one-click, after the audit.
+- **Contracts:** no ClashrLegacyRouter or ClashrLegacyPonsRouter. Those stay for agents and offline one-click, after the audit.
 - **PONS bonding-curve tokens** (since 2026-11-13): traded **directly on the curve** from the user's wallet, as pons.fun's own UI does. The Rushr fee follows as a **second, plain transfer** to the treasury once the trade confirms (since 2026-11-14; see "PONS curve trades" below).
 - **Fee and treasury:** **0.25% during the beta** (half price; 0.22% referred), 0.5% (0.45% referred) after it, on every route, paid to the treasury `0x447a…5E40`.
 
@@ -95,7 +95,7 @@ Tokens still on their PONS bonding curve trade on the curve itself, from the use
 
 ### The curve fee: a follow-up transfer (2026-11-14)
 
-Nothing in a direct curve call can pay us, so the fee is a **second transaction**: a plain ETH transfer from the user's wallet to the treasury, sent right after the trade confirms. It is the interim path; the atomic options are an EIP-7702 batch (next section, "go-later") or `RushrPonsRouter` after its review.
+Nothing in a direct curve call can pay us, so the fee is a **second transaction**: a plain ETH transfer from the user's wallet to the treasury, sent right after the trade confirms. It is the interim path; the atomic options are an EIP-7702 batch (next section, "go-later") or `ClashrLegacyPonsRouter` after its review.
 
 - **Amount** (`src/curve-fee.ts`), at the same rate as Uniswap routes, referral discount included (`effectiveFeeBps`):
   - Buy: `fee = ETH the curve took × feeBps / 10_000`, **on top of** the buy amount (buy 0.01 ETH, pay 0.01 + 0.000025). A buy that completes the curve takes less than it was sent and refunds the rest; the fee is on what it took.
@@ -123,7 +123,7 @@ Nothing in a direct curve call can pay us, so the fee is a **second transaction*
 
 ### Fees on curve trades without our own router: EIP-7702 batching (researched 2026-11-13)
 
-**Question:** can the user's embedded wallet send [fee to the treasury + `curve.buy`] (and [`curve.sell` + fee]) as **one atomic transaction**, without deploying `RushrPonsRouter`?
+**Question:** can the user's embedded wallet send [fee to the treasury + `curve.buy`] (and [`curve.sell` + fee]) as **one atomic transaction**, without deploying `ClashrLegacyPonsRouter`?
 
 PONS curves are standalone contracts and never touch the Uniswap v4 PoolManager, so the Universal Router can't route them or take its fee. The only way to make two calls atomic from an EOA without a router of our own is to give the EOA code: EIP-7702 delegation to a batch-executor contract.
 
@@ -194,7 +194,7 @@ Simulated with `packages/trade/scripts/batch7702-sim.ts` (read-only `eth_simulat
      - The authorization must only ever name the pinned delegate address. `verifySigned` checks it before broadcast, as it does every other field today.
 - **Compared with the alternatives:**
 
-  | | 7702 batch | Fee as a second transaction | `RushrPonsRouter` |
+  | | 7702 batch | Fee as a second transaction | `ClashrLegacyPonsRouter` |
   | --- | --- | --- | --- |
   | Atomic | yes | no: trade first, fee after it confirms | yes |
   | Fee on a failed trade | never | never (sent only after success) | never |
@@ -260,7 +260,7 @@ The v4 quote engine was not broken. Quoter, StateView and the PoolManager they r
 
 **Tests:**
 - Offline: `test/v4-classify.test.ts` (withdrawn vs one-sided vs non-ETH).
-- Live: `test/live/v4.live.test.ts` (`pnpm --filter @rushr/trade test:live`; read-only quotes plus `eth_simulateV1` buys and sells, skipped by default since chain state moves).
+- Live: `test/live/v4.live.test.ts` (`pnpm --filter @clashr/trade test:live`; read-only quotes plus `eth_simulateV1` buys and sells, skipped by default since chain state moves).
 
 ### Guardrails (client)
 - **Per-trade cap:** on the ETH side (buy input, expected sell output), from `/settings`; the default (0.25 ETH) lives in `lib/settings.ts`.
@@ -352,10 +352,10 @@ A read-only check that the treasury actually received the fee. Universal Router 
 
 ```bash
 # specific transactions (a curve trade with its fee transfer: trade:fee)
-pnpm --filter @rushr/trade exec tsx scripts/fee-audit.ts --env apps/indexer/.dev.vars --tx 0x… 0x…:0x…
+pnpm --filter @clashr/trade exec tsx scripts/fee-audit.ts --env apps/indexer/.dev.vars --tx 0x… 0x…:0x…
 # the last N trades in the trade ledger, for everyone or one wallet
-pnpm --filter @rushr/trade exec tsx scripts/fee-audit.ts --env apps/indexer/.dev.vars --env apps/indexer/.dev.vars.neon --last 20
-pnpm --filter @rushr/trade exec tsx scripts/fee-audit.ts --env apps/indexer/.dev.vars --wallet 0x… --last 10
+pnpm --filter @clashr/trade exec tsx scripts/fee-audit.ts --env apps/indexer/.dev.vars --env apps/indexer/.dev.vars.neon --last 20
+pnpm --filter @clashr/trade exec tsx scripts/fee-audit.ts --env apps/indexer/.dev.vars --wallet 0x… --last 10
 ```
 
 - **Environment:**
@@ -394,8 +394,8 @@ pnpm --filter @rushr/trade exec tsx scripts/fee-audit.ts --env apps/indexer/.dev
 | **Rate** | **0.5%** of the trade, buys and sells (`STANDARD_FEE_BPS`): fomo parity, undercuts Axiom (~1%). **Beta (decided 2026-11-13): 0.25%, half price** (`BETA_FEE_BPS`, the default `feeBps`), so real trades exercise the fee path. Returning to 0.5% is one line in `config.ts`. Curve trades pay the same rate as a follow-up transfer (since 2026-11-14). |
 | **Which side** | Always the **quote side** (ETH, WETH or USDG): taken from the input on buys, from the output on sells. The treasury only receives ETH or USDG, and a token's own tax can't shrink or block the fee. |
 | **Collection, Uniswap v2/v3/v4** (including Doppler, lift.fun and other hooked v4 pools) | **Primary path.** Uniswap's audited **Universal Router**, no custom contract. Buys: `TRANSFER(ETH, treasury, fee)` from `msg.value`, then swap the rest. Sells: swap into the router, `PAY_PORTION(ETH, treasury, bps)`, `SWEEP(ETH, user, minOut)` (the pattern Uniswap's interface fee used). |
-| **Collection, PONS bonding curves** | `contracts/src/RushrPonsRouter.sol`, fully tested, **undeployed until an independent review** (checklist below). Until then, curve tokens trade **directly on the curve** (decided 2026-11-13), and the fee follows as a **separate transfer** to the treasury after the trade confirms (decided 2026-11-14; EIP-7702 batching is the later, atomic path). |
-| **Treasury** | The treasury is a **Safe** (v1.5.0): `0x2Ae062C61A757b66D3039154a6e965aa48Cd75F3` (since 2026-11-16). Until then it was a single EOA, `0x447a590b70cd55Cc6B62CEaf79D4c6c09A955E40` (2026-11-12 to 2026-11-16), which is kept in `LEGACY_TREASURIES` so late fees still reconcile. It's `RUSHR_TREASURY`, the default `feeRecipient` in `packages/trade`. The routers can move it to a Safe later **only through the guardian's timelock** (queue, wait `delay`, activate, events; no owner, no instant change). **Known risk:** see below. |
+| **Collection, PONS bonding curves** | `contracts/src/ClashrLegacyPonsRouter.sol`, fully tested, **undeployed until an independent review** (checklist below). Until then, curve tokens trade **directly on the curve** (decided 2026-11-13), and the fee follows as a **separate transfer** to the treasury after the trade confirms (decided 2026-11-14; EIP-7702 batching is the later, atomic path). |
+| **Treasury** | The treasury is a **Safe** (v1.5.0): `0x2Ae062C61A757b66D3039154a6e965aa48Cd75F3` (since 2026-11-16). Until then it was a single EOA, `0x447a590b70cd55Cc6B62CEaf79D4c6c09A955E40` (2026-11-12 to 2026-11-16), which is kept in `LEGACY_TREASURIES` so late fees still reconcile. It's `LEGACY_ROBINHOOD_TREASURY`, the default `feeRecipient` in `packages/trade`. The routers can move it to a Safe later **only through the guardian's timelock** (queue, wait `delay`, activate, events; no owner, no instant change). **Known risk:** see below. |
 | **Referral** | **Off-chain accounting.** A referred trader pays **10% less fee**, rounded in their favour (0.5% → **0.45%**; beta 0.25% → **0.22%**, since 25 − ⌈2.5⌉ = 22; charged on-chain as a lower rate). The referrer accrues **20% of the fee actually collected** in our ledger. Payouts aren't built yet. |
 | **Other v3 forks** (Ramses, Aero CL, up, Topaz, Nami, giga, robinswap) | Not routable through the Universal Router, which knows only Uniswap's factories (verified in its bytecode). Phase 2. |
 | **Agents** | Agents trade through the same code: `packages/trade` is pure functions that return unsigned transactions (`prepareSwap`), usable from a server or agent runtime, not only from `/swap`. |
@@ -408,7 +408,7 @@ Universal Router deployment: Uniswap's official list for 4663 has v2.1.2 at `0x2
 - **Mitigations.**
   1. Keep the key on a **hardware wallet**, used only for the treasury and never connected to dapps.
   2. Do **regular sweeps** to cold storage, e.g. daily, or whenever the balance passes a threshold.
-  3. **Migrate to a Safe before volume grows.** Deploy a Safe on Robinhood Chain. Each router's guardian queues it with `queueTreasury(safe)` and anyone runs `activateTreasury()` after the delay. Then update `RUSHR_TREASURY` in `packages/trade` for the Universal Router path.
+  3. **Migrate to a Safe before volume grows.** Deploy a Safe on Robinhood Chain. Each router's guardian queues it with `queueTreasury(safe)` and anyone runs `activateTreasury()` after the delay. Then update `LEGACY_ROBINHOOD_TREASURY` in `packages/trade` for the Universal Router path.
   4. Monitor treasury inflows against the ledger (`sum(fee_amount)` per day).
 - **Audit checklist:** covered in `contracts/REVIEW.md` (treasury timelock and EOA treasury).
 
@@ -416,7 +416,7 @@ Universal Router deployment: Uniswap's official list for 4663 has v2.1.2 at `0x2
 
 How it works:
 - **At quote time:** a `SwapRequest` may carry `referral: { referrer, code? }` (resolved server-side from the trader's signup) and `source: { kind: 'web' | 'agent' | 'api', id? }`.
-- **Fee rate:** `effectiveFeeBps` = base − ⌈base × 10%⌉ = **22 bps** when referred during the beta (45 at the standard rate). The Universal Router plan uses that rate (`TRANSFER` amount, `PAY_PORTION` bips). RushrPonsRouter has an immutable `referralFeeBps` and a `referred` flag.
+- **Fee rate:** `effectiveFeeBps` = base − ⌈base × 10%⌉ = **22 bps** when referred during the beta (45 at the standard rate). The Universal Router plan uses that rate (`TRANSFER` amount, `PAY_PORTION` bips). ClashrLegacyPonsRouter has an immutable `referralFeeBps` and a `referred` flag.
 - **Recording:** `draftTradeRecord(quote)` → store at submit. `confirmTradeRecord(record, receipt)` → status `confirmed`, with `feeAmount` = **fee actually received by the treasury** (from the receipt's transfers, same analysis as `analyzeSwapTransfers`) and `referrerAccrual` = 20% of that.
 - **Payouts (later):** sum confirmed `referrer_accrual` by referrer and fee token, minus what has been paid.
 
@@ -543,7 +543,7 @@ Status 2026-11-12. Nothing is signed or broadcast anywhere: verification is unit
 | Module | What it does |
 | --- | --- |
 | `addresses.ts`, `chain.ts` | Trading contracts for 4663 from Uniswap's official list, the PONS factory, and a viem chain with multicall3 |
-| `config.ts` | `feeBps` (default `BETA_FEE_BPS` = **25** during the beta, `STANDARD_FEE_BPS` = 50 after; capped at 300), `referralDiscountBps` (1000 = 10% of the fee), `referrerShareBps` (2000), `feeRecipient` (default `RUSHR_TREASURY`, the treasury: currently a single EOA, moving to a Safe), `universalRouter`, `ponsRouter` (null until deployed). `assertSignable` refuses a placeholder treasury. One-click trading is gated separately by `assertOneClickAllowed` (RushrRouter deployed **and** audited), and the web UI by `NEXT_PUBLIC_SWAP_ENABLED` |
+| `config.ts` | `feeBps` (default `BETA_FEE_BPS` = **25** during the beta, `STANDARD_FEE_BPS` = 50 after; capped at 300), `referralDiscountBps` (1000 = 10% of the fee), `referrerShareBps` (2000), `feeRecipient` (default `LEGACY_ROBINHOOD_TREASURY`, the treasury: currently a single EOA, moving to a Safe), `universalRouter`, `ponsRouter` (null until deployed). `assertSignable` refuses a placeholder treasury. One-click trading is gated separately by `assertOneClickAllowed` (ClashrLegacyRouter deployed **and** audited), and the web UI by `NEXT_PUBLIC_SWAP_ENABLED` |
 | `referral.ts` | Effective rate, referrer accrual and discount; `TradeRecord` draft and confirm for the off-chain ledger |
 | `agent.ts` | `prepareSwap(client, request, opts)` for servers and agents: best route → unsigned tx, approvals, command list, ledger record, optional simulation. `toJsonSafe` for tool and HTTP output. No browser globals, no keys |
 | `fees.ts` | Fee math: fee off the input on buys, off the gross output on sells (identical to `PAY_PORTION`), slippage minimums, tax-adjusted slippage |
@@ -564,16 +564,16 @@ Fee command plans (Universal Router):
 | Buy with USDG | `PERMIT2_TRANSFER_FROM(USDG→treasury, fee)` · `PERMIT2_TRANSFER_FROM(USDG→router)` (v4) or swap with `payerIsUser` (v2/v3) |
 | Sell to ETH/WETH | swap into router · (`UNWRAP_WETH`) · `PAY_PORTION(ETH→treasury, feeBps)` · `SWEEP(ETH→user, minNet)` |
 | Sell to USDG | swap into router · `PAY_PORTION(USDG)` · `SWEEP(USDG, minNet)` |
-| PONS curve | direct `curve.buy/sell` from the user's wallet, no Rushr fee (beta); `RushrPonsRouter.buy/sell` once reviewed and deployed |
+| PONS curve | direct `curve.buy/sell` from the user's wallet, no Rushr fee (beta); `ClashrLegacyPonsRouter.buy/sell` once reviewed and deployed |
 
-Verified live (`pnpm --filter @rushr/trade simulate`, about 20–40 RPC calls per token):
+Verified live (`pnpm --filter @clashr/trade simulate`, about 20–40 RPC calls per token):
 - PONS buy and sell through Uniswap v3, v2 and v4 (ETH) and v4 (USDG), on both Universal Routers. Tokens received equal the quote to the wei, and the treasury receives exactly 0.5% (also verified at 1% earlier, and 0.45% for a referred buy on the /swap page).
 - A lift.fun token (hooked v4 pool): buy is exact, and the buy→sell probe sells back. Its sell can't be quoted at current state, because the launch liquidity is one-sided until someone buys.
 - PONS curve quote equals the curve's own `buy()` output to the wei.
 
-Tests: `pnpm --filter @rushr/trade test` covers fee math, config guards, encodings (byte layouts matched to live txs), command plans for every venue and side, PONS math against on-chain values, transfer and tax analysis, and revert decoding (36 tests).
+Tests: `pnpm --filter @clashr/trade test` covers fee math, config guards, encodings (byte layouts matched to live txs), command plans for every venue and side, PONS math against on-chain values, transfer and tax analysis, and revert decoding (36 tests).
 
-### `contracts/RushrPonsRouter.sol` (not deployed; Uniswap routes stay the primary path)
+### `contracts/ClashrLegacyPonsRouter.sol` (not deployed; Uniswap routes stay the primary path)
 PONS curve buy and sell with the fee in ETH.
 - **Rates:** immutable `feeBps` (50) and `referralFeeBps` (45), with `referralFeeBps ≤ feeBps ≤ 300`. The caller picks the rate with `referred`. That is no weaker than today: anyone can always call the curve directly and pay no Rushr fee, so the fee is collected by our frontends and agents, not enforced against the user.
 - **Graduation refunds:** a buy that completes the curve gets the unused ETH back from PONS. The router then charges the fee only on ETH actually spent (`fee / (spent + fee) = bps`) and refunds the rest to `msg.sender` in the same tx. Found by simulation: without this, refunds would have been stranded in the router.
@@ -594,12 +594,12 @@ Plus 4 fork tests on a real PONS curve (`ROBINHOOD_RPC_URL=… forge test --matc
 - a 20 ETH buy that graduates the token: 3.79 ETH spent, the rest refunded, fee exactly 0.5% of what was paid
 
 #### Review checklist (before any deployment)
-It lives with the code so it ships in the public contracts repo: [`contracts/REVIEW.md`](../contracts/REVIEW.md). It covers RushrRouter and RushrPonsRouter.
+It lives with the code so it ships in the public contracts repo: [`contracts/REVIEW.md`](../contracts/REVIEW.md). It covers ClashrLegacyRouter and ClashrLegacyPonsRouter.
 
 ### Using it from a server or agent
 ```ts
 import { createPublicClient, http } from 'viem';
-import { prepareSwap, robinhoodChain, toJsonSafe } from '@rushr/trade';
+import { prepareSwap, robinhoodChain, toJsonSafe } from '@clashr/trade';
 
 const client = createPublicClient({ chain: robinhoodChain, transport: http(RPC_URL), batch: { multicall: true } });
 const prepared = await prepareSwap(client, {
@@ -624,8 +624,8 @@ Signing is disabled. Quotes use the **public** Robinhood RPC from the browser (i
 ### Open items
 - Treasury Safe: once it exists, set `feeRecipient` and enable signing behind `assertSignable`.
 - Referral payouts and the `trades_ledger` / `referrals` tables (`packages/db`).
-- Independent review of `RushrPonsRouter` against the checklist above.
+- Independent review of `ClashrLegacyPonsRouter` against the checklist above.
 - Multi-hop routes (e.g. token → USDG → ETH) and split routes. Today it's the best single pool.
 - Ramses, Aero and the other v3 forks: adapter in the fee router (phase 2).
-- `/tokens/:a/pools` (indexer API, built, awaiting its migration): already wired with a fixture-tested adapter. Once deployed, check one Doppler token live with `pnpm --filter @rushr/trade simulate <token>`.
-- Integrating the trade box into the terminal's token page on top of `@rushr/trade`.
+- `/tokens/:a/pools` (indexer API, built, awaiting its migration): already wired with a fixture-tested adapter. Once deployed, check one Doppler token live with `pnpm --filter @clashr/trade simulate <token>`.
+- Integrating the trade box into the terminal's token page on top of `@clashr/trade`.

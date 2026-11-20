@@ -1,6 +1,6 @@
 import type { Sql } from 'postgres';
 import type { Address } from 'viem';
-import { BURN_ADDRESSES, INFRA_ADDRESSES, computeSignals, isContractCode, type TokenSignals, type TokenSnapshot } from '@rushr/core';
+import { BURN_ADDRESSES, INFRA_ADDRESSES, computeSignals, isContractCode, type TokenSignals, type TokenSnapshot } from '@clashr/core';
 import type { Rpc } from './rpc';
 import { CONTRACT_TAX_TTL_S, readPonsTax, type ContractTax } from './pons-tax';
 

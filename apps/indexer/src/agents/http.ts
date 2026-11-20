@@ -1,9 +1,9 @@
 // Shared plumbing for /v1: database per request, errors, body parsing, auth and rate limits.
 import type { Context, MiddlewareHandler } from 'hono';
 import postgres, { type Sql } from 'postgres';
-import { findKeyMaterial } from '@rushr/agents/guard';
-import { parseApiKey, sha256Hex, safeEqual } from '@rushr/agents/crypto';
-import { IP_LIMITS, KEY_LIMITS, OWNER_LIMITS, retryAfter, windowStart, type Bucket, type Limit } from '@rushr/agents/limits';
+import { findKeyMaterial } from '@clashr/agents/guard';
+import { parseApiKey, sha256Hex, safeEqual } from '@clashr/agents/crypto';
+import { IP_LIMITS, KEY_LIMITS, OWNER_LIMITS, retryAfter, windowStart, type Bucket, type Limit } from '@clashr/agents/limits';
 import { dbUrl } from '../env';
 import { on, type AgentsEnv } from './env';
 import { fetchPrivyProfile, verifyPrivyToken, type PrivyProfile } from './privy';

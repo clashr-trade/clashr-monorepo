@@ -1,76 +1,69 @@
-# Rushr contracts (draft)
+# CLASHR contracts: BNB Chain and Flap
 
-> **Draft: not used by Rushr today.** Rushr does not run any custom contract. Trades on [Rushr](https://rushr.trade) go through the audited contracts that already exist on Robinhood Chain:
->
-> - **Uniswap pools:** through Uniswap's **Universal Router** (`0x204f…0498`), with the platform fee added as a step in the same transaction.
-> - **PONS bonding curves:** straight to the token's PONS curve, with the platform fee sent as a separate transfer right after the trade.
->
-> Users sign everything in their own wallet; Rushr never holds keys or funds. The routers below are a design draft for later features: one-transaction curve trades, and agents that trade on a user's behalf under on-chain limits. They will only be deployed after an independent audit, and will be listed here when they are.
+Clashr currently sends wallet-confirmed trades directly to Flap's BNB bonding-curve Portal. There is no Clashr-owned swap router, token contract, treasury transfer or platform fee on this path. Protocol fees, token taxes and BNB gas still apply. The user selected this direct-trading model for the contract update.
 
-Design draft of the smart contracts for trading on [Rushr](https://rushr.trade), the open social trading platform for humans and AI agents on Robinhood Chain (chain ID 4663).
+## Current integration
 
-> **Audit status: UNAUDITED.** These contracts have not been reviewed by an independent auditor.
-> **Deployment status: NONE.** Nothing in this repository is deployed on any network. Any address claiming to be a Rushr contract is not one until it is listed here with a verified Blockscout link.
+- Network: BNB Smart Chain mainnet, chain ID **56**.
+- Bonding-curve Portal and approval spender: **`0xe2cE6ab80874Fa9Fa2aAE65D277Dd6B8e65C9De0`**.
+- `src/flap/IFlapPortal.sol` declares the supported Portal v5 read, quote and swap ABI, token-state tuple, fill events and documented errors.
+- `src/flap/FlapBNB.sol` contains integration constants only. Neither file introduces a Clashr trading contract to deploy.
+- The executable adapter remains [`packages/trade/src/bsc/flap.ts`](../packages/trade/src/bsc/flap.ts). The Solidity declaration is checked against its compiled ABI so the two stay compatible.
+- Graduated tokens use supported PancakeSwap v2/v3 routes in the existing spot adapter. The current application does not send their trades through the curve Portal, VaultPortal or the separate Flap Pool Launch Portal.
 
-## Contracts
+## Call and settlement rules
 
-### `RushrRouter.sol`
-Swaps ETH ↔ token on canonical Uniswap v2, v3 and v4 pools, with the Rushr platform fee, in one transaction.
+Wallets send `swapExactInput` directly to Portal. Native input uses `address(0)` and `msg.value = inputAmount`; ERC-20 input uses zero value and an exact approval to Portal, with an allowance reset when necessary. Clashr sends empty `permitData` and never asks for a router approval on this path.
 
-- **Structured routes, no arbitrary calldata.** The caller passes a `Route { kind, token, quote, fee, tickSpacing, hooks }`, and the contract builds the Uniswap Universal Router (v2.1) commands itself.
-- **Output only to the caller.** Swap output always lands in the router, then goes to `msg.sender`. `minOut` is checked on what the trader actually receives (fee-on-transfer safe).
-- **Fee:** 0.5% (0.45% for referred traders) in ETH: from the input on buys, from the output on sells.
-- **Entry points:**
-  - `buy`: any canonical Uniswap v2/v3 pool (the Universal Router derives the pool from Uniswap's factory), and v4 pools whose hooks are allowlisted.
-  - `sell`: only pools on the timelocked sell allowlist.
-  - `sellAnyPool`: any canonical pool, never paused, so users can always exit. Rushr's delegated session signers are not allowed to call it; only the user's own confirmation is.
-- **Roles:**
-  - The **operator** queues hooks and sell pools.
-  - **Anyone** activates a queued entry after the immutable `delay` (at least 10 minutes).
-  - The **guardian** (a multisig) can cancel or remove entries immediately, pause `buy` and `sell`, and rotate the operator.
-  - There's no owner and no upgrade path. Fees, guardian and delay are immutable. The **treasury** changes only through the guardian timelock (below).
+A BNB-quoted curve buys with BNB and sells for BNB. An ERC-20-quoted curve buys with its quote asset, or with BNB only when `nativeToQuoteSwapEnabled` permits Portal's internal conversion. Sells settle in the curve's quote asset. Read its decimals instead of assuming 18.
 
-### `RushrPonsRouter.sol`
-Buys and sells tokens on their PONS bonding curve, with the Rushr platform fee, in one transaction. The Universal Router can't reach PONS curves, so this contract does.
+The supported curve status is `1` (tradable). Status `4` requires the supported DEX adapter; other states are refused. The SDK also checks supported extensions, the trader's NFT gate and remaining buy quota, chain identity, quote freshness, real balances, net outputs and gas budgets. These client safeguards are not supplied by this Solidity interface.
 
-- The fee is taken in ETH: from the ETH actually spent on buys, from the output on sells. A buy that completes the curve (graduation) gets its unused ETH refunded in the same transaction.
-- **Only trusted calls:** the immutable PONS factory, the curve that factory reports for the token, the token and the treasury.
-- No owner and no upgrades. Fees (50/45 bps), guardian and delay are immutable. The **treasury** changes only through the guardian timelock (below).
-- It holds no funds between transactions, accepts ETH only during a trade, and resets its curve approval after each sell.
+`quoteExactInput` is non-view but is read through `eth_call`; do not send it as a paid transaction. Portal's swap struct has no deadline or recipient. Minimum output is enforced by Portal, while quote expiry is checked by the application before requesting a wallet signature. A delayed wallet confirmation can execute after that local window.
 
-### `TreasuryTimelock.sol` (base of both routers)
-The fee recipient can change, but never instantly:
-1. The guardian calls `queueTreasury(next)`, which emits `TreasuryQueued(next, eta)`.
-2. After `delay`, anyone calls `activateTreasury()`, which emits `TreasuryChanged(previous, next)`.
-3. Until then, the guardian can `cancelTreasury()`.
-
-This lets the treasury move from an EOA to a Safe without redeploying, with every change public for the whole delay.
-
-## Robinhood Chain addresses used
-| | Address |
-| --- | --- |
-| Uniswap Universal Router v2.1.2 | `0x204faca1764b154221e35c0d20abb3c525710498` |
-| WETH | `0x0bd7d308f8e1639fab988df18a8011f41eacad73` |
-| PONS launch factory | `0x7ed598bcef8bd9edd8c97a195c6d13f40801ec7e` |
-| Treasury (constructor argument; a Safe since 2026-11-16) | `0x2Ae062C61A757b66D3039154a6e965aa48Cd75F3` |
+`TokenBought` and `TokenSold` have no indexed fields. Receipt checks require the canonical Portal, exactly one matching fill and the expected trader and token. Event `eth`/`fee` values use the curve's quote-asset units, including BNB-to-ERC-20 hop buys; they do not prove BNB spend for those buys. The SDK retains that distinction in its accounting.
 
 ## Build and test
-Requires [Foundry](https://book.getfoundry.sh/).
 
-```bash
-forge install foundry-rs/forge-std@v1.9.7 --no-git   # dependencies go to lib/ (gitignored)
-forge build
-forge test                                            # unit + fuzz tests; fork tests return early without an RPC
-ROBINHOOD_RPC_URL=<your RPC> forge test --match-contract Fork -vv
+The default Foundry profile and its `bnb` alias now target **Flap**, with Solidity 0.8.26, optimizer 10,000 and Cancun EVM support. They need no `forge-std` installation. From this directory:
+
+```sh
+forge fmt --check src/flap test/flap
+forge build --sizes
+forge test -vv
 ```
 
-- **What the fork tests do:** they run against a local fork of Robinhood Chain: real Uniswap pools, a lift.fun-hooked v4 pool, and real PONS curves, including a buy that graduates a curve. Nothing is broadcast. The public RPC `https://rpc.mainnet.chain.robinhood.com` works.
-- **Compiler settings:** solc 0.8.26, optimizer 10,000 runs, `evm_version = cancun`. Robinhood Chain (ArbOS 61) runs Cancun, and the Universal Router uses transient storage.
-- **CI:** `.github/workflows/ci.yml` runs format check, build and tests. Fork tests run only if the `ROBINHOOD_RPC_URL` repository secret is set.
+From the repository root, after the default contract build and workspace dependency installation:
 
-## Security
-- Read [`REVIEW.md`](REVIEW.md) for the assumptions and the checklist an independent review must cover before any deployment.
-- Report vulnerabilities privately through GitHub's "Report a vulnerability" (Security tab) on this repository. Please don't open public issues for security problems.
+```sh
+pnpm --filter @clashr/trade exec tsx ../../contracts/scripts/check-flap-abi.mjs
+```
 
-## License
-[AGPL-3.0-only](LICENSE), the same as [rushr-core](https://github.com/rushr-dev/rushr-core).
+The ABI check compares the Portal address, all seven functions (including tuple order, widths, names and mutability), and both fill events (including indexing) against compiler output. Unit tests independently pin published selectors, the eighteen-word state layout and event topics/data. They do not simulate Flap's pricing or prove production swap execution.
+
+Fork tests are explicitly skipped without `BSC_RPC_URL`. Set it to a trusted BNB mainnet endpoint to check the deployed Portal major version. Set `FLAP_FORK_TOKEN` to an existing Flap token to also check its state, NFT gate and quota read surface. Optional `FLAP_FORK_BLOCK` pins a block. These tests only read a local fork; they do not approve tokens, send swaps, sign or broadcast. In PowerShell:
+
+```powershell
+$env:BSC_RPC_URL = 'https://your-bnb-rpc'
+$env:FLAP_FORK_TOKEN = '0xYourExistingFlapToken'
+forge test --match-contract FlapPortalForkTest -vv
+```
+
+The repository's active [CI workflow](../.github/workflows/ci.yml) builds/tests this profile and checks SDK ABI parity. Fork checks run only when a BNB RPC secret is configured. The workflow under `contracts/.github` is relevant only if this directory is extracted as a separate repository.
+
+## Retained drafts and compatibility
+
+The earlier source and tests remain unchanged:
+
+- `src/ClashrLegacyRouter.sol`, `src/ClashrLegacyPonsRouter.sol` and `src/TreasuryTimelock.sol` are original Robinhood/Uniswap/PONS drafts. Use `FOUNDRY_PROFILE=legacy`, install the original `forge-std` dependency, and follow [the legacy documentation](LEGACY.md) and [legacy review checklist](LEGACY_REVIEW.md). Do not point these contracts at Flap or inherit their fee/treasury settings.
+- `src/bnb/BnbFourMemeRouter.sol` is a separate Four.meme draft. Its previous tests are available with `FOUNDRY_PROFILE=fourmeme`. The old `bnb` profile name now selects Flap; callers needing the Four.meme suite must select `fourmeme` explicitly.
+
+Changing the Foundry default does not alter SDK transaction targets, wallet permissions, contract bytecode already deployed elsewhere, or database state. Reverting this workspace change restores the previous build selection; no on-chain or data rollback is required.
+
+## Sources and review
+
+Local validation on 2026-11-20: all 7 Flap tests passed, including 2 read-only BNB fork checks at block `134682954` against Portal `v5.27.2`; all 10 retained Four.meme tests passed (including 256 fuzz runs); all 22 SDK Flap tests passed. Formatting, build, SDK ABI parity and checker lint passed. Paris fork execution failed on the live Portal; Cancun execution passed, so the current profile uses Cancun. The original Robinhood suite was not rerun because its separate `forge-std` dependency is not installed.
+
+Verified against Flap's published [BNB contract addresses](https://docs.flap.sh/en/flap/v2/developers/deployed-contract-addresses), [Portal interface](https://github.com/flap-sh/flap-skills/blob/main/trade-flap-token/references/interface.md), [token-state rules](https://github.com/flap-sh/flap-skills/blob/main/trade-flap-token/references/token-state.md) and [receipt semantics](https://github.com/flap-sh/flap-skills/blob/main/trade-flap-token/references/receipt.md) on 2026-11-20. Portal is an external upgradeable dependency: the address alone does not pin its implementation forever.
+
+Read [REVIEW.md](REVIEW.md) for the current integration checklist. This work is not an independent audit and makes no new deployment or token-launch claim. License: [AGPL-3.0-only](LICENSE); preserve upstream attribution in the retained sources.

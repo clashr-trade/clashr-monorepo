@@ -19,7 +19,7 @@ const NO_BUY = '0x00000000000000000000000000000000000000a3';
 const calls: PrepareCall[] = [];
 /** Tokens the (mocked) buy→sell probe ran for, in order. */
 const probes: string[] = [];
-vi.mock('@rushr/trade/simulate', () => ({
+vi.mock('@clashr/trade/simulate', () => ({
   probeTokenSafety: async (_client: unknown, q: { pool: { token: string }; request: { trader: string } }) => {
     const token = q.pool.token;
     probes.push(token);
@@ -30,13 +30,13 @@ vi.mock('@rushr/trade/simulate', () => ({
     return base;
   },
 }));
-vi.mock('@rushr/trade/agent', async () => {
-  const { TradeError } = await import('@rushr/trade/errors');
+vi.mock('@clashr/trade/agent', async () => {
+  const { TradeError } = await import('@clashr/trade/errors');
   return {
     prepareSwap: async (_client: unknown, req: PrepareCall['req'], opts: PrepareCall['opts']) => {
       calls.push({ req, opts });
       if (req.token === POOR) throw new TradeError('RPC_ERROR', 'simulation request failed: -38014 insufficient funds for gas * price + value');
-      if (req.token === CURVE_LATE) throw new TradeError('UNSUPPORTED_VENUE', 'PONS curve trading needs RushrPonsRouter, which is not deployed yet');
+      if (req.token === CURVE_LATE) throw new TradeError('UNSUPPORTED_VENUE', 'PONS curve trading needs ClashrLegacyPonsRouter, which is not deployed yet');
       const sell = req.side === 'sell';
       return {
         quote: { amountIn: req.amountIn, amountOut: 123n, minAmountOut: 120n, priceImpactBps: req.token === THIN ? 9999 : 12, warnings: [], request: req, pool: { token: req.token, venue: 'uniswap-v4' } },

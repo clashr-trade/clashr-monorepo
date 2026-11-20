@@ -6,7 +6,7 @@
  * - "rushr" key -> Rushr's authorization key (session signer with the policy);
  * - "agent" key -> a second signer, to test revoking one signer at a time.
  *
- *   RUSHR_MAIN_CHECKOUT=/path/to/main/checkout pnpm --filter @rushr/trade exec tsx scripts/privy-dev-check.ts
+ *   RUSHR_MAIN_CHECKOUT=/path/to/main/checkout pnpm --filter @clashr/trade exec tsx scripts/privy-dev-check.ts
  *
  * Credentials come from <main>/apps/indexer/.dev.vars.privy (PRIVY_APP_ID, PRIVY_APP_SECRET) and are
  * never printed.
@@ -15,11 +15,11 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { encodeFunctionData, parseTransaction, recoverTransactionAddress, toHex, zeroAddress, type Address, type Hex } from 'viem';
 import { buildDailyValueAggregation, buildSignerPolicy, defaultCaps } from '../src/policy';
-import { rushrRouterAbi } from '../src/rushr-router';
+import { clashrLegacyRouterAbi } from '../src/clashr-router';
 import { signPrivyRequest, WebCryptoAuthorizationKey, type AuthorizationKey } from '../src/signer';
 
 const API = 'https://api.privy.io';
-// RushrRouter is not deployed: the policy allowlists this stand-in address (no code anywhere).
+// ClashrLegacyRouter is not deployed: the policy allowlists this stand-in address (no code anywhere).
 const TEST_ROUTER: Address = '0x00000000000000000000000000000000000057a9';
 const PONS: Address = '0x39dbed3a2bd333467115de45665cc57f813c4571';
 const WETH: Address = '0x0bd7d308f8e1639fab988df18a8011f41eacad73';
@@ -77,16 +77,16 @@ const tx = (to: Address, data: Hex, valueWei: bigint, chainId = 4663, nonce = 0)
 
 const route = { kind: 1, token: PONS, quote: WETH, fee: 3000, tickSpacing: 0, hooks: zeroAddress };
 const deadline = BigInt(Math.floor(Date.now() / 1000) + 600);
-const buyData = encodeFunctionData({ abi: rushrRouterAbi, functionName: 'buy', args: [route, 1n, deadline, false] });
-const sellData = encodeFunctionData({ abi: rushrRouterAbi, functionName: 'sell', args: [route, 10n ** 18n, 1n, deadline, false] });
-const sellAnyData = encodeFunctionData({ abi: rushrRouterAbi, functionName: 'sellAnyPool', args: [route, 10n ** 18n, 1n, deadline, false] });
+const buyData = encodeFunctionData({ abi: clashrLegacyRouterAbi, functionName: 'buy', args: [route, 1n, deadline, false] });
+const sellData = encodeFunctionData({ abi: clashrLegacyRouterAbi, functionName: 'sell', args: [route, 10n ** 18n, 1n, deadline, false] });
+const sellAnyData = encodeFunctionData({ abi: clashrLegacyRouterAbi, functionName: 'sellAnyPool', args: [route, 10n ** 18n, 1n, deadline, false] });
 const approve = (spender: Address) =>
   encodeFunctionData({ abi: [{ type: 'function', name: 'approve', inputs: [{ name: 'spender', type: 'address' }, { name: 'amount', type: 'uint256' }], outputs: [{ type: 'bool' }], stateMutability: 'nonpayable' }], functionName: 'approve', args: [spender, 2n ** 256n - 1n] });
 const E = (eth: number) => BigInt(Math.round(eth * 1e6)) * 10n ** 12n;
 
 async function main() {
   const user = await newKey();
-  const rushr = await newKey();
+  const clashr = await newKey();
   const agent = await newKey();
 
   const q = async (label: string, pub: string) => {
@@ -95,7 +95,7 @@ async function main() {
     return (r.json as { id: string }).id;
   };
   const userQ = await q('rushr-test-user', user.publicKey);
-  const rushrQ = await q('rushr-test-signer', rushr.publicKey);
+  const rushrQ = await q('rushr-test-signer', clashr.publicKey);
   const agentQ = await q('rushr-test-agent', agent.publicKey);
   console.log('key quorums created (user, rushr, agent)');
 
@@ -105,7 +105,7 @@ async function main() {
   console.log('aggregation created');
 
   const now = Math.floor(Date.now() / 1000);
-  const policyBody = buildSignerPolicy({ purpose: 'quick-trade-test', wallet: zeroAddress, rushrRouter: TEST_ROUTER, caps: defaultCaps(now), dailyAggregationId: aggId, ownerId: userQ });
+  const policyBody = buildSignerPolicy({ purpose: 'quick-trade-test', wallet: zeroAddress, clashrLegacyRouter: TEST_ROUTER, caps: defaultCaps(now), dailyAggregationId: aggId, ownerId: userQ });
   const pol = await call('POST', '/v1/policies', policyBody);
   if (!pol.ok) throw new Error(`policy: ${pol.status} ${pol.text}`);
   const policyId = (pol.json as { id: string }).id;
@@ -125,9 +125,9 @@ async function main() {
 
   const rpc = (body: unknown, keys: AuthorizationKey[]) => call('POST', `/v1/wallets/${wallet.id}/rpc`, body, keys);
 
-  // (a) allowed RushrRouter.buy, signed by the session signer
-  const a = await rpc(tx(TEST_ROUTER, buyData, E(0.01)), [rushr.key]);
-  record('RushrRouter.buy 0.01 ETH (session signer)', 'allow', a);
+  // (a) allowed ClashrLegacyRouter.buy, signed by the session signer
+  const a = await rpc(tx(TEST_ROUTER, buyData, E(0.01)), [clashr.key]);
+  record('ClashrLegacyRouter.buy 0.01 ETH (session signer)', 'allow', a);
   if (a.ok) {
     const signed = (a.json as { data: { signed_transaction: Hex } }).data.signed_transaction;
     const parsed = parseTransaction(signed);
@@ -135,22 +135,22 @@ async function main() {
     console.log(`  signed tx: chainId ${parsed.chainId}, to ${parsed.to}, from ${from} (= wallet: ${from.toLowerCase() === wallet.address.toLowerCase()}). NOT broadcast.`);
   }
   // (b) denied: plain ETH transfer
-  record('plain ETH transfer 0.01 ETH', 'deny', await rpc(tx('0x000000000000000000000000000000000000dEaD', '0x', E(0.01)), [rushr.key]));
-  record('RushrRouter.sell (value 0)', 'allow', await rpc(tx(TEST_ROUTER, sellData, 0n), [rushr.key]));
-  record('RushrRouter.sellAnyPool (user-only)', 'deny', await rpc(tx(TEST_ROUTER, sellAnyData, 0n), [rushr.key]));
-  record('RushrRouter.buy 0.30 ETH (> 0.25 cap)', 'deny', await rpc(tx(TEST_ROUTER, buyData, E(0.3)), [rushr.key]));
-  record('RushrRouter.buy on chain 1', 'deny', await rpc(tx(TEST_ROUTER, buyData, E(0.01), 1), [rushr.key]));
-  record('RushrRouter.sell with ETH value', 'deny', await rpc(tx(TEST_ROUTER, sellData, E(0.01)), [rushr.key]));
-  record('approve(RushrRouter) on a token', 'allow', await rpc(tx(PONS, approve(TEST_ROUTER), 0n), [rushr.key]));
-  record('approve(other spender)', 'deny', await rpc(tx(PONS, approve('0x000000000000000000000000000000000000bEEF'), 0n), [rushr.key]));
-  record('call to another contract', 'deny', await rpc(tx(WETH, buyData, E(0.01)), [rushr.key]));
+  record('plain ETH transfer 0.01 ETH', 'deny', await rpc(tx('0x000000000000000000000000000000000000dEaD', '0x', E(0.01)), [clashr.key]));
+  record('ClashrLegacyRouter.sell (value 0)', 'allow', await rpc(tx(TEST_ROUTER, sellData, 0n), [clashr.key]));
+  record('ClashrLegacyRouter.sellAnyPool (user-only)', 'deny', await rpc(tx(TEST_ROUTER, sellAnyData, 0n), [clashr.key]));
+  record('ClashrLegacyRouter.buy 0.30 ETH (> 0.25 cap)', 'deny', await rpc(tx(TEST_ROUTER, buyData, E(0.3)), [clashr.key]));
+  record('ClashrLegacyRouter.buy on chain 1', 'deny', await rpc(tx(TEST_ROUTER, buyData, E(0.01), 1), [clashr.key]));
+  record('ClashrLegacyRouter.sell with ETH value', 'deny', await rpc(tx(TEST_ROUTER, sellData, E(0.01)), [clashr.key]));
+  record('approve(ClashrLegacyRouter) on a token', 'allow', await rpc(tx(PONS, approve(TEST_ROUTER), 0n), [clashr.key]));
+  record('approve(other spender)', 'deny', await rpc(tx(PONS, approve('0x000000000000000000000000000000000000bEEF'), 0n), [clashr.key]));
+  record('call to another contract', 'deny', await rpc(tx(WETH, buyData, E(0.01)), [clashr.key]));
   record('no authorization signature', 'deny', await rpc(tx(TEST_ROUTER, buyData, E(0.01)), []));
 
   // Rolling 24 h cap: 0.01 + 0.25 per buy until denied (cap 1 ETH).
   let sum = 0.01 + 0;
   let firstDenied: number | null = null;
   for (let i = 0; i < 6; i++) {
-    const r = await rpc(tx(TEST_ROUTER, buyData, E(0.25), 4663, i + 1), [rushr.key]);
+    const r = await rpc(tx(TEST_ROUTER, buyData, E(0.25), 4663, i + 1), [clashr.key]);
     if (!r.ok) {
       firstDenied = sum;
       results.push({ name: `24h cap: buy #${i + 1} of 0.25 after ${sum.toFixed(2)} ETH signed`, expected: 'deny when sum would pass 1 ETH', got: `deny (${r.status})`, pass: sum + 0.25 > 1, ms: r.ms });
@@ -163,15 +163,15 @@ async function main() {
   // Q2: can Rushr (app secret, or app secret + its authorization key) loosen the user-owned policy?
   const loosen = { rules: [{ name: 'allow everything', method: 'eth_signTransaction', conditions: [{ field_source: 'ethereum_transaction', field: 'chain_id', operator: 'eq', value: '4663' }], action: 'ALLOW' }] };
   record('PATCH policy with app secret only', 'deny', await call('PATCH', `/v1/policies/${policyId}`, loosen, []));
-  record('PATCH policy with Rushr authorization key', 'deny', await call('PATCH', `/v1/policies/${policyId}`, loosen, [rushr.key]));
-  record('PATCH wallet signers with Rushr key (add itself unrestricted)', 'deny', await call('PATCH', `/v1/wallets/${wallet.id}`, { additional_signers: [{ signer_id: rushrQ }] }, [rushr.key]));
+  record('PATCH policy with Rushr authorization key', 'deny', await call('PATCH', `/v1/policies/${policyId}`, loosen, [clashr.key]));
+  record('PATCH wallet signers with Rushr key (add itself unrestricted)', 'deny', await call('PATCH', `/v1/wallets/${wallet.id}`, { additional_signers: [{ signer_id: rushrQ }] }, [clashr.key]));
 
   // Q3: revoke one signer (agent) with the owner's key, keep the other.
   record('agent signer before revoke', 'allow', await rpc(tx(TEST_ROUTER, sellData, 0n), [agent.key]));
   const revoke = await call('PATCH', `/v1/wallets/${wallet.id}`, { additional_signers: [{ signer_id: rushrQ, override_policy_ids: [policyId] }] }, [user.key]);
   record('owner removes only the agent signer', 'allow', revoke);
   record('agent signer after revoke', 'deny', await rpc(tx(TEST_ROUTER, sellData, 0n), [agent.key]));
-  record('Rushr signer after agent revoke', 'allow', await rpc(tx(TEST_ROUTER, sellData, 0n), [rushr.key]));
+  record('Rushr signer after agent revoke', 'allow', await rpc(tx(TEST_ROUTER, sellData, 0n), [clashr.key]));
 
   // Owner (user) can always sign anything (e.g. a withdrawal), outside the signer policy.
   record('owner key signs a plain transfer (withdrawal path)', 'allow', await rpc(tx('0x000000000000000000000000000000000000dEaD', '0x', E(0.01)), [user.key]));

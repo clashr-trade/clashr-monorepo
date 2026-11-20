@@ -131,9 +131,9 @@ The local web server serves these routes on port 3000; no cloud deployment is im
 With an isolated PostgreSQL instance provided through `TEST_PG_ADMIN_URL`, run from the repository:
 
 ```powershell
-pnpm --filter @rushr/indexer test --no-file-parallelism --testTimeout=30000
+pnpm --filter @clashr/indexer test --no-file-parallelism --testTimeout=30000
 pnpm -r typecheck
-pnpm --filter @rushr/core test
+pnpm --filter @clashr/core test
 ```
 
 Integration tests create and drop their own databases and apply all journaled migrations. Without

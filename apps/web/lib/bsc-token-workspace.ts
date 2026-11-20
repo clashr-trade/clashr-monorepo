@@ -1,6 +1,6 @@
 import { createPublicClient, erc20Abi, http } from 'viem';
 import { bsc } from 'viem/chains';
-import { BSC_PUBLIC_RPC } from '@rushr/core/chain/bsc-rpc';
+import { BSC_PUBLIC_RPC } from '@clashr/core/chain/bsc-rpc';
 import type { Candle } from './api';
 import { type HolderInfo, type Tx } from './trades';
 import { getPublicBscToken, getPublicBscCandles, type PublicBscDetail } from './bsc-public-market';

@@ -6,7 +6,7 @@ import { parseEther, type Address, type Hex } from 'viem';
 import { loadConfig } from '../src/config.ts';
 import { checkBuyCaps, checkImpact, checkSafety, GuardError, probeAmount, SpendLedger, splitImpact, vetBuild } from '../src/guards.ts';
 import { checkEthUsd } from '../src/price.ts';
-import { withDisclosure } from '../src/rushr.ts';
+import { withDisclosure } from '../src/clashr.ts';
 import { built } from './fixtures.ts';
 
 const TOKEN = '0x30768b5482e5dd8a2487ce0be61e01fa03af37ff' as Address;
@@ -101,16 +101,16 @@ describe('config', () => {
     expect([c.maxTradeUsd, c.dailyUsd, c.dryRun, c.maxSizeImpactBps, c.maxTotalImpactBps, c.gasReserveWei]).toEqual([10, 50, false, 300, 500, parseEther('0.001')]);
   });
   it('reads caps and dry run from env', () => {
-    const c = loadConfig({ RUSHR_MAX_TRADE_USD: '5', RUSHR_DAILY_USD: '20', RUSHR_DRY_RUN: '1' });
+    const c = loadConfig({ CLASHR_ROBINHOOD_MAX_TRADE_USD: '5', CLASHR_ROBINHOOD_DAILY_USD: '20', CLASHR_ROBINHOOD_DRY_RUN: '1' });
     expect([c.maxTradeUsd, c.dailyUsd, c.dryRun]).toEqual([5, 20, true]);
   });
   it.each([
-    [{ RUSHR_MAX_TRADE_USD: '-1' }],
-    [{ RUSHR_DAILY_USD: 'lots' }],
-    [{ RUSHR_MAX_SIZE_IMPACT_BPS: '900' }],
-    [{ RUSHR_MAX_TOTAL_IMPACT_BPS: '501' }],
-    [{ RUSHR_GAS_RESERVE_ETH: '0.0001' }],
-    [{ RUSHR_PRIVATE_KEY: '0x1', RUSHR_WALLET_FILE: '/x' }],
+    [{ CLASHR_ROBINHOOD_MAX_TRADE_USD: '-1' }],
+    [{ CLASHR_ROBINHOOD_DAILY_USD: 'lots' }],
+    [{ CLASHR_ROBINHOOD_MAX_SIZE_IMPACT_BPS: '900' }],
+    [{ CLASHR_ROBINHOOD_MAX_TOTAL_IMPACT_BPS: '501' }],
+    [{ CLASHR_ROBINHOOD_GAS_RESERVE_ETH: '0.0001' }],
+    [{ CLASHR_ROBINHOOD_PRIVATE_KEY: '0x1', CLASHR_ROBINHOOD_WALLET_FILE: '/x' }],
   ])('rejects %j', (env) => expect(() => loadConfig(env)).toThrow());
 });
 

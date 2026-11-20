@@ -32,7 +32,7 @@ Animations use CSS transforms for the marquee, rival poster and token coin. Redu
 
 ## Compatibility and domain rollout
 
-Internal @rushr package names, RUSHR_* environment variables, existing storage keys and historical receipt/event identifiers retain compatibility. They are implementation identifiers, not public token branding. Renaming them requires an explicit migration.
+Workspace packages and source filenames now use Clashr names. Compatibility aliases, browser storage/session/event values and historical receipt identifiers remain stable; see [the source migration](clashr-migration.md). Legacy-chain credentials use CLASHR_ROBINHOOD_* names with RUSHR_* fallback, isolated from the BNB wallet.
 
 The canonical domain and public copy are configured for clashr.trade. Local navigation remains relative so localhost still works. Domain registration, DNS, TLS, hosting routes, new social handles and deployment are separate operations and were not performed by this rebrand.
 
@@ -47,6 +47,6 @@ The preference is saved in browser storage and a SameSite=Lax cookie. On clashr.
 
 Product-owned interface text belongs in apps/web/lib/landing-languages.ts and platform-copy.ts. Long-form legal text is in legal-copy.ts and loaded only on legal routes. Human-facing whitepaper and agent-guide editions are localized separately. Member posts, bios, token names, contract addresses, API payloads and machine-readable skill.md/llms.txt remain original. Add both translations when changing product copy; English source copy is the fallback for unknown messages.
 
-Community URLs are configurable with NEXT_PUBLIC_X_URL and NEXT_PUBLIC_TELEGRAM_URL. Their defaults retain the existing rushrtrade accounts until CLASHR account URLs are supplied.
+Community URLs are configurable with NEXT_PUBLIC_X_URL and NEXT_PUBLIC_TELEGRAM_URL. Their defaults use the official clashrtrade accounts on X and Telegram.
 
-Verification: pnpm --filter @rushr/web typecheck; pnpm --filter @rushr/web test. With an isolated Chrome profile exposing CDP on 127.0.0.1:9223, run node apps/web/scripts/check-platform-languages.mjs. It opens its own test tab and checks route persistence, hydration errors, header order, keyboard interaction and mobile layout. Set BASE_URL or BROWSER_DEBUG_URL to use another local test environment.
+Verification: pnpm --filter @clashr/web typecheck; pnpm --filter @clashr/web test. With an isolated Chrome profile exposing CDP on 127.0.0.1:9223, run node apps/web/scripts/check-platform-languages.mjs. It opens its own test tab and checks route persistence, hydration errors, header order, keyboard interaction and mobile layout. Set BASE_URL or BROWSER_DEBUG_URL to use another local test environment.

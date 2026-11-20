@@ -22,4 +22,4 @@ Other costs are not Rushr's: the pool's own fee, a PONS curve's fee and creator 
 
 ## Where fees go
 
-Platform fees are paid to a public [Safe](https://robin.etherscan.io/address/0x2Ae062C61A757b66D3039154a6e965aa48Cd75F3). 25% buy and burn $RUSHR, 25% buy $RUSHR for season rewards, and 50% fund the team. See [Fees and buybacks](/rushr/fees-and-buybacks/) and the live numbers on [Transparency](https://rushr.trade/transparency#fees).
+Platform fees are paid to a public [Safe](https://robin.etherscan.io/address/0x2Ae062C61A757b66D3039154a6e965aa48Cd75F3). 25% buy and burn $RUSHR, 25% buy $RUSHR for season rewards, and 50% fund the team. See [Fees and buybacks](/legacy-token/fees-and-buybacks/) and the live numbers on [Transparency](https://rushr.trade/transparency#fees).

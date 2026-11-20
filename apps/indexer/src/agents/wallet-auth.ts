@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
-import { newNonce, sha256Hex } from '@rushr/agents/crypto';
-import { buildMessage, peekSiwe, verifySiwe, NONCE_TTL_MS, type SiweIdentity } from '@rushr/agents/siwe';
+import { newNonce, sha256Hex } from '@clashr/agents/crypto';
+import { buildMessage, peekSiwe, verifySiwe, NONCE_TTL_MS, type SiweIdentity } from '@clashr/agents/siwe';
 import { fail, isAddr, limit, PRIVATE, type Ctx } from './http';
 import type { AgentsEnv } from './env';
 

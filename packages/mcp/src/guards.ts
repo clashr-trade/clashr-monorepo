@@ -1,9 +1,9 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { decodeFunctionData, erc20Abi, parseEther, type Address, type Hex } from 'viem';
-import { ponsCurveAbi } from '@rushr/trade/abis';
-import { TRADE_ADDRESSES } from '@rushr/trade/addresses';
-import { RUSHR_TREASURY } from '@rushr/trade/config';
+import { ponsCurveAbi } from '@clashr/trade/abis';
+import { TRADE_ADDRESSES } from '@clashr/trade/addresses';
+import { LEGACY_ROBINHOOD_TREASURY } from '@clashr/trade/config';
 
 /**
  * The checks every trade passes before anything is signed. Ported from Talos
@@ -68,7 +68,7 @@ export interface Quote {
 
 export const isCurve = (q: Pick<Quote, 'pool'>) => q.pool.venue === 'pons-curve';
 
-/** The one contract a build may send to: the Universal Router Rushr builds for (from @rushr/trade). */
+/** The one contract a build may send to: the Universal Router Rushr builds for (from @clashr/trade). */
 export const ROUTERS: ReadonlySet<string> = new Set([TRADE_ADDRESSES.universalRouter.toLowerCase()]);
 export const PERMIT2 = TRADE_ADDRESSES.permit2.toLowerCase();
 export const CHAIN_ID = TRADE_ADDRESSES.chainId;
@@ -200,8 +200,8 @@ export function checkSafety(s: Safety): void {
 
 // ------------------------------------------------------------------ PONS bonding curves
 
-/** Rushr's fee treasury (a Safe, from @rushr/trade). Curve fees go here and nowhere else. */
-export const TREASURY = RUSHR_TREASURY.toLowerCase();
+/** Rushr's fee treasury (a Safe, from @clashr/trade). Curve fees go here and nowhere else. */
+export const TREASURY = LEGACY_ROBINHOOD_TREASURY.toLowerCase();
 /** An overdue fee (`fee_unpaid`) is paid automatically only up to this much. */
 export const MAX_AUTO_FEE_WEI = parseEther('0.005');
 
@@ -212,7 +212,7 @@ function feeTxProblems(tx: UnsignedTx | null | undefined, value: bigint, label: 
   if (!tx) return [`${label}: missing tx`];
   const p: string[] = [];
   if (tx.chainId !== undefined && tx.chainId !== CHAIN_ID) p.push(`${label}: chainId ${tx.chainId}`);
-  if (!sameAddr(tx.to, TREASURY)) p.push(`${label}: sends to ${tx.to}, not the treasury ${RUSHR_TREASURY}`);
+  if (!sameAddr(tx.to, TREASURY)) p.push(`${label}: sends to ${tx.to}, not the treasury ${LEGACY_ROBINHOOD_TREASURY}`);
   if (tx.data && tx.data !== '0x') p.push(`${label}: has calldata`);
   if (BigInt(tx.value) !== value) p.push(`${label}: value ${tx.value} != ${value}`);
   return p;

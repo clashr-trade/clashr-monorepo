@@ -376,7 +376,7 @@ let ethUsdCache: { at: number; usd: number } | null = null;
  */
 async function ethUsdPrice(): Promise<number> {
   if (ethUsdCache && Date.now() - ethUsdCache.at < 5 * 60_000) return ethUsdCache.usd;
-  const rushr = await api<{ treasury?: { ethUsd?: number } }>('GET', '/transparency').then((j) => j.treasury?.ethUsd ?? null).catch(() => null);
+  const clashr = await api<{ treasury?: { ethUsd?: number } }>('GET', '/transparency').then((j) => j.treasury?.ethUsd ?? null).catch(() => null);
   const dex = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${WETH}`)
     .then((r) => r.json() as Promise<{ pairs?: { chainId: string; baseToken: { address: string }; quoteToken: { address: string }; priceUsd?: string; liquidity?: { usd?: number } }[] }>)
     .then((j) => {
@@ -385,12 +385,12 @@ async function ethUsdPrice(): Promise<number> {
       return pairs[0] ? Number(pairs[0].priceUsd) : null;
     })
     .catch(() => null);
-  if (rushr === null || dex === null) throw new Error(`can't price ETH: /transparency ${rushr ?? 'unavailable'}, DexScreener ${dex ?? 'unavailable'}; refusing to size a trade`);
-  if (Math.abs(rushr - dex) / dex > 0.1) throw new Error(`ETH/USD sources disagree: Rushr $${rushr.toFixed(2)} vs DexScreener $${dex.toFixed(2)} (over 10%); refusing to size a trade`);
-  if (!(rushr > 500 && rushr < 20_000)) throw new Error(`ETH/USD ${rushr} is outside $500-20,000; refusing to size a trade`);
-  ethUsdCache = { at: Date.now(), usd: rushr };
-  log(`ETH/USD $${rushr.toFixed(2)} (Rushr), DexScreener $${dex.toFixed(2)}`);
-  return rushr;
+  if (clashr === null || dex === null) throw new Error(`can't price ETH: /transparency ${clashr ?? 'unavailable'}, DexScreener ${dex ?? 'unavailable'}; refusing to size a trade`);
+  if (Math.abs(clashr - dex) / dex > 0.1) throw new Error(`ETH/USD sources disagree: Rushr $${clashr.toFixed(2)} vs DexScreener $${dex.toFixed(2)} (over 10%); refusing to size a trade`);
+  if (!(clashr > 500 && clashr < 20_000)) throw new Error(`ETH/USD ${clashr} is outside $500-20,000; refusing to size a trade`);
+  ethUsdCache = { at: Date.now(), usd: clashr };
+  log(`ETH/USD $${clashr.toFixed(2)} (Rushr), DexScreener $${dex.toFixed(2)}`);
+  return clashr;
 }
 
 const usdToWei = (usd: number, ethUsd: number) => parseEther((usd / ethUsd).toFixed(18));

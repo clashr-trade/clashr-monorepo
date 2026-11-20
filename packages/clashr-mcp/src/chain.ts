@@ -1,13 +1,13 @@
 import { createPublicClient, http, type PublicClient } from 'viem';
 import { bsc } from 'viem/chains';
-import { quoteFlap, simulateFlap, assertFlapQuote, type FlapQuote } from '@rushr/trade/bsc/flap';
+import { quoteFlap, simulateFlap, assertFlapQuote, type FlapQuote } from '@clashr/trade/bsc/flap';
 import {
   quoteBscSpot,
   assertBscQuote,
   type BscSpotRequest,
   type BscSpotQuote,
-} from '@rushr/trade/bsc/spot';
-import { simulateBscSpot } from '@rushr/trade/bsc/simulation';
+} from '@clashr/trade/bsc/spot';
+import { simulateBscSpot } from '@clashr/trade/bsc/simulation';
 import { Refusal } from './config.ts';
 export type Quote = FlapQuote | BscSpotQuote;
 export function assertQuote(quote: Quote) {

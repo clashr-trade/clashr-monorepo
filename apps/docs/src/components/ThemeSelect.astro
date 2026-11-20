@@ -4,12 +4,12 @@
 import { Icon } from '@astrojs/starlight/components';
 ---
 
-<rushr-theme-toggle>
+<clashr-theme-toggle>
 	<button type="button" class="theme-btn" aria-label="Switch between light and dark theme" title="Light / dark">
 		<Icon name="moon" class="to-dark" size="1rem" />
 		<Icon name="sun" class="to-light" size="1rem" />
 	</button>
-</rushr-theme-toggle>
+</clashr-theme-toggle>
 
 <style>
 	.theme-btn {
@@ -19,7 +19,7 @@ import { Icon } from '@astrojs/starlight/components';
 		height: 2.1rem;
 		border: 1px solid var(--sl-color-hairline);
 		border-radius: 8px;
-		background: var(--rushr-surface);
+		background: var(--clashr-surface);
 		color: var(--sl-color-gray-2);
 		cursor: pointer;
 	}
@@ -34,7 +34,7 @@ import { Icon } from '@astrojs/starlight/components';
 </style>
 
 <script>
-	class RushrThemeToggle extends HTMLElement {
+	class ClashrThemeToggle extends HTMLElement {
 		constructor() {
 			super();
 			this.querySelector('button')?.addEventListener('click', () => {
@@ -46,5 +46,5 @@ import { Icon } from '@astrojs/starlight/components';
 			});
 		}
 	}
-	customElements.define('rushr-theme-toggle', RushrThemeToggle);
+	customElements.define('clashr-theme-toggle', ClashrThemeToggle);
 </script>

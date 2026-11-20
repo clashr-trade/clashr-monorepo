@@ -7,13 +7,13 @@ import { TradeError } from './errors';
  *
  * Treasury (decided 2026-11-12): currently a single EOA (no code on 4663), moving to a Safe. Known
  * risk (docs/trading.md): a single key. Mitigations: hardware-wallet key, regular sweeps, move to a Safe
- * before volume grows. Since 2026-11-16 the treasury is a Safe (`RUSHR_TREASURY`); the on-chain routers, once
+ * before volume grows. Since 2026-11-16 the treasury is a Safe (`LEGACY_ROBINHOOD_TREASURY`); the on-chain routers, once
  * deployed, can only move it through their guardian timelock (TreasuryTimelock), and this default must match.
  *
  * A real treasury no longer gates signing by itself: one-click (server-signed) trading is gated by
- * `assertOneClickAllowed` (RushrRouter deployed AND audited), the web UI by NEXT_PUBLIC_SWAP_ENABLED.
+ * `assertOneClickAllowed` (ClashrLegacyRouter deployed AND audited), the web UI by NEXT_PUBLIC_SWAP_ENABLED.
  */
-export const RUSHR_TREASURY: Address = '0x2Ae062C61A757b66D3039154a6e965aa48Cd75F3';
+export const LEGACY_ROBINHOOD_TREASURY: Address = '0x2Ae062C61A757b66D3039154a6e965aa48Cd75F3';
 
 /**
  * Earlier fee treasuries, oldest first. Fees from trades built before a switch can still land here, so
@@ -48,12 +48,15 @@ export interface TradeConfig {
   feeRecipient: Address;
   /** Universal Router used for Uniswap v2/v3/v4 routes. */
   universalRouter: Address;
-  /** Deployed RushrPonsRouter for PONS curves; null until deployed (curve routes are then unsupported). */
+  /** Deployed ClashrLegacyPonsRouter for PONS curves; null until deployed (curve routes are then unsupported). */
   ponsRouter: Address | null;
-  /** Deployed RushrRouter (structured Uniswap routes, output only to the trader); null until deployed. */
-  rushrRouter: Address | null;
-  /** Set true only after RushrRouter's independent audit. Gates one-click (server-signed) trading. */
-  rushrRouterAudited: boolean;
+  /** Deployed ClashrLegacyRouter (structured Uniswap routes, output only to the trader); null until deployed. */
+  clashrLegacyRouter: Address | null;
+  /** Set true only after ClashrLegacyRouter's independent audit. Gates one-click (server-signed) trading. */
+  clashrLegacyRouterAudited: boolean;
+  /** @deprecated Compatibility aliases for callers configured before the source rename. */
+  rushrRouter?: Address | null;
+  rushrRouterAudited?: boolean;
   /** Default slippage in bps (on top of measured token tax). */
   defaultSlippageBps: number;
   /** Deadline for router txs, seconds from build time. */
@@ -64,17 +67,28 @@ export const DEFAULT_TRADE_CONFIG: TradeConfig = {
   feeBps: BETA_FEE_BPS, // beta rate; STANDARD_FEE_BPS after the beta
   referralDiscountBps: 1_000,
   referrerShareBps: 2_000,
-  feeRecipient: RUSHR_TREASURY,
+  feeRecipient: LEGACY_ROBINHOOD_TREASURY,
   universalRouter: TRADE_ADDRESSES.universalRouter,
   ponsRouter: null,
-  rushrRouter: null,
-  rushrRouterAudited: false,
+  clashrLegacyRouter: null,
+  clashrLegacyRouterAudited: false,
   defaultSlippageBps: 100,
   deadlineSeconds: 300,
 };
 
 export function resolveConfig(partial: Partial<TradeConfig> = {}): TradeConfig {
-  const cfg = { ...DEFAULT_TRADE_CONFIG, ...partial };
+  if (partial.clashrLegacyRouter !== undefined && partial.rushrRouter !== undefined
+    && partial.clashrLegacyRouter?.toLowerCase() !== partial.rushrRouter?.toLowerCase())
+    throw new TradeError('CONFIG_INVALID', 'Conflicting legacy router aliases');
+  if (partial.clashrLegacyRouterAudited !== undefined && partial.rushrRouterAudited !== undefined
+    && partial.clashrLegacyRouterAudited !== partial.rushrRouterAudited)
+    throw new TradeError('CONFIG_INVALID', 'Conflicting legacy router audit aliases');
+  const clashrLegacyRouter = partial.clashrLegacyRouter !== undefined
+    ? partial.clashrLegacyRouter : partial.rushrRouter ?? DEFAULT_TRADE_CONFIG.clashrLegacyRouter;
+  const clashrLegacyRouterAudited = partial.clashrLegacyRouterAudited
+    ?? partial.rushrRouterAudited ?? DEFAULT_TRADE_CONFIG.clashrLegacyRouterAudited;
+  const cfg = { ...DEFAULT_TRADE_CONFIG, ...partial, clashrLegacyRouter, clashrLegacyRouterAudited,
+    rushrRouter: clashrLegacyRouter, rushrRouterAudited: clashrLegacyRouterAudited };
   if (!Number.isInteger(cfg.feeBps) || cfg.feeBps < 0 || cfg.feeBps > MAX_FEE_BPS)
     throw new TradeError('CONFIG_INVALID', `feeBps must be an integer between 0 and ${MAX_FEE_BPS}`, { feeBps: cfg.feeBps });
   if (!isAddress(cfg.feeRecipient, { strict: false }) || BigInt(cfg.feeRecipient) < 0x10n)
@@ -85,6 +99,9 @@ export function resolveConfig(partial: Partial<TradeConfig> = {}): TradeConfig {
     throw new TradeError('CONFIG_INVALID', 'defaultSlippageBps must be 0..5000');
   return { ...cfg, feeRecipient: getAddress(cfg.feeRecipient) };
 }
+
+/** @deprecated Historical Robinhood treasury; never a BNB Clashr treasury. */
+export const RUSHR_TREASURY = LEGACY_ROBINHOOD_TREASURY;
 
 export function isPlaceholderRecipient(cfg: TradeConfig): boolean {
   return cfg.feeRecipient.toLowerCase() === PLACEHOLDER_FEE_RECIPIENT.toLowerCase();

@@ -3,8 +3,8 @@ pragma solidity 0.8.26;
 
 import {Test} from "forge-std/Test.sol";
 import {TreasuryTimelock} from "../src/TreasuryTimelock.sol";
-import {RushrPonsRouter, IPonsFactory} from "../src/RushrPonsRouter.sol";
-import {RushrRouter, IUniversalRouter} from "../src/RushrRouter.sol";
+import {ClashrLegacyPonsRouter, IPonsFactory} from "../src/ClashrLegacyPonsRouter.sol";
+import {ClashrLegacyRouter, IUniversalRouter} from "../src/ClashrLegacyRouter.sol";
 import {MockToken, MockCurve, MockFactory} from "./Mocks.sol";
 
 /// @notice Treasury changes: guardian queues, anyone activates after the delay, guardian cancels.
@@ -24,8 +24,8 @@ contract TreasuryTimelockTest is Test {
     MockToken token;
     MockCurve curve;
     MockFactory factory;
-    RushrPonsRouter pons;
-    RushrRouter router;
+    ClashrLegacyPonsRouter pons;
+    ClashrLegacyRouter router;
 
     function setUp() public {
         token = new MockToken();
@@ -33,9 +33,9 @@ contract TreasuryTimelockTest is Test {
         token.mint(address(curve), 1e27);
         factory = new MockFactory();
         factory.set(address(token), address(curve));
-        pons = new RushrPonsRouter(IPonsFactory(address(factory)), TREASURY_EOA, 50, 45, guardian, DELAY);
+        pons = new ClashrLegacyPonsRouter(IPonsFactory(address(factory)), TREASURY_EOA, 50, 45, guardian, DELAY);
         address[] memory hooks = new address[](0);
-        router = new RushrRouter(
+        router = new ClashrLegacyRouter(
             IUniversalRouter(address(0xBEEF)), address(0xE7), TREASURY_EOA, 50, 45, guardian, guardian, DELAY, hooks
         );
         vm.deal(alice, 10 ether);
@@ -169,10 +169,10 @@ contract TreasuryTimelockTest is Test {
 
     function test_constructorRejectsBadTimelockParams() public {
         vm.expectRevert(TreasuryTimelock.DelayTooShort.selector);
-        new RushrPonsRouter(IPonsFactory(address(factory)), TREASURY_EOA, 50, 45, guardian, 5 minutes);
+        new ClashrLegacyPonsRouter(IPonsFactory(address(factory)), TREASURY_EOA, 50, 45, guardian, 5 minutes);
         vm.expectRevert(TreasuryTimelock.ZeroAddress.selector);
-        new RushrPonsRouter(IPonsFactory(address(factory)), TREASURY_EOA, 50, 45, address(0), DELAY);
+        new ClashrLegacyPonsRouter(IPonsFactory(address(factory)), TREASURY_EOA, 50, 45, address(0), DELAY);
         vm.expectRevert(TreasuryTimelock.ZeroAddress.selector);
-        new RushrPonsRouter(IPonsFactory(address(factory)), address(0), 50, 45, guardian, DELAY);
+        new ClashrLegacyPonsRouter(IPonsFactory(address(factory)), address(0), 50, 45, guardian, DELAY);
     }
 }

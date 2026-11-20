@@ -5,7 +5,7 @@
  * treasury must receive exactly the beta rate of what the curve took or paid. Nothing is signed or
  * broadcast. Skipped unless LIVE=1:
  *
- *   pnpm --filter @rushr/trade test:live
+ *   pnpm --filter @clashr/trade test:live
  */
 import { describe, expect, it } from 'vitest';
 import { createPublicClient, http, type Address, type PublicClient } from 'viem';

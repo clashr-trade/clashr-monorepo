@@ -1,5 +1,7 @@
 'use client';
 
+import { storageKey } from './brand-compat';
+
 /**
  * Beta invite codes. The landing sends invitees to /trenches?invite=<CODE> (A–Z, 0–9 and dash,
  * 4–32 chars). We keep the code until sign-up uses it: sessionStorage for the tab, plus a
@@ -7,7 +9,7 @@
  * Codes are kept as typed; the API compares them case-insensitively.
  */
 
-const KEY = 'rushr.invite';
+const KEY = storageKey('invite');
 const TTL_MS = 7 * 24 * 3600 * 1000;
 export const INVITE_RE = /^[A-Za-z0-9-]{4,32}$/;
 

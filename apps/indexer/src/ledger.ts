@@ -16,8 +16,8 @@
 // and error format are theirs. Confirmation runs on the enrich queue ('trade-confirm').
 import { Hono } from 'hono';
 import type { Sql } from 'postgres';
-import { auditCurveFee, curveFillFromLogs, DEFAULT_TRADE_CONFIG, effectiveFeeBps, LEGACY_TREASURIES, type FeeTxInfo } from '@rushr/trade';
-import { NATIVE_ETH, QUOTES } from '@rushr/core';
+import { auditCurveFee, curveFillFromLogs, DEFAULT_TRADE_CONFIG, effectiveFeeBps, LEGACY_TREASURIES, type FeeTxInfo } from '@clashr/trade';
+import { NATIVE_ETH, QUOTES } from '@clashr/core';
 import { fail, limit, requireMember, PRIVATE, type Ctx } from './agents/http';
 import { referralFor } from './agents/referrals';
 import type { Env } from './env';

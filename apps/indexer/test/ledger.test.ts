@@ -1,7 +1,7 @@
 // Trade ledger: POST /v1/trades + confirmation from the chain (receipt, our decoded swap, the treasury's
 // fee from a call trace), referral accrual, and the member read endpoints. Local Postgres, fake RPC.
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
-import { CURVE_BUY_TOPIC, CURVE_SELL_TOPIC, DEFAULT_TRADE_CONFIG, LEGACY_TREASURIES, effectiveFeeBps } from '@rushr/trade';
+import { CURVE_BUY_TOPIC, CURVE_SELL_TOPIC, DEFAULT_TRADE_CONFIG, LEGACY_TREASURIES, effectiveFeeBps } from '@clashr/trade';
 import { v1 } from '../src/agents/app';
 import { confirmTrade, ethReceived, sweepStuckTrades, tokenFlow, trades } from '../src/ledger';
 import { pgAvailable, setup } from './harness';

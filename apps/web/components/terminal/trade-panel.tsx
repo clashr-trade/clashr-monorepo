@@ -1,11 +1,13 @@
 'use client';
 
+import { SITE_URL } from '@/lib/urls';
+
 import {usePlatformLanguage} from '@/components/landing/language-provider';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { formatUnits, parseUnits, type Address } from 'viem';
 import { ArrowDown, CaretDown, Check, Copy, Gear, GasPump, PencilSimple, Plus, ShareNetwork, Wallet, XLogo } from '@phosphor-icons/react';
-import { feeLine, type QuickTrade } from '@rushr/trade';
+import { feeLine, type QuickTrade } from '@clashr/trade';
 import { tradingAvailable } from '@/components/trade/flag';
 import { Status } from '@/components/trade/trade-box';
 import { useQuickTrade, type TradeToken } from '@/components/trade/use-quick-trade';
@@ -790,7 +792,7 @@ function ShareCard({ token, position, bal, priceUsd, onClose }: { token: TradeTo
   const n = positionNumbers(token, bal, position, priceUsd);
   const [copied, setCopied] = useState(false);
   const up = (n.pnl ?? 0) >= 0;
-  const url = typeof window !== 'undefined' ? `${window.location.origin}/token/${token.address}` : `https://rushr.trade/token/${token.address}`;
+  const url = typeof window !== 'undefined' ? `${window.location.origin}/token/${token.address}` : `${SITE_URL}/token/${token.address}`;
   const text = `${up ? 'Up' : 'Down'} ${n.pnlPct != null ? pctSigned(n.pnlPct, 1) : ''} on $${token.symbol} (${n.pnl != null ? `${up ? '+' : '-'}${usd(Math.abs(n.pnl))}` : '—'}) on CLASHR`;
   return (
     <Modal title={translateUI("Share PnL")} onClose={onClose}>
@@ -799,7 +801,7 @@ function ShareCard({ token, position, bal, priceUsd, onClose }: { token: TradeTo
         style={{ background: up ? 'radial-gradient(120% 90% at 100% 0%, rgba(54,212,42,.22), transparent 60%), #121315' : 'radial-gradient(120% 90% at 100% 0%, rgba(255,107,91,.2), transparent 60%), #0d0b0b' }}
       >
         <div className="flex items-center justify-between text-xs text-muted">
-          <span className="font-semibold text-ink">{translateUI("rushr")}</span>
+          <span className="font-semibold text-ink">{translateUI("CLASHR")}</span>
           <span className="font-mono">{translateUI("Robinhood Chain")}</span>
         </div>
         <div className="mt-5 font-mono text-sm text-muted">${token.symbol}</div>

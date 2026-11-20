@@ -7,7 +7,7 @@
 // gateways as /api/img (only PNG/JPEG are used; anything else falls back to a lettered circle).
 import { ImageResponse } from 'next/og';
 import { getCloudflareContext } from '@opennextjs/cloudflare';
-import { httpCandidates } from '@rushr/core';
+import { httpCandidates } from '@clashr/core';
 
 export const CARD = { width: 1200, height: 630 };
 
@@ -121,7 +121,7 @@ export interface CardMember {
 
 /** Paper, art on the right fading into it, and the brand mark, around the card's own content. */
 async function Frame({ art, base, member, children }: { art: 'win' | 'loss' | 'profile'; base: string; member: CardMember; children: React.ReactNode }) {
-  const [artUrl, logo, avatar] = await Promise.all([asset(`/card/${art}.jpg`, 'image/jpeg', base), asset('/logo-mark.png', 'image/png', base), remoteImage(member.avatarUrl)]);
+  const [artUrl, avatar] = await Promise.all([asset(`/card/${art}.jpg`, 'image/jpeg', base), remoteImage(member.avatarUrl)]);
   return (
     <div style={{ width: CARD.width, height: CARD.height, display: 'flex', position: 'relative', background: PAPER, fontFamily: 'Geist', color: INK }}>
       {artUrl && <img src={artUrl} width={720} height={630} style={{ position: 'absolute', right: 0, top: 0, objectFit: 'cover', objectPosition: 'center' }} />}
@@ -129,8 +129,8 @@ async function Frame({ art, base, member, children }: { art: 'win' | 'loss' | 'p
       <div style={{ position: 'absolute', left: 0, top: 0, width: CARD.width, height: CARD.height, display: 'flex', backgroundImage: `linear-gradient(to right, ${PAPER} 0%, ${PAPER} 46%, rgba(247,245,242,0.9) 54%, rgba(247,245,242,0) 70%)` }} />
       <div style={{ position: 'absolute', left: 72, top: 56, bottom: 56, width: 600, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              {logo && <img src={logo} width={34} height={35} />}
-          <span style={{ fontSize: 36, fontWeight: 600, letterSpacing: -1.6 }}>rushr.</span>
+          <svg width={34} height={35} viewBox="0 0 64 64"><path d="M50 10H25L10 25v20l15 15h25V46H31l-7-7V31l7-7h19Z" fill="#f0b90b"/><path d="m41 25-13 14h9l-4 13 20-24H42l4-9Z" fill="#0b0e11"/></svg>
+          <span style={{ fontSize: 36, fontWeight: 600, letterSpacing: -1.6 }}>CLASHR.</span>
         </div>
         {children}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -144,7 +144,7 @@ async function Frame({ art, base, member, children }: { art: 'win' | 'loss' | 'p
         </div>
       </div>
       <div style={{ position: 'absolute', right: 40, bottom: 34, display: 'flex', fontFamily: 'Geist Mono', fontSize: 18, color: INK, background: 'rgba(247,245,242,0.85)', borderRadius: 999, padding: '6px 14px' }}>
-        app.rushr.trade
+        clashr.trade
       </div>
     </div>
   );

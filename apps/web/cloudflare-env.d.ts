@@ -3032,7 +3032,7 @@ declare class URL {
      * [MDN Reference](https://developer.mozilla.org/docs/Web/API/URL/toJSON)
      */
     toJSON(): string;
-    /*function toString() { [native code] }*/
+    /*toString*/
     toString(): string;
     /**
      * The **`URL.canParse()`** static method of the URL interface returns a boolean indicating whether or not an absolute URL, or a relative URL combined with a base URL, are parsable and valid.
@@ -3121,7 +3121,7 @@ declare class URLSearchParams {
     keys(): IterableIterator<string>;
     values(): IterableIterator<string>;
     forEach<This = unknown>(callback: (this: This, value: string, key: string, parent: URLSearchParams) => void, thisArg?: This): void;
-    /*function toString() { [native code] }*/
+    /*toString*/
     toString(): string;
     [Symbol.iterator](): IterableIterator<[
         key: string,

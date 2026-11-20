@@ -30,7 +30,7 @@ export const metadata: Metadata = {
 };
 
 /** The $RUSHR contract on Robinhood Chain (PONS fair launch). */
-const RUSHR_TOKEN = '0xa8ceeeb747fcf136947c35c5de6187ee90d6bfed';
+const LEGACY_ROBINHOOD_TOKEN = '0xa8ceeeb747fcf136947c35c5de6187ee90d6bfed';
 
 const SOURCE_LABEL: Record<string, string> = { platform_fees: 'Platform fees', creator_tax: '$RUSHR creator tax' };
 
@@ -330,11 +330,11 @@ export default async function TransparencyPage() {
                 <tbody>
                   {(
                     [
-                      ['$RUSHR token', RUSHR_TOKEN, `https://robinhoodchain.blockscout.com/token/${RUSHR_TOKEN}`],
+                      ['$RUSHR token', LEGACY_ROBINHOOD_TOKEN, `https://robinhoodchain.blockscout.com/token/${LEGACY_ROBINHOOD_TOKEN}`],
                       ['Dev wallet (claims the creator tax, runs creator-tax buybacks)', DEV_WALLET, `https://robin.etherscan.io/address/${DEV_WALLET}`],
                       ['Team wallet (verified on FOMO)', TEAM_WALLET, `https://robin.etherscan.io/address/${TEAM_WALLET}`],
                       ['Treasury Safe (platform fees, fee buybacks, season rewards)', TREASURY, `https://robin.etherscan.io/address/${TREASURY}`],
-                      ['Burn address', '0x000000000000000000000000000000000000dEaD', `https://robin.etherscan.io/token/${RUSHR_TOKEN}?a=0x000000000000000000000000000000000000dEaD`],
+                      ['Burn address', '0x000000000000000000000000000000000000dEaD', `https://robin.etherscan.io/token/${LEGACY_ROBINHOOD_TOKEN}?a=0x000000000000000000000000000000000000dEaD`],
                     ] as const
                   ).map(([k, addr, href]) => (
                     <tr key={k} className="border-b border-line first:border-t first:border-t-ink/15">

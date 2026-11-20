@@ -1,8 +1,8 @@
 // The leaderboard: registered members ranked by USD PnL from indexed swaps (Season 0 for the beta).
 import { Hono } from 'hono';
 import type { Sql } from 'postgres';
-import { DAY_RANK_CONFIG, DEFAULT_RANK_CONFIG, rank, type Board, type Leaderboard } from '@rushr/agents/leaderboard';
-import { leaderboardInputs, WINDOW_MS, type Window } from '@rushr/agents/sql';
+import { DAY_RANK_CONFIG, DEFAULT_RANK_CONFIG, rank, type Board, type Leaderboard } from '@clashr/agents/leaderboard';
+import { leaderboardInputs, WINDOW_MS, type Window } from '@clashr/agents/sql';
 import { expensiveRead, fail, flag, PRIVATE, publicCache, requireMember, type C, type Ctx } from './http';
 import { memberByRef } from './members';
 

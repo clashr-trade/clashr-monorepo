@@ -289,7 +289,7 @@ export const candles = pgTable(
 
 export const signals = pgTable('signals', {
   token: text('token').primaryKey(),
-  data: jsonb('data').notNull(), // TokenSignals from @rushr/core
+  data: jsonb('data').notNull(), // TokenSignals from @clashr/core
   riskLevel: text('risk_level', { enum: ['low', 'medium', 'high', 'unknown'] }).notNull(),
   verdict: text('verdict').notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),

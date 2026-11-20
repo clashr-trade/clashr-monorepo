@@ -4,20 +4,20 @@ import starlight from '@astrojs/starlight';
 import starlightLinksValidator from 'starlight-links-validator';
 import starlightLlmsTxt from 'starlight-llms-txt';
 
-// docs.rushr.trade: a static Starlight site, served by Cloudflare Workers as static assets (wrangler.jsonc).
+// docs.clashr.trade: a static Starlight site, served by Cloudflare Workers as static assets (wrangler.jsonc).
 export default defineConfig({
-  site: 'https://docs.rushr.trade',
+  site: 'https://docs.clashr.trade',
   trailingSlash: 'ignore',
   integrations: [
     starlight({
-      title: 'Rushr docs',
+      title: 'Clashr legacy reference',
       description: 'Open social trading for humans and AI agents on Robinhood Chain.',
-      logo: { src: './src/assets/logo-mark.png', alt: 'Rushr' },
+      logo: { src: './src/assets/logo-mark.png', alt: 'Clashr legacy reference' },
       favicon: '/favicon.ico',
-      customCss: ['@fontsource-variable/geist', '@fontsource-variable/geist-mono', './src/styles/rushr.css'],
+      customCss: ['@fontsource-variable/geist', '@fontsource-variable/geist-mono', './src/styles/clashr.css'],
       social: [
-        { icon: 'x.com', label: 'X', href: 'https://x.com/rushrtrade' },
-        { icon: 'telegram', label: 'Telegram', href: 'https://t.me/rushrtrade' },
+        { icon: 'x.com', label: 'X', href: 'https://x.com/clashrtrade' },
+        { icon: 'telegram', label: 'Telegram', href: 'https://t.me/clashrtrade' },
         { icon: 'github', label: 'GitHub', href: 'https://github.com/rushr-dev/platform' },
       ],
       editLink: { baseUrl: 'https://github.com/rushr-dev/platform/edit/main/apps/docs/' },
@@ -37,13 +37,13 @@ export default defineConfig({
           codeFontFamily: "'Geist Mono Variable', ui-monospace, monospace",
           uiFontFamily: "'Geist Variable', ui-sans-serif, system-ui, sans-serif",
           codeFontSize: '0.85rem',
-          frames: { shadowColor: 'transparent', editorTabBarBackground: 'var(--rushr-surface-2)', terminalTitlebarBackground: 'var(--rushr-surface-2)' },
+          frames: { shadowColor: 'transparent', editorTabBarBackground: 'var(--clashr-surface-2)', terminalTitlebarBackground: 'var(--clashr-surface-2)' },
         },
       },
       head: [
-        { tag: 'meta', attrs: { property: 'og:image', content: 'https://docs.rushr.trade/og-rushr.jpg' } },
+        { tag: 'meta', attrs: { property: 'og:image', content: 'https://docs.clashr.trade/og-clashr-legacy.jpg' } },
         { tag: 'meta', attrs: { name: 'twitter:card', content: 'summary_large_image' } },
-        { tag: 'meta', attrs: { name: 'twitter:site', content: '@rushrtrade' } },
+        { tag: 'meta', attrs: { name: 'twitter:site', content: '@clashrtrade' } },
         { tag: 'link', attrs: { rel: 'apple-touch-icon', href: '/apple-touch-icon.png' } },
       ],
       sidebar: [
@@ -85,7 +85,7 @@ export default defineConfig({
             'agents/talos',
           ],
         },
-        { label: '$RUSHR', items: ['rushr/token', 'rushr/fees-and-buybacks', 'rushr/addresses'] },
+        { label: '$RUSHR', items: ['legacy-token/token', 'legacy-token/fees-and-buybacks', 'legacy-token/addresses'] },
         { label: 'Security and transparency', link: '/security/' },
         { label: 'FAQ', link: '/faq/' },
         { label: 'Links', link: '/links/' },
@@ -93,7 +93,7 @@ export default defineConfig({
       plugins: [
         starlightLinksValidator({ errorOnLocalLinks: true }),
         starlightLlmsTxt({
-          projectName: 'Rushr',
+          projectName: 'Clashr legacy reference',
           description:
             'Rushr is open social trading for humans and AI agents on Robinhood Chain (chain id 4663). Non-custodial: users and agents sign their own transactions. The agent API reference is also at https://rushr.trade/llms.txt.',
         }),

@@ -4,7 +4,7 @@ const { data } = Astro.locals.starlightRoute.entry;
 const { title = data.title, tagline, actions = [] } = data.hero || {};
 ---
 
-<header class="rushr-hero">
+<header class="clashr-hero">
 	<p class="eyebrow">Documentation · Beta · Robinhood Chain</p>
 	<h1 id="_top" data-page-title set:html={title} />
 	{tagline && <p class="tagline" set:html={tagline} />}
@@ -18,7 +18,7 @@ const { title = data.title, tagline, actions = [] } = data.hero || {};
 </header>
 
 <style>
-	.rushr-hero {
+	.clashr-hero {
 		text-align: center;
 		padding: clamp(2.5rem, 7vw, 5.5rem) 0 clamp(2rem, 5vw, 3.5rem);
 		max-width: 52rem;
@@ -62,12 +62,12 @@ const { title = data.title, tagline, actions = [] } = data.hero || {};
 		font-size: 1rem;
 	}
 	.primary {
-		background: var(--rushr-lime);
+		background: var(--clashr-lime);
 		color: #0b130b;
-		box-shadow: 0 10px 30px -10px color-mix(in srgb, var(--rushr-lime) 70%, transparent);
+		box-shadow: 0 10px 30px -10px color-mix(in srgb, var(--clashr-lime) 70%, transparent);
 	}
 	.secondary {
-		background: var(--rushr-surface);
+		background: var(--clashr-surface);
 		color: var(--sl-color-white);
 		border: 1px solid var(--sl-color-hairline);
 	}

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { encodeFunctionData, parseEther, type Address } from 'viem';
-import { ponsCurveAbi } from '@rushr/trade/abis';
+import { ponsCurveAbi } from '@clashr/trade/abis';
 import { checkFeeUnpaid, GuardError, vetBuild, vetCurveBuild, type Built } from '../src/guards.ts';
 import { built, CURVE, curveBuilt, TREASURY } from './fixtures.ts';
 import { apiError, connect, fakeApi, fakeChain, TOKEN, type Route } from './harness.ts';
@@ -214,7 +214,7 @@ describe('curve trades through the MCP server', () => {
   it('fee_unpaid in dry run: explains, pays nothing', async () => {
     const api = curveApi({ 'POST /v1/trade/build': () => apiError(402, 'fee_unpaid', { owed: '1000', feeTx: { chainId: 4663, to: TREASURY, data: '0x', value: '1000' } }) });
     const chain = fakeChain({ curve: CURVE });
-    const { call } = await connect({ RUSHR_DRY_RUN: '1' }, api, chain);
+    const { call } = await connect({ CLASHR_ROBINHOOD_DRY_RUN: '1' }, api, chain);
     const r = await call('buy', { token: TOKEN, usd: 6 });
     expect(r.json.error.code).toBe('fee_unpaid');
     expect(chain.log).toHaveLength(0);
@@ -247,14 +247,14 @@ describe('curve trades through the MCP server', () => {
 
   it('counts the fee toward the per-trade cap', async () => {
     const chain = fakeChain({ curve: CURVE });
-    const { call } = await connect({ RUSHR_MAX_TRADE_USD: '6.01' }, curveApi(), chain);
+    const { call } = await connect({ CLASHR_ROBINHOOD_MAX_TRADE_USD: '6.01' }, curveApi(), chain);
     expect((await call('buy', { token: TOKEN, usd: 6 })).json.error.code).toBe('refused_trade_cap');
     expect(chain.sent).toHaveLength(0);
   });
 
   it('dry run: builds and checks a curve buy, shows the fee, sends nothing', async () => {
     const chain = fakeChain({ curve: CURVE });
-    const { call } = await connect({ RUSHR_DRY_RUN: '1' }, curveApi(), chain);
+    const { call } = await connect({ CLASHR_ROBINHOOD_DRY_RUN: '1' }, curveApi(), chain);
     const r = await call('buy', { token: TOKEN, usd: 6 });
     expect(r.json).toMatchObject({ status: 'dry_run', venue: 'pons-curve', curveFee: { amountWei: '7500000000000', to: TREASURY } });
     expect(chain.log).toHaveLength(0);

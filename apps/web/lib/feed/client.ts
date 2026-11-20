@@ -1,5 +1,7 @@
 'use client';
 
+import { storageKey } from '../brand-compat';
+
 import { API_URL } from '../api';
 import { BNB_PRODUCT } from '../product';
 import {
@@ -84,8 +86,8 @@ const BUSY_RETRY_MS = 60_000;
 function wantV2(): boolean {
   try {
     const q = new URLSearchParams(window.location.search).get('feed');
-    if (q === 'v2' || q === 'v1') localStorage.setItem('rushr.feed', q);
-    const saved = localStorage.getItem('rushr.feed');
+    if (q === 'v2' || q === 'v1') localStorage.setItem(storageKey('feed'), q);
+    const saved = localStorage.getItem(storageKey('feed'));
     if (saved === 'v2' || saved === 'v1') return saved === 'v2';
   } catch {
     // storage unavailable: fall through to the build default

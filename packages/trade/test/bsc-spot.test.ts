@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { decodeFunctionData, encodeAbiParameters, encodeEventTopics, encodeFunctionData, encodeFunctionResult, parseAbi, zeroAddress, type Address, type Hash, type Hex, type PublicClient, type TransactionReceipt, type WalletClient } from 'viem';
 import { bsc } from 'viem/chains';
-import { PANCAKE_V2, PANCAKE_V3 } from '@rushr/core/chain/pancake';
+import { PANCAKE_V2, PANCAKE_V3 } from '@clashr/core/chain/pancake';
 import { BSC_ERC20_ABI, BSC_SPOT, BSC_V2_ROUTER_ABI, BSC_V3_ROUTER_ABI } from '../src/bsc/abi';
 import { assertBscQuote, bscSwapTransaction, buildBscSpot, quoteBscSpot, BSC_USDT_BRIDGE, type BscSpotQuote, type BscSpotRequest, type BscTransaction } from '../src/bsc/spot';
 import { simulateBscSpot } from '../src/bsc/simulation';

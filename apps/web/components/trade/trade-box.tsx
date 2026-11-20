@@ -4,7 +4,7 @@ import {usePlatformLanguage} from '@/components/landing/language-provider';
 import { useEffect, useMemo, useState } from 'react';
 import { erc20Abi, formatUnits, parseEther, parseUnits } from 'viem';
 import Link from 'next/link';
-import { feeLine } from '@rushr/trade';
+import { feeLine } from '@clashr/trade';
 import { tradingAvailable } from './flag';
 import { chainClient, useKeepWarm, useQuickTrade, type TradeStatus, type TradeToken } from './use-quick-trade';
 import { SHOW_RISK } from '@/lib/risk-labels';

@@ -17,3 +17,34 @@ jobs:
       - run: pnpm typecheck
       - run: pnpm lint
       - run: pnpm test
+  contracts:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: contracts
+    steps:
+      - uses: actions/checkout@v4
+      - uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: v1.9.0
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - name: Install trade SDK dependencies
+        working-directory: .
+        run: pnpm install --frozen-lockfile --filter @clashr/trade...
+      - name: Check Flap contract formatting
+        run: forge fmt --check src/flap test/flap
+      - name: Build Flap interface
+        run: forge build --sizes
+      - name: Check Solidity and SDK ABI parity
+        working-directory: .
+        run: pnpm --filter @clashr/trade exec tsx ../../contracts/scripts/check-flap-abi.mjs
+      - name: Test Flap interface and optional BNB fork
+        run: forge test -vv
+        env:
+          BSC_RPC_URL: ${{ secrets.BSC_RPC_URL }}
+          FLAP_FORK_TOKEN: ${{ vars.FLAP_FORK_TOKEN || '0x0000000000000000000000000000000000000000' }}
+          FLAP_FORK_BLOCK: ${{ vars.FLAP_FORK_BLOCK || '0' }}

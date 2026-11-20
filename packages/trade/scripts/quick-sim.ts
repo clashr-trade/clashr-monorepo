@@ -3,14 +3,14 @@
  * send for a quick buy and a quick sell (incl. approvals), and runs them in one eth_simulateV1 block from
  * a fresh address with a simulated ETH balance. Nothing is signed or broadcast. Public RPC (no secrets).
  *
- *   pnpm --filter @rushr/trade exec tsx scripts/quick-sim.ts [token ...]
+ *   pnpm --filter @clashr/trade exec tsx scripts/quick-sim.ts [token ...]
  */
 import { createPublicClient, formatEther, http, type Address, type PublicClient } from 'viem';
 import { robinhoodChain } from '../src/chain';
 import { quickBuy, quickSell } from '../src/quick';
 import { simulateCalls, analyzeSwapTransfers, NATIVE_TRANSFER_EMITTER } from '../src/simulate';
 import { fetchApiPools } from '../src/api-pools';
-import { RUSHR_TREASURY } from '../src/config';
+import { LEGACY_ROBINHOOD_TREASURY } from '../src/config';
 
 const client = createPublicClient({ chain: robinhoodChain, transport: http(), batch: { multicall: true } }) as PublicClient;
 const trader: Address = '0x00000000000000000000000000000000b0b0b0b0';
@@ -47,7 +47,7 @@ for (const token of tokens) {
     // Launch pools with one-sided liquidity (e.g. lift.fun) can't quote a sell until a buy has landed;
     // a real user's own buy creates that liquidity. Only the buy is checked here.
     const sim = await simulateCalls(client, buy.calls.map((c) => ({ from: trader, to: c.to, data: c.data, value: c.value, label: c.label })), { fund: { [trader]: 10n ** 18n } });
-    const b = analyzeSwapTransfers(q, sim.transfers, RUSHR_TREASURY);
+    const b = analyzeSwapTransfers(q, sim.transfers, LEGACY_ROBINHOOD_TREASURY);
     const ok = sim.ok && b.received >= q.minAmountOut && b.feePaid === q.fee.feeAmount;
     if (!ok) failures++;
     console.log(`  buy sim: ${sim.ok ? 'ok' : 'REVERT'} | received ${b.received} | fee ${formatEther(b.feePaid)} ETH`);
@@ -59,10 +59,10 @@ for (const token of tokens) {
   const sim = await simulateCalls(client, all, { fund: { [trader]: 10n ** 18n } });
   const buyIdx = 0;
   const sellIdx = all.length - 1;
-  const b = analyzeSwapTransfers(q, sim.transfers.filter((t) => t.callIndex === buyIdx), RUSHR_TREASURY);
+  const b = analyzeSwapTransfers(q, sim.transfers.filter((t) => t.callIndex === buyIdx), LEGACY_ROBINHOOD_TREASURY);
   // Sell quoted at pre-buy state: re-check the minimum against what actually happened.
-  const s = analyzeSwapTransfers(sell.quote, sim.transfers.filter((t) => t.callIndex === sellIdx), RUSHR_TREASURY);
-  const feeEth = sim.transfers.filter((t) => t.token === NATIVE_TRANSFER_EMITTER && t.to.toLowerCase() === RUSHR_TREASURY.toLowerCase());
+  const s = analyzeSwapTransfers(sell.quote, sim.transfers.filter((t) => t.callIndex === sellIdx), LEGACY_ROBINHOOD_TREASURY);
+  const feeEth = sim.transfers.filter((t) => t.token === NATIVE_TRANSFER_EMITTER && t.to.toLowerCase() === LEGACY_ROBINHOOD_TREASURY.toLowerCase());
   const ok = sim.ok && b.received >= q.minAmountOut && b.feePaid === q.fee.feeAmount && s.received > 0n;
   if (!ok) failures++;
   console.log(`  sim:  ${sim.calls.map((c) => `${c.label}=${c.ok ? 'ok' : `REVERT ${c.error}`}`).join(', ')}`);

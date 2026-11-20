@@ -15,19 +15,19 @@ jobs:
 
       - uses: foundry-rs/foundry-toolchain@v1
         with:
-          version: stable
-
-      - name: Install dependencies
-        run: forge install foundry-rs/forge-std@v1.9.7 --no-git
+          version: v1.9.0
 
       - name: Format
-        run: forge fmt --check
+        run: forge fmt --check src/flap test/flap
 
       - name: Build
         run: forge build --sizes
 
-      # Fork tests run only when the ROBINHOOD_RPC_URL repository secret is set; otherwise they return early.
+      # Standalone contracts checkout only. The monorepo's active CI also checks SDK ABI parity.
+      # Missing RPC configuration is reported as an explicit skip, never a successful fork check.
       - name: Test
         run: forge test -vv
         env:
-          ROBINHOOD_RPC_URL: ${{ secrets.ROBINHOOD_RPC_URL }}
+          BSC_RPC_URL: ${{ secrets.BSC_RPC_URL }}
+          FLAP_FORK_TOKEN: ${{ vars.FLAP_FORK_TOKEN || '0x0000000000000000000000000000000000000000' }}
+          FLAP_FORK_BLOCK: ${{ vars.FLAP_FORK_BLOCK || '0' }}

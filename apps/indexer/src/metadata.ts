@@ -1,6 +1,6 @@
 import type { Sql } from 'postgres';
 import { decodeFunctionResult, encodeFunctionData, parseAbi, type Hex } from 'viem';
-import { ambiguousUrls, classifyLinks, harvestPackedUrls, harvestStrings, httpCandidates, metadataUris } from '@rushr/core';
+import { ambiguousUrls, classifyLinks, harvestPackedUrls, harvestStrings, httpCandidates, metadataUris } from '@clashr/core';
 import type { Rpc } from './rpc';
 
 const GETTERS = parseAbi([

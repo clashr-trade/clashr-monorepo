@@ -1,5 +1,7 @@
 'use client';
 
+import { CALL_POSTED_EVENT, FOLLOW_CHANGED_EVENT, storageKey } from './brand-compat';
+
 import { useEffect, useRef, useState } from 'react';
 import { auth } from './auth';
 import { V1 } from './members';
@@ -46,9 +48,9 @@ export const CALL_MAX = 500;
 export const COMMENT_MAX = 300;
 
 /** Fired after this browser posts a call, so lists refresh right away. */
-export const CALL_POSTED = 'rushr:call-posted';
-export const FOLLOW_CHANGED = 'rushr:follow-changed';
-const SOCIAL_CHANNEL = `rushr.calls.${BNB_PRODUCT ? '56' : '4663'}`;
+export const CALL_POSTED = CALL_POSTED_EVENT;
+export const FOLLOW_CHANGED = FOLLOW_CHANGED_EVENT;
+const SOCIAL_CHANNEL = storageKey(`calls.${BNB_PRODUCT ? '56' : '4663'}`);
 
 async function authHeaders(): Promise<Record<string, string>> {
   const token = await auth.getAccessToken();
@@ -178,7 +180,7 @@ export function useFeed(kind: FeedKind, enabled = true): Feed {
   const [next, setNext] = useState<string | null>(null);
   const [loadingMore, setLoadingMore] = useState(false);
   const [failed, setFailed] = useState(false);
-  const cacheKey = `rushr.feed.${BNB_PRODUCT ? '56' : '4663'}.${kind}`;
+  const cacheKey = storageKey(`feed.${BNB_PRODUCT ? '56' : '4663'}.${kind}`);
   // The poll reads the shown and pending calls through refs (no state updates nested in updaters).
   const shown = useRef<Callout[] | null>(null);
   shown.current = items;

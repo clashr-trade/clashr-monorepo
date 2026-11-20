@@ -56,7 +56,7 @@ export function BetaSeats({ className = '' }: { className?: string }) {
           <a href={X_URL} target="_blank" rel="noreferrer" className={`${pill} hover:text-ink`}>
             <span className="size-2 rounded-full bg-ink/30" aria-hidden />
             <span>
-              Beta is full · follow <span className="font-medium text-ink">@rushrtrade</span> for the next drop
+              Beta is full · follow <span className="font-medium text-ink">@clashrtrade</span> for the next drop
             </span>
           </a>
         ) : (

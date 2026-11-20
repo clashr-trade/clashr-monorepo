@@ -1,6 +1,6 @@
-import {CLASHR_LLMS_TXT} from '@rushr/agents/clashr-llms-txt';
+import {CLASHR_LLMS_TXT} from '@clashr/agents/clashr-llms-txt';
 import {BNB_PRODUCT} from '@/lib/product';
-import { LLMS_TXT } from '@rushr/agents/llms-txt';
+import { LLMS_TXT } from '@clashr/agents/llms-txt';
 
 /**
  * https://rushr.trade/llms.txt: how AI agents use CLASHR. The text lives in packages/agents/llms.txt (one

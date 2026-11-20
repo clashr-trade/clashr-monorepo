@@ -1,9 +1,11 @@
 'use client';
 
+import { storageKey } from '@/lib/brand-compat';
+
 import { useCallback, useEffect, useState } from 'react';
 
 /** "I understand" for a high-risk token, remembered once per token in this browser (best effort). */
-const KEY = 'rushr.risk-ack';
+const KEY = storageKey('risk-ack');
 
 function readAll(): Record<string, boolean> {
   try {

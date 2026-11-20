@@ -11,7 +11,7 @@
 //
 // A passing result is cached per token for PASS_TTL_MS in this isolate, so an agent quoting repeatedly
 // doesn't cost one simulation per quote. Failures and honeypots are never cached: the next call re-checks.
-import type { TokenSafety } from '@rushr/trade/simulate';
+import type { TokenSafety } from '@clashr/trade/simulate';
 import { fail } from './http';
 
 export const PASS_TTL_MS = 10 * 60_000;

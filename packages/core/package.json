@@ -1,11 +1,14 @@
 {
-  "name": "@rushr/core",
+  "name": "@clashr/core",
   "version": "0.0.0",
   "private": true,
-  "description": "Robinhood Chain registry, event decoders, token metadata and safety signals behind the Rushr terminal.",
+  "description": "Chain registries, event decoders, metadata and safety signals for Clashr.",
   "license": "AGPL-3.0-only",
-  "repository": { "type": "git", "url": "git+https://github.com/rushr-dev/rushr-core.git" },
-  "homepage": "https://rushr.trade",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rushr-dev/rushr-core.git"
+  },
+  "homepage": "https://clashr.trade",
   "type": "module",
   "exports": {
     ".": "./src/index.ts",

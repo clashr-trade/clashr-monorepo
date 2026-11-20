@@ -1,7 +1,7 @@
 {
-  "name": "@rushr/mcp",
+  "name": "@clashr/legacy-mcp",
   "version": "0.1.2",
-  "description": "Local MCP server for Rushr: trade Robinhood Chain tokens (Uniswap and PONS bonding curves), post callouts and read the leaderboard from any MCP client. Non-custodial: your agent's key stays on your machine.",
+  "description": "Clashr legacy-chain MCP adapter for Robinhood/Uniswap/PONS. Separate from the BNB Clashr MCP.",
   "license": "AGPL-3.0-only",
   "type": "module",
   "mcpName": "io.github.rushr-dev/mcp",
@@ -14,12 +14,13 @@
   "keywords": [
     "mcp",
     "model-context-protocol",
-    "rushr",
+    "clashr-legacy",
     "robinhood-chain",
     "trading",
     "agents"
   ],
   "bin": {
+    "clashr-legacy-mcp": "dist/index.js",
     "rushr-mcp": "dist/index.js"
   },
   "files": [
@@ -43,8 +44,8 @@
     "zod": "^4.6.7"
   },
   "devDependencies": {
-    "@rushr/core": "workspace:*",
-    "@rushr/trade": "workspace:*",
+    "@clashr/core": "workspace:*",
+    "@clashr/trade": "workspace:*",
     "@types/node": "^26.6.6",
     "esbuild": "0.28.2",
     "typescript": "~5.9.3",

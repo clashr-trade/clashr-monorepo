@@ -6,7 +6,7 @@
 // on MORPH, 2026-11-14: the hook event split 4% into 1% protocol + 3% creator, buys and sells).
 import type { Sql } from 'postgres';
 import { decodeFunctionResult, encodeFunctionData, type Hex } from 'viem';
-import { ponsCurveAbi, ponsFactoryAbi, TRADE_ADDRESSES } from '@rushr/trade';
+import { ponsCurveAbi, ponsFactoryAbi, TRADE_ADDRESSES } from '@clashr/trade';
 import type { Rpc } from './rpc';
 
 /** Cached in the token's signals (`data.contractTax`). Owner-set and rarely changed, so refreshed weekly. */

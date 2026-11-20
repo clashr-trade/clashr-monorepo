@@ -4,8 +4,8 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { keccak256, stringToHex, zeroAddress, type Address } from 'viem';
 import { recoverMessageAddress } from 'viem';
-import { buildMessage } from '@rushr/agents/siwe';
-import { FLAP_PORTAL, flapTransaction, type FlapQuote } from '@rushr/trade/bsc/flap';
+import { buildMessage } from '@clashr/agents/siwe';
+import { FLAP_PORTAL, flapTransaction, type FlapQuote } from '@clashr/trade/bsc/flap';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import { loadConfig } from '../src/config.ts';
@@ -59,6 +59,7 @@ async function connect(
     apiChain?: number;
     challengeChain?: number;
     challengeDomain?: string;
+    legacyStatement?: boolean;
     blocked?: boolean;
     wallet?: boolean;
     simulationFails?: boolean;
@@ -121,7 +122,7 @@ async function connect(
           termsUrl: 'http://localhost:3000/terms',
         },
       });
-      data = { message, nonce: 'testNonce1234' };
+      data = { message: options.legacyStatement ? message.replaceAll('Clashr', 'Rushr') : message, nonce: 'testNonce1234' };
     } else if (u.pathname === '/v1/agents/register' || u.pathname === '/v1/agents/login') {
       const address = await recoverMessageAddress({
         message: body.message,
@@ -261,8 +262,8 @@ describe('Clashr MCP protocol and chain isolation', () => {
     expect(r.error).toBe(true);
     expect(r.data.error.code).toBe('request_failed');
   });
-  it('creates a separate wallet, verifies a real SIWE signature, and stores only an API-bound registration locally', async () => {
-    const { call, config, calls } = await connect();
+  it.each([false, true])('creates a separate wallet and verifies a real SIWE signature (legacy statement: %s)', async (legacyStatement) => {
+    const { call, config, calls } = await connect({ legacyStatement });
     const wallet = await call('create_wallet');
     expect(wallet.error).toBe(false);
     const before = readFileSync(config.walletFile, 'utf8');

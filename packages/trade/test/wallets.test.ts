@@ -11,7 +11,7 @@ import {
   WebCryptoAuthorizationKey,
 } from '../src/signer';
 import { buildDailyValueAggregation, buildSignerPolicy, defaultCaps, DEFAULT_CAPS } from '../src/policy';
-import { buildRushrRouterSwap, routeFromPool, rushrPoolKey, rushrRouterAbi, RouteKind } from '../src/rushr-router';
+import { buildClashrLegacyRouterSwap, routeFromPool, clashrLegacyPoolKey, clashrLegacyRouterAbi, RouteKind } from '../src/clashr-router';
 import { resolveConfig } from '../src/config';
 import { TRADE_ADDRESSES } from '../src/addresses';
 import type { PonsPool, Quote, V2Pool, V3Pool, V4Pool } from '../src/types';
@@ -108,25 +108,25 @@ describe('Privy session signer (REST, Workers-compatible)', () => {
     await expect(new PrivySessionSigner({ ...base, fetch: ok }).buildRequest('../x', tx)).rejects.toThrow(/wallet id/);
   });
 
-  it('is off unless WALLETS_ENABLED=1, Privy is configured AND RushrRouter is deployed+audited; the KMS placeholder refuses', async () => {
+  it('is off unless WALLETS_ENABLED=1, Privy is configured AND ClashrLegacyRouter is deployed+audited; the KMS placeholder refuses', async () => {
     const key = new PlaceholderKmsKey();
     const env = { WALLETS_ENABLED: '1', PRIVY_APP_ID: 'a', PRIVY_APP_SECRET: 's' };
-    const audited = resolveConfig({ rushrRouter: ROUTER, rushrRouterAudited: true });
+    const audited = resolveConfig({ clashrLegacyRouter: ROUTER, clashrLegacyRouterAudited: true });
     expect(createSessionSigner({}, key, audited)).toBeNull();
     expect(createSessionSigner({ ...env, WALLETS_ENABLED: '0' }, key, audited)).toBeNull();
     expect(createSessionSigner({ WALLETS_ENABLED: '1' }, key, audited)).toBeNull();
     // With the real treasury as default, the router gate alone keeps one-click off.
     expect(createSessionSigner(env, key, resolveConfig())).toBeNull();
-    expect(createSessionSigner(env, key, resolveConfig({ rushrRouter: ROUTER }))).toBeNull();
+    expect(createSessionSigner(env, key, resolveConfig({ clashrLegacyRouter: ROUTER }))).toBeNull();
     const s = createSessionSigner(env, key, audited);
     expect(s).toBeInstanceOf(PrivySessionSigner);
     await expect(s!.signTransaction('w', { to: ROUTER, data: '0x', value: 0n, chainId: 4663 })).rejects.toThrow(/No KMS configured/);
   });
 
-  it('one-click trading stays off until RushrRouter is deployed and audited', () => {
+  it('one-click trading stays off until ClashrLegacyRouter is deployed and audited', () => {
     expect(() => assertOneClickAllowed(resolveConfig())).toThrow(/deployed/);
-    expect(() => assertOneClickAllowed(resolveConfig({ rushrRouter: ROUTER }))).toThrow(/audited/);
-    expect(() => assertOneClickAllowed(resolveConfig({ rushrRouter: ROUTER, rushrRouterAudited: true }))).not.toThrow();
+    expect(() => assertOneClickAllowed(resolveConfig({ clashrLegacyRouter: ROUTER }))).toThrow(/audited/);
+    expect(() => assertOneClickAllowed(resolveConfig({ clashrLegacyRouter: ROUTER, clashrLegacyRouterAudited: true }))).not.toThrow();
   });
 });
 
@@ -137,7 +137,7 @@ describe('Privy signer policy', () => {
   });
 
   it('one ALLOW rule per router function plus router approvals, in Privy schema, within caps and expiry', () => {
-    const p = buildSignerPolicy({ purpose: 'quick-trade', wallet: WALLET, rushrRouter: ROUTER, ponsRouter: PONS_ROUTER, caps: defaultCaps(1_000), dailyAggregationId: 'agg1', ownerId: 'userquorum' });
+    const p = buildSignerPolicy({ purpose: 'quick-trade', wallet: WALLET, clashrLegacyRouter: ROUTER, ponsRouter: PONS_ROUTER, caps: defaultCaps(1_000), dailyAggregationId: 'agg1', ownerId: 'userquorum' });
     expect(p).toMatchObject({ version: '1.0', chain_type: 'ethereum', owner_id: 'userquorum' });
     expect(p.rules.map((r) => r.name)).toEqual(['RushrRouter.buy', 'RushrRouter.sell', 'RushrPonsRouter.buy', 'RushrPonsRouter.sell', 'approve Rushr routers only']);
     expect(p.rules.every((r) => r.action === 'ALLOW' && r.method === 'eth_signTransaction')).toBe(true);
@@ -157,12 +157,12 @@ describe('Privy signer policy', () => {
   });
 
   it('each rule ABI decodes exactly its function: real buy/sell calldata yes, sellAnyPool no', () => {
-    const p = buildSignerPolicy({ purpose: 'q', wallet: WALLET, rushrRouter: ROUTER, caps: defaultCaps(1_000), dailyAggregationId: 'a' });
+    const p = buildSignerPolicy({ purpose: 'q', wallet: WALLET, clashrLegacyRouter: ROUTER, caps: defaultCaps(1_000), dailyAggregationId: 'a' });
     const abiOf = (i: number) => (p.rules[i]!.conditions as { abi?: unknown[] }[]).find((c) => c.abi)!.abi as never;
     const route = { kind: 1, token: PONS, quote: TRADE_ADDRESSES.weth, fee: 3000, tickSpacing: 0, hooks: zeroAddress };
-    const buy = encodeFunctionData({ abi: rushrRouterAbi, functionName: 'buy', args: [route, 1n, 100n, false] });
-    const sell = encodeFunctionData({ abi: rushrRouterAbi, functionName: 'sell', args: [route, 1n, 1n, 100n, false] });
-    const any = encodeFunctionData({ abi: rushrRouterAbi, functionName: 'sellAnyPool', args: [route, 1n, 1n, 100n, false] });
+    const buy = encodeFunctionData({ abi: clashrLegacyRouterAbi, functionName: 'buy', args: [route, 1n, 100n, false] });
+    const sell = encodeFunctionData({ abi: clashrLegacyRouterAbi, functionName: 'sell', args: [route, 1n, 1n, 100n, false] });
+    const any = encodeFunctionData({ abi: clashrLegacyRouterAbi, functionName: 'sellAnyPool', args: [route, 1n, 1n, 100n, false] });
     expect(decodeFunctionData({ abi: abiOf(0), data: buy }).args).toContain(100n);
     expect(decodeFunctionData({ abi: abiOf(1), data: sell }).args).toContain(100n);
     expect(() => decodeFunctionData({ abi: abiOf(0), data: sell })).toThrow();
@@ -171,15 +171,15 @@ describe('Privy signer policy', () => {
   });
 
   it('per-agent policies are independent and validate caps; aggregation is a rolling 24 h value sum on 4663', () => {
-    const a = buildSignerPolicy({ purpose: 'agent:7', wallet: WALLET, rushrRouter: ROUTER, caps: { perTradeWei: 1n, dailyWei: 5n, expiresAt: 9 }, dailyAggregationId: 'a' });
+    const a = buildSignerPolicy({ purpose: 'agent:7', wallet: WALLET, clashrLegacyRouter: ROUTER, caps: { perTradeWei: 1n, dailyWei: 5n, expiresAt: 9 }, dailyAggregationId: 'a' });
     expect(a.name).toBe(`rushr:agent:7:${WALLET}`);
     expect(a.rules).toHaveLength(3);
-    expect(() => buildSignerPolicy({ purpose: 'x', wallet: WALLET, rushrRouter: ROUTER, caps: { perTradeWei: 5n, dailyWei: 1n, expiresAt: 9 }, dailyAggregationId: 'a' })).toThrow(/caps/);
+    expect(() => buildSignerPolicy({ purpose: 'x', wallet: WALLET, clashrLegacyRouter: ROUTER, caps: { perTradeWei: 5n, dailyWei: 1n, expiresAt: 9 }, dailyAggregationId: 'a' })).toThrow(/caps/);
     expect(buildDailyValueAggregation()).toMatchObject({ method: 'eth_signTransaction', metric: { field_source: 'ethereum_transaction', field: 'value', function: 'sum' }, window: { type: 'rolling', seconds: 86_400 } });
   });
 });
 
-describe('RushrRouter calldata', () => {
+describe('ClashrLegacyRouter calldata', () => {
   const v4: V4Pool = {
     venue: 'uniswap-v4',
     id: '0x6073975413484a350101c0c5d592a91ceb6c3ee881ad359613a08359fd1495a0',
@@ -196,15 +196,15 @@ describe('RushrRouter calldata', () => {
   it('maps pools to routes (ETH/WETH Uniswap only) with keys matching the contract', () => {
     const r4 = routeFromPool(v4)!;
     expect(r4).toEqual({ kind: RouteKind.V4, token: PONS, quote: zeroAddress, fee: 3000, tickSpacing: 60, hooks: zeroAddress });
-    expect(rushrPoolKey(r4)).toBe(v4.id);
-    // Same value asserted in contracts/test/RushrRouter.t.sol (test_poolKeys) for the v3 route.
-    expect(rushrPoolKey(routeFromPool(v3)!)).toBe(V3_KEY);
+    expect(clashrLegacyPoolKey(r4)).toBe(v4.id);
+    // Same value asserted in contracts/test/ClashrLegacyRouter.t.sol (test_poolKeys) for the v3 route.
+    expect(clashrLegacyPoolKey(routeFromPool(v3)!)).toBe(V3_KEY);
     expect(routeFromPool(v2usdg)).toBeNull();
     expect(routeFromPool({ venue: 'pons-curve' } as PonsPool)).toBeNull();
   });
 
   it('builds buy / sell / sellAnyPool calls with referral flag and router approval', () => {
-    const cfg = resolveConfig({ rushrRouter: ROUTER });
+    const cfg = resolveConfig({ clashrLegacyRouter: ROUTER });
     const q = (side: 'buy' | 'sell', feeBps = 50): Quote =>
       ({
         request: { side, token: PONS, quoteAsset: 'ETH', amountIn: 10n ** 16n, trader: WALLET },
@@ -213,18 +213,18 @@ describe('RushrRouter calldata', () => {
         minAmountOut: 123n,
         fee: { feeBps, baseFeeBps: 50 },
       }) as unknown as Quote;
-    const buy = buildRushrRouterSwap(q('buy', 45), cfg, { now: 1_000 });
+    const buy = buildClashrLegacyRouterSwap(q('buy', 45), cfg, { now: 1_000 });
     expect(buy.tx).toMatchObject({ to: ROUTER, value: 10n ** 16n });
-    const d = decodeFunctionData({ abi: rushrRouterAbi, data: buy.tx.data });
+    const d = decodeFunctionData({ abi: clashrLegacyRouterAbi, data: buy.tx.data });
     expect(d.functionName).toBe('buy');
     expect(d.args).toEqual([{ kind: 1, token: getAddress(PONS), quote: getAddress(TRADE_ADDRESSES.weth), fee: 3000, tickSpacing: 0, hooks: zeroAddress }, 123n, 1_300n, true]);
 
-    const sell = buildRushrRouterSwap(q('sell'), cfg, { now: 1_000 });
-    expect(decodeFunctionData({ abi: rushrRouterAbi, data: sell.tx.data }).functionName).toBe('sell');
+    const sell = buildClashrLegacyRouterSwap(q('sell'), cfg, { now: 1_000 });
+    expect(decodeFunctionData({ abi: clashrLegacyRouterAbi, data: sell.tx.data }).functionName).toBe('sell');
     expect(sell.approvals).toEqual([{ kind: 'erc20', token: PONS, spender: ROUTER, amount: 2n ** 256n - 1n }]);
-    expect(decodeFunctionData({ abi: rushrRouterAbi, data: buildRushrRouterSwap(q('sell'), cfg, { sellMode: 'any' }).tx.data }).functionName).toBe('sellAnyPool');
+    expect(decodeFunctionData({ abi: clashrLegacyRouterAbi, data: buildClashrLegacyRouterSwap(q('sell'), cfg, { sellMode: 'any' }).tx.data }).functionName).toBe('sellAnyPool');
 
-    expect(() => buildRushrRouterSwap(q('buy'), resolveConfig())).toThrow(/not deployed/);
+    expect(() => buildClashrLegacyRouterSwap(q('buy'), resolveConfig())).toThrow(/not deployed/);
   });
 });
 

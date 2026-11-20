@@ -1,5 +1,7 @@
 'use client';
 
+import { TRADE_EVENT } from './brand-compat';
+
 import { useEffect, useMemo, useState } from 'react';
 import { erc20Abi, formatUnits, type Address } from 'viem';
 import { publicClient, USDG, useBalances } from './balances';
@@ -106,11 +108,11 @@ export function useWalletHoldings(wallet: Address | null): Holdings {
       bump();
       for (const ms of [1_500, 4_000, 10_000]) timers.push(setTimeout(bump, ms));
     };
-    window.addEventListener('rushr:trade', on);
+    window.addEventListener(TRADE_EVENT, on);
     return () => {
       clearInterval(id);
       timers.forEach(clearTimeout);
-      window.removeEventListener('rushr:trade', on);
+      window.removeEventListener(TRADE_EVENT, on);
     };
     // refreshCash is a new function each render; the wallet decides the subscription.
   }, [wallet]);

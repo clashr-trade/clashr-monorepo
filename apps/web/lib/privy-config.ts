@@ -1,6 +1,6 @@
 import type {PrivyClientConfig} from '@privy-io/react-auth';
 import {bsc} from 'viem/chains';
-import {robinhoodChain} from '@rushr/trade';
+import {robinhoodChain} from '@clashr/trade';
 import {BRAND_MARK} from './brand';
 
 /** Both email OTP and external-wallet proofs create a Privy identity; the

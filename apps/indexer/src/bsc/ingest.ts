@@ -1,7 +1,7 @@
 import {FLAP_PORTAL,FLAP_TOPICS,projectFlap} from './flap';
 import type { Sql } from 'postgres';
 import { decodeFunctionResult, encodeFunctionData, parseAbi, type Hex } from 'viem';
-import { BSC_PANCAKE, PANCAKE_TOPICS, PANCAKE_V2, PANCAKE_V3 } from '@rushr/core/chain/pancake';
+import { BSC_PANCAKE, PANCAKE_TOPICS, PANCAKE_V2, PANCAKE_V3 } from '@clashr/core/chain/pancake';
 import type { BscConfig } from './config';
 import { parseBscJob, type BscJob } from './jobs';
 import { decodePool, decodeSwap, nativePrice, tradedToken, type Pool } from './decode';

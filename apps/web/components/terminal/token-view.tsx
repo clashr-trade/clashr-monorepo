@@ -1,5 +1,7 @@
 'use client';
 
+import { storageKey } from '@/lib/brand-compat';
+
 import {usePlatformLanguage} from '@/components/landing/language-provider';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
@@ -77,7 +79,7 @@ export function TokenView({
   // Members' calls on this token: the feed column (or Calls tab) and the chart markers.
   const calls = useTokenCallouts(t.address);
   const [selectedCall, setSelectedCall] = useState<string | null>(null);
-  const [callsOpen, setCallsOpen] = useStoredFlag('rushr.calls.open', true);
+  const [callsOpen, setCallsOpen] = useStoredFlag(storageKey('calls.open'), true);
   const wide = useMediaQuery('(min-width: 1280px)');
   const supply = toWhole(detail.total_supply, detail.decimals) ?? 0;
 
@@ -426,11 +428,11 @@ function WindowStats({
 }) {
   const {t:translateUI}=usePlatformLanguage();
   const [w, setW] = useState<WindowId>('h24');
-  const [chosen, setSource] = useState<'rushr' | 'all' | null>(null);
+  const [chosen, setSource] = useState<'clashr' | 'all' | null>(null);
   const hasPairs = !!pairs?.length;
   // Until the user picks: CLASHR when the server sends exact stats (v2 indexes every venue), else
   // "all pools" for plain-pool tokens DexScreener knows (venues the old index doesn't cover).
-  const source = chosen ?? (!server && hasPairs && t.launchpad === 'uniswap-v4' ? 'all' : 'rushr');
+  const source = chosen ?? (!server && hasPairs && t.launchpad === 'uniswap-v4' ? 'all' : 'clashr');
   const ours = useWindows(server, trades, candles, priceNow, serverNow);
   const all = useMemo(() => (hasPairs ? aggregate(pairs!) : null), [hasPairs, pairs]);
   const useAll = source === 'all' && all;
@@ -483,14 +485,14 @@ function WindowStats({
             </span>
             {hasPairs && (
               <span className="flex rounded-md bg-white/[0.04] p-px">
-                {(['rushr', 'all'] as const).map((s) => (
+                {(['clashr', 'all'] as const).map((s) => (
                   <button
                     key={s}
                     type="button"
                     onClick={() => setSource(s)}
                     className={`rounded px-1.5 py-px ${source === s ? 'bg-white/[0.1] text-ink' : 'hover:text-ink'}`}
                   >
-                    {s === 'rushr' ? translateUI("CLASHR") : translateUI("All pools")}
+                    {s === 'clashr' ? translateUI("CLASHR") : translateUI("All pools")}
                   </button>
                 ))}
               </span>
@@ -584,7 +586,7 @@ const DEX_LABEL: Record<string, string> = {
   uniswap: 'Uniswap', ramses: 'Ramses', aero: 'Aero', metric: 'Metric', topaz: 'Topaz', nami: 'Nami', pons: 'PONS curve', curve: 'Curve',
 };
 const SOURCE_NOTE = {
-  rushr: 'Liquidity from CLASHR’s index.',
+  clashr: 'Liquidity from CLASHR’s index.',
   dexscreener: 'Liquidity via DexScreener.',
   mixed: 'Liquidity from CLASHR’s index; DexScreener fills pools we don’t measure yet.',
 } as const;

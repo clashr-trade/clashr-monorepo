@@ -1,14 +1,14 @@
 {
-  "name": "rushr",
+  "name": "clashr",
   "interface": {
-    "displayName": "Rushr"
+    "displayName": "Clashr"
   },
   "plugins": [
     {
-      "name": "rushr",
+      "name": "clashr",
       "source": {
         "source": "local",
-        "path": "./plugins/rushr"
+        "path": "./plugins/clashr"
       },
       "policy": {
         "installation": "AVAILABLE",

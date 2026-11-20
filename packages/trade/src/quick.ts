@@ -14,7 +14,7 @@ import { CURVE_FEE_GAS, curveFeeCall, type CurveFeeFollowUp } from './curve-fee'
 import { simulateCalls, type SimCall } from './simulate';
 import type { PonsPool, Pool, Quote, Referral } from './types';
 import type { ApiPoolRow } from './api-pools';
-import { STOCK_QUOTES } from '@rushr/core/chain/robinhood';
+import { STOCK_QUOTES } from '@clashr/core/chain/robinhood';
 
 /**
  * Beta trading v0: quick buy / sell signed client-side by the user's Privy embedded wallet with its UI
@@ -458,7 +458,7 @@ async function prepareCurveTrade(
   const tax = req.side === 'buy' ? opts.risk?.buyTaxBps : opts.risk?.sellTaxBps;
   const slippageBps = settings.slippageBps ?? autoSlippageBps({ side: req.side, ageMinutes: opts.risk?.ageMinutes, priceChange5mPct: opts.risk?.priceChange5mPct, priceImpactBps: quote0.priceImpactBps, taxBps: tax });
   // The router-only warning doesn't apply: this path calls the curve directly.
-  let quote: Quote = { ...withSlippage(quote0, slippageBps), warnings: quote0.warnings.filter((w) => !/RushrPonsRouter|completes the bonding curve/.test(w)) };
+  let quote: Quote = { ...withSlippage(quote0, slippageBps), warnings: quote0.warnings.filter((w) => !/ClashrLegacyPonsRouter|completes the bonding curve/.test(w)) };
   if (req.side === 'buy') {
     // Fee on what the curve takes (all of it, or less on a buy that completes the curve).
     const fee = feeOf(quote.swapAmountIn, feeBps);

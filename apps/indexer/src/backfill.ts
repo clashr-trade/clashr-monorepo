@@ -1,6 +1,6 @@
 import { DurableObject } from 'cloudflare:workers';
 import postgres, { type Sql } from 'postgres';
-import { ETH_USD_REFERENCE_POOLS, PAIR_SWAP_TOPICS, ROBINHOOD_CHAIN, TOPICS, UNISWAP, catalogTopics, type RawLog } from '@rushr/core';
+import { ETH_USD_REFERENCE_POOLS, PAIR_SWAP_TOPICS, ROBINHOOD_CHAIN, TOPICS, UNISWAP, catalogTopics, type RawLog } from '@clashr/core';
 import type { Address, Hex } from 'viem';
 import { dbUrl, type Env } from './env';
 import { Pipeline } from './pipeline';

@@ -1,5 +1,7 @@
 'use client';
 
+import { storageKey } from './brand-compat';
+
 import { useSyncExternalStore } from 'react';
 
 /**
@@ -77,9 +79,9 @@ export const QUICK_USD_PRESETS = [10, 50, 100, 500] as const;
  * defaults (every quick-buy change wrote the whole object), so only presets and the quick-buy
  * amount carry over; slippage and cap start from the new defaults.
  */
-const KEY = 'rushr.settings.v2';
-const V1_KEY = 'rushr.settings';
-const LEGACY_QUICK_KEY = 'rushr.quickbuy';
+const KEY = storageKey('settings.v2');
+const V1_KEY = storageKey('settings');
+const LEGACY_QUICK_KEY = storageKey('quickbuy');
 
 let current: TradeSettings = DEFAULT_SETTINGS;
 let loaded = false;

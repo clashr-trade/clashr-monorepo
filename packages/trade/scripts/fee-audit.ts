@@ -7,11 +7,11 @@
  * `fee_tx:<hash>`, or given on the command line as `<trade hash>:<fee hash>`).
  *
  *   # specific transactions (a curve trade with its fee transfer: trade:fee)
- *   pnpm --filter @rushr/trade exec tsx scripts/fee-audit.ts --tx 0xabc… 0xdef…:0x123…
+ *   pnpm --filter @clashr/trade exec tsx scripts/fee-audit.ts --tx 0xabc… 0xdef…:0x123…
  *   # the last N trades in the trade ledger (all wallets, or one wallet; any status: each trade is
  *   # checked on the chain, so rows the ledger hasn't confirmed yet are audited too)
- *   pnpm --filter @rushr/trade exec tsx scripts/fee-audit.ts --last 20
- *   pnpm --filter @rushr/trade exec tsx scripts/fee-audit.ts --wallet 0x… --last 10
+ *   pnpm --filter @clashr/trade exec tsx scripts/fee-audit.ts --last 20
+ *   pnpm --filter @clashr/trade exec tsx scripts/fee-audit.ts --wallet 0x… --last 10
  *
  * Environment (or `--env <file>` with KEY=VALUE lines, repeatable, later files win; e.g. apps/indexer/.dev.vars):
  *   RPC_URL       an RPC with debug_traceTransaction (ETH fees are internal transfers, visible only in a
@@ -68,10 +68,10 @@ if (txIdx >= 0) {
   const n = Math.min(Number(opt('--last') ?? 20), 500);
   const wallet = opt('--wallet')?.toLowerCase();
   if (!process.env.DATABASE_URL) throw new Error('--last / --wallet read the trade ledger: set DATABASE_URL (or pass --env apps/indexer/.dev.vars)');
-  // `postgres` is a dependency of @rushr/db, not of this package.
+  // `postgres` is a dependency of @clashr/db, not of this package.
   type Tag = <T>(s: TemplateStringsArray, ...v: unknown[]) => Promise<T>;
   type Sql = Tag & { begin<T>(mode: string, fn: (tx: Tag) => Promise<T>): Promise<T>; end(): Promise<void> };
-  // postgres v4 is ESM-only: resolve it from @rushr/db and import it as ESM (its default export).
+  // postgres v4 is ESM-only: resolve it from @clashr/db and import it as ESM (its default export).
   const entry = createRequire(new URL('../../db/package.json', import.meta.url)).resolve('postgres');
   const postgres = ((await import(pathToFileURL(entry).href)) as { default: (url: string, o: object) => Sql }).default;
   const sql = postgres(process.env.DATABASE_URL, { max: 1, onnotice: () => {} });

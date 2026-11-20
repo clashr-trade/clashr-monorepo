@@ -1,4 +1,6 @@
-﻿'use client';
+'use client';
+
+import { TRADE_EVENT, storageKey } from '@/lib/brand-compat';
 import {usePlatformLanguage} from '@/components/landing/language-provider';
 import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
@@ -66,7 +68,7 @@ export function BscTokenView({
     [tab, setTab] = useState<Tab>('trades'),
     [maker, setMaker] = useState<string | null>(null);
   const [selectedCall, setSelectedCall] = useState<string | null>(null),
-    [callsOpen, setCallsOpen] = useStoredFlag('rushr.calls.56.open', true);
+    [callsOpen, setCallsOpen] = useStoredFlag(storageKey('calls.56.open'), true);
   const [sheet, setSheet] = useState<'buy' | 'sell' | null>(null);
   const wide = useMediaQuery('(min-width:1280px)'),
     desktop = useMediaQuery('(min-width:1024px)');
@@ -128,11 +130,11 @@ export function BscTokenView({
     };
     if (!initial) void run();
     const timer = setInterval(run, 3_000);
-    window.addEventListener('rushr:trade', run);
+    window.addEventListener(TRADE_EVENT, run);
     return () => {
       ctl.abort();
       clearInterval(timer);
-      window.removeEventListener('rushr:trade', run);
+      window.removeEventListener(TRADE_EVENT, run);
     };
   }, [detail.token.address, initial]);
   useEffect(() => {

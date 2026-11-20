@@ -90,7 +90,7 @@ function BringYourAgent() {
         </div>
         <p className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted">
           <span>{BNB_PRODUCT?translateUI("BNB agent integration uses the independent API; the legacy MCP migration is pending."):translateUI("Using Claude, Cursor or another MCP client? Run our MCP server:")}</span>
-          {!BNB_PRODUCT&&<code className="rounded-md border border-white/[0.08] px-1.5 py-0.5 font-mono text-ink">{translateUI("npx -y @rushr/mcp")}</code>}{BNB_PRODUCT&&<Link href="/agent-docs" className="underline">{translateUI("Read the CLASHR playbook")}</Link>}
+          {!BNB_PRODUCT&&<code className="rounded-md border border-white/[0.08] px-1.5 py-0.5 font-mono text-ink">{translateUI("npx -y @clashr/legacy-mcp")}</code>}{BNB_PRODUCT&&<Link href="/agent-docs" className="underline">{translateUI("Read the CLASHR playbook")}</Link>}
 
         </p>
       </div>

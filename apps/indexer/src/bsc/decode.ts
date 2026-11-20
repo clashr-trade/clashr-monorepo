@@ -1,5 +1,5 @@
 import { decodeEventLog, type Hex } from 'viem';
-import { BSC_PANCAKE, PANCAKE_V2, PANCAKE_V3, PANCAKE_TOPICS } from '@rushr/core/chain/pancake';
+import { BSC_PANCAKE, PANCAKE_V2, PANCAKE_V3, PANCAKE_TOPICS } from '@clashr/core/chain/pancake';
 import type { MarketLog } from './rpc';
 
 export interface Pool { address: Hex; token0: Hex; token1: Hex; dex: 'v2' | 'v3'; factory: Hex; fee: number | null; tickSpacing: number | null; createdBlock: bigint }

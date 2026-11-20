@@ -2,7 +2,7 @@
  * LIVE fixtures (read-only): Uniswap v4 tokens on Robinhood Chain, quoted and simulated against the
  * public RPC and the Rushr API. Nothing is signed or broadcast. Skipped unless LIVE=1:
  *
- *   pnpm --filter @rushr/trade test:live
+ *   pnpm --filter @clashr/trade test:live
  *
  * Chain state moves: a fixture that starts failing may have been rugged or migrated since
  * 2026-11-12. Check the pool's liquidity before "fixing" the engine.

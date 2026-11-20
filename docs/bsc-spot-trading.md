@@ -7,7 +7,7 @@ assets, Infinity and launchpad curves are outside this adapter. Wrapped BNB itse
 
 ## Quotes and transaction construction
 
-`@rushr/trade/bsc` exports `quoteBscSpot`, `buildBscSpot`, `simulateBscSpot`, `executeBscSpot`,
+`@clashr/trade/bsc` exports `quoteBscSpot`, `buildBscSpot`, `simulateBscSpot`, `executeBscSpot`,
 `verifyBscReceipt` and `reconcileBscSpot`. No SDK function accepts private keys. Callers supply their
 own viem clients; the web flow uses an injected EIP-1193 wallet and asks for each confirmation.
 
@@ -51,9 +51,11 @@ Missing trace support, failed calls, explicit approve(false), unsupported wallet
 insufficient BNB for input plus all gas budgets stop execution. Unsupported RPC does not fall back
 to a weaker signable simulation.
 
-Gas is legacy BSC `gasPrice`, with bounded simulated gas and a 30% limit buffer. The review shows the
-full approval-plus-swap gas budget in BNB. Execution re-simulates before any sends and again after
-approvals. An increased budget requires another review; there is no automatic acceptance/requote.
+Gas is legacy BSC `gasPrice`, with bounded simulated gas and a 30% limit buffer. One Buy/Sell action
+obtains a fresh quote, checks the full approval-plus-swap budget and proceeds to wallet confirmation.
+There is no separate application quote/review/simulation step. The wallet still confirms each exact
+approval and the swap. Execution re-simulates before sends and again after approvals; an increased
+budget stops the attempt rather than silently accepting it or retrying a send.
 The signer checks account/network/quote state around awaits and serializes executions for the wallet
 client/account. Unmount, account/network change or cancellation stops future signature requests;
 already submitted transactions are not undone. There are no automatic send retries.
@@ -116,10 +118,10 @@ remain off.
 From the repository, with an explicit provider in the environment:
 
 ```powershell
-pnpm --filter @rushr/trade exec tsx scripts/bsc-spot-smoke.ts
-pnpm --filter @rushr/trade exec tsx scripts/bsc-simulation-smoke.ts
-pnpm --filter @rushr/trade test
-pnpm --filter @rushr/web test
+pnpm --filter @clashr/trade exec tsx scripts/bsc-spot-smoke.ts
+pnpm --filter @clashr/trade exec tsx scripts/bsc-simulation-smoke.ts
+pnpm --filter @clashr/trade test
+pnpm --filter @clashr/web test
 pnpm -r typecheck
 ```
 

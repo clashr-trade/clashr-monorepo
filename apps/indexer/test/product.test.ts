@@ -12,7 +12,7 @@ describe.skipIf(!available)('independent BNB product: wallet sessions and origin
   const token='0x'+'ab'.repeat(20);
   const request=async(path:string,body?:unknown,session?:string)=>{
     const response=await productApp.fetch(new Request(`http://127.0.0.1:8790${path}`,{method:body?'POST':'GET',headers:{origin:'http://localhost:3000',...(body?{'content-type':'application/json'}:{}),...(session?{authorization:`Bearer ${session}`}:{})},body:body?JSON.stringify(body):undefined}),env);
-    return {status:response.status,body:await response.json() as any,chain:response.headers.get('x-rushr-chain-id')};
+    return {status:response.status,body:await response.json() as any,chain:response.headers.get('x-rushr-chain-id'),clashrChain:response.headers.get('x-clashr-chain-id')};
   };
   beforeAll(async()=>{
     db=await freshDb('bnb_product');
@@ -23,7 +23,7 @@ describe.skipIf(!available)('independent BNB product: wallet sessions and origin
   });
   afterAll(async()=>{await db?.drop();});
   it('requires a dedicated chain-56 database and rejects a Robinhood deployment',async()=>{
-    expect((await request('/health')).body).toMatchObject({ok:true,chainId:56});
+    expect(await request('/health')).toMatchObject({body:{ok:true,chainId:56},chain:'56',clashrChain:'56'});
     const wrong=await productApp.fetch(new Request('http://localhost/health'),{...env,CHAIN_ID:'4663'});
     expect(wrong.status).toBe(503);
     expect((await request(`/wallets/${wallet.address}/pnl/history?range=7d`)).status).toBe(200);

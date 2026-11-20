@@ -10,7 +10,7 @@ export * from './permit2';
 export * from './referral';
 export * from './agent';
 export * from './api-pools';
-export * from './rushr-router';
+export * from './clashr-router';
 export * from './policy';
 export * from './signer';
 export * from './quick';

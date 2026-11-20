@@ -2,7 +2,7 @@
  * Quick-trade latency, stage by stage, over the public RPC the browser uses. Read-only: quotes and
  * eth_simulateV1 from a funded address; nothing is signed or broadcast.
  *
- *   pnpm --filter @rushr/trade exec tsx scripts/latency-bench.ts [token] [runs]
+ *   pnpm --filter @clashr/trade exec tsx scripts/latency-bench.ts [token] [runs]
  *
  * "before" replays the v0 click path (discover → quote all → re-quote → balances → simulate, then the
  * RPC calls Privy's sendTransaction makes to fill nonce/fees, then receipt polling at viem's default 4s).
@@ -15,13 +15,13 @@ import { fetchApiPools } from '../src/api-pools';
 import { discoverPools } from '../src/pools';
 import { quotePool, rankQuotes } from '../src/quote';
 import { resolveConfig } from '../src/config';
-import { RUSHR_TREASURY } from '../src/config';
+import { LEGACY_ROBINHOOD_TREASURY } from '../src/config';
 import { TxPipeline } from '../src/fast-send';
 
 const client = createPublicClient({ chain: robinhoodChain, transport: http(), batch: { multicall: true } }) as PublicClient;
 const token = (process.argv[2] ?? '0x39dbed3a2bd333467115de45665cc57f813c4571') as Address;
 const runs = Number(process.argv[3] ?? 5);
-const trader: Address = RUSHR_TREASURY; // public EOA with ETH; only simulated from
+const trader: Address = LEGACY_ROBINHOOD_TREASURY; // public EOA with ETH; only simulated from
 const cfg = resolveConfig();
 
 const med = (xs: number[]) => [...xs].sort((a, b) => a - b)[Math.floor(xs.length / 2)]!;

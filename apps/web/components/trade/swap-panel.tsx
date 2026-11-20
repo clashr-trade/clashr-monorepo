@@ -24,7 +24,7 @@ import {
   type RouteResult,
   type SwapSimulation,
   type TokenSafety,
-} from '@rushr/trade';
+} from '@clashr/trade';
 import { API_URL } from '@/lib/api';
 import { short } from '@/lib/format';
 import { requestAccount, useInjectedWallets, type InjectedWallet } from './wallet';
@@ -353,7 +353,7 @@ export function SwapPanel({ initialToken }: { initialToken: string }) {
                     <span className="min-w-0">
                       <span className="block truncate text-ink">{q.pool.venueFeeLabel}</span>
                       <span className="font-mono text-muted">{short(q.pool.id, 6, 4)}</span>
-                      {!isBuildable(q.pool, cfg) && <span className="ml-2 text-risk-medium">{translateUI("needs RushrPonsRouter")}</span>}
+                      {!isBuildable(q.pool, cfg) && <span className="ml-2 text-risk-medium">{translateUI("needs ClashrLegacyPonsRouter")}</span>}
                     </span>
                     <span className="shrink-0 text-right font-mono tabular-nums">
                       {fmt(q.amountOut, outDecimals, 4)} <span className="text-muted">{outSymbol}</span>
@@ -433,7 +433,7 @@ export function SwapPanel({ initialToken }: { initialToken: string }) {
               {simulating ? translateUI("Simulating…") : translateUI("Simulate")}
             </button>
           </div>
-          {quote && !buildable && <p className="mt-2 text-xs text-risk-medium">{translateUI("PONS curve routes need RushrPonsRouter, which is not deployed. Pick another route.")}</p>}
+          {quote && !buildable && <p className="mt-2 text-xs text-risk-medium">{translateUI("PONS curve routes need ClashrLegacyPonsRouter, which is not deployed. Pick another route.")}</p>}
           {sim ? (
             <div className="mt-3 space-y-2 text-sm">
               <p className={sim.result.ok ? 'text-brand' : 'text-risk-high'}>{sim.result.ok ? translateUI("Swap succeeds") : `Reverts: ${sim.result.error}`}</p>
@@ -473,7 +473,7 @@ export function SwapPanel({ initialToken }: { initialToken: string }) {
             <dl className="mt-3 space-y-1.5 font-mono">
               <Row label={translateUI("to")} value={sim.built.tx.to} />
               <Row label={translateUI("value")} value={`${fmt(sim.built.tx.value, 18)} ETH`} />
-              <Row label={translateUI("commands")} value={sim.built.commands.map((c) => c.label).join(' → ') || 'RushrPonsRouter'} />
+              <Row label={translateUI("commands")} value={sim.built.commands.map((c) => c.label).join(' → ') || 'ClashrLegacyPonsRouter'} />
               <Row label={translateUI("approvals")} value={sim.built.approvals.map((a) => `${a.kind} → ${short(a.spender)}`).join(', ') || 'none'} />
               <Row label={translateUI("calldata")} value={`${(sim.built.tx.data.length - 2) / 2} bytes`} />
             </dl>

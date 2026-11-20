@@ -1,3 +1,4 @@
+import { legacyEnvironment } from './legacy-env.ts';
 import { existsSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
@@ -24,7 +25,7 @@ export interface Config {
   /** Total price impact, the pool's fixed tax included. */
   maxTotalImpactBps: number;
   slippageBps: number;
-  /** Where the API key (for RUSHR_PRIVATE_KEY wallets) and the daily spend ledger are kept. */
+  /** Where the API key (for CLASHR_ROBINHOOD_PRIVATE_KEY wallets) and the daily spend ledger are kept. */
   stateDir: string;
   /** Where create_wallet writes a new keyfile, and where the server looks when no wallet is set: <stateDir>/agent-wallet.json. */
   defaultWalletFile: string;
@@ -62,37 +63,38 @@ function positive(env: Record<string, string | undefined>, name: string, def: nu
 const truthy = (v: string | undefined) => v !== undefined && /^(1|true|yes|on)$/i.test(v.trim());
 
 export function loadConfig(env: Record<string, string | undefined> = process.env): Config {
-  const gasReserveEth = env.RUSHR_GAS_RESERVE_ETH || DEFAULTS.gasReserveEth;
+  env = legacyEnvironment(env);
+  const gasReserveEth = env.CLASHR_ROBINHOOD_GAS_RESERVE_ETH || DEFAULTS.gasReserveEth;
   let gasReserveWei: bigint;
   try {
     gasReserveWei = parseEther(gasReserveEth);
   } catch {
-    throw new ConfigError(`RUSHR_GAS_RESERVE_ETH must be an ETH amount like 0.001 (got "${gasReserveEth}")`);
+    throw new ConfigError(`CLASHR_ROBINHOOD_GAS_RESERVE_ETH must be an ETH amount like 0.001 (got "${gasReserveEth}")`);
   }
-  if (gasReserveWei < parseEther(DEFAULTS.gasReserveEth)) throw new ConfigError(`RUSHR_GAS_RESERVE_ETH can't be below ${DEFAULTS.gasReserveEth}`);
-  const privateKey = env.RUSHR_PRIVATE_KEY?.trim() || undefined;
-  const stateDir = env.RUSHR_STATE_DIR || join(homedir(), '.rushr');
+  if (gasReserveWei < parseEther(DEFAULTS.gasReserveEth)) throw new ConfigError(`CLASHR_ROBINHOOD_GAS_RESERVE_ETH can't be below ${DEFAULTS.gasReserveEth}`);
+  const privateKey = env.CLASHR_ROBINHOOD_PRIVATE_KEY?.trim() || undefined;
+  const stateDir = env.CLASHR_ROBINHOOD_STATE_DIR || join(homedir(), '.rushr');
   const defaultWalletFile = join(stateDir, 'agent-wallet.json');
-  let walletFile = env.RUSHR_WALLET_FILE?.trim() || undefined;
-  if (privateKey && walletFile) throw new ConfigError('Set RUSHR_PRIVATE_KEY or RUSHR_WALLET_FILE, not both');
+  let walletFile = env.CLASHR_ROBINHOOD_WALLET_FILE?.trim() || undefined;
+  if (privateKey && walletFile) throw new ConfigError('Set CLASHR_ROBINHOOD_PRIVATE_KEY or CLASHR_ROBINHOOD_WALLET_FILE, not both');
   // No wallet configured (e.g. installed as a Codex or Claude Code plugin): use the keyfile create_wallet writes, if it exists.
   if (!privateKey && !walletFile && existsSync(defaultWalletFile)) walletFile = defaultWalletFile;
   return {
-    apiUrl: (env.RUSHR_API_URL || DEFAULTS.apiUrl).replace(/\/$/, ''),
-    rpcUrl: env.RUSHR_RPC_URL || DEFAULTS.rpcUrl,
+    apiUrl: (env.CLASHR_ROBINHOOD_API_URL || DEFAULTS.apiUrl).replace(/\/$/, ''),
+    rpcUrl: env.CLASHR_ROBINHOOD_RPC_URL || DEFAULTS.rpcUrl,
     explorerUrl: DEFAULTS.explorerUrl,
-    maxTradeUsd: positive(env, 'RUSHR_MAX_TRADE_USD', DEFAULTS.maxTradeUsd),
-    dailyUsd: positive(env, 'RUSHR_DAILY_USD', DEFAULTS.dailyUsd),
-    dryRun: truthy(env.RUSHR_DRY_RUN),
+    maxTradeUsd: positive(env, 'CLASHR_ROBINHOOD_MAX_TRADE_USD', DEFAULTS.maxTradeUsd),
+    dailyUsd: positive(env, 'CLASHR_ROBINHOOD_DAILY_USD', DEFAULTS.dailyUsd),
+    dryRun: truthy(env.CLASHR_ROBINHOOD_DRY_RUN),
     gasReserveWei,
-    maxSizeImpactBps: positive(env, 'RUSHR_MAX_SIZE_IMPACT_BPS', DEFAULTS.maxSizeImpactBps, CEILINGS.maxSizeImpactBps),
-    maxTotalImpactBps: positive(env, 'RUSHR_MAX_TOTAL_IMPACT_BPS', DEFAULTS.maxTotalImpactBps, CEILINGS.maxTotalImpactBps),
-    slippageBps: positive(env, 'RUSHR_SLIPPAGE_BPS', DEFAULTS.slippageBps, CEILINGS.slippageBps),
+    maxSizeImpactBps: positive(env, 'CLASHR_ROBINHOOD_MAX_SIZE_IMPACT_BPS', DEFAULTS.maxSizeImpactBps, CEILINGS.maxSizeImpactBps),
+    maxTotalImpactBps: positive(env, 'CLASHR_ROBINHOOD_MAX_TOTAL_IMPACT_BPS', DEFAULTS.maxTotalImpactBps, CEILINGS.maxTotalImpactBps),
+    slippageBps: positive(env, 'CLASHR_ROBINHOOD_SLIPPAGE_BPS', DEFAULTS.slippageBps, CEILINGS.slippageBps),
     stateDir,
     defaultWalletFile,
     privateKey,
     walletFile,
-    apiKey: env.RUSHR_API_KEY?.trim() || undefined,
+    apiKey: env.CLASHR_ROBINHOOD_API_KEY?.trim() || undefined,
   };
 }
 

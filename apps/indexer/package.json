@@ -1,5 +1,5 @@
 {
-  "name": "@rushr/indexer",
+  "name": "@clashr/indexer",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -11,10 +11,10 @@
     "cf-typegen": "wrangler types"
   },
   "dependencies": {
-    "@rushr/agents": "workspace:*",
-    "@rushr/core": "workspace:*",
-    "@rushr/db": "workspace:*",
-    "@rushr/trade": "workspace:*",
+    "@clashr/agents": "workspace:*",
+    "@clashr/core": "workspace:*",
+    "@clashr/db": "workspace:*",
+    "@clashr/trade": "workspace:*",
     "hono": "^4.13.17",
     "postgres": "^4.1.0",
     "viem": "^2.57.17"

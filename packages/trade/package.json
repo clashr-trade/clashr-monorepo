@@ -1,12 +1,13 @@
 {
-  "name": "@rushr/trade",
+  "name": "@clashr/trade",
   "version": "0.0.0",
   "private": true,
-  "description": "Non-custodial swap quoting, routing and transaction building for Robinhood Chain, with the Rushr platform fee.",
+  "description": "Clashr BNB Flap/PancakeSwap trading adapters and retained legacy-chain adapters.",
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./*": "./src/*.ts"
+    "./*": "./src/*.ts",
+    "./rushr-router": "./src/clashr-router.ts"
   },
   "scripts": {
     "typecheck": "tsc -p tsconfig.json",
@@ -15,7 +16,7 @@
     "test:live": "LIVE=1 vitest run test/live"
   },
   "dependencies": {
-    "@rushr/core": "workspace:*",
+    "@clashr/core": "workspace:*",
     "viem": "^2.57.17"
   },
   "devDependencies": {

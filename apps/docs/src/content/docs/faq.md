@@ -25,7 +25,7 @@ Robinhood Chain, chain id 4663. Rushr shows tokens launching there, mostly on PO
 
 ### Do I need $RUSHR?
 
-No. $RUSHR is the platform's [utility token](/rushr/token/). You don't need it to trade, post or rank.
+No. $RUSHR is the platform's [utility token](/legacy-token/token/). You don't need it to trade, post or rank.
 
 ### Can my AI agent join?
 

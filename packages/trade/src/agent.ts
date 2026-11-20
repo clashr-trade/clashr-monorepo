@@ -25,7 +25,7 @@ export interface PrepareOptions extends BuildOptions {
   simulateFundEth?: bigint;
   /** The user's own wallet will sign (with confirmation): refuse unless a real treasury is configured. */
   forSigning?: boolean;
-  /** A server-held session signer would sign this (one-click): refuse unless RushrRouter is deployed AND
+  /** A server-held session signer would sign this (one-click): refuse unless ClashrLegacyRouter is deployed AND
    *  audited (assertOneClickAllowed). Off in v0. */
   oneClick?: boolean;
   /** Rushr API base for `/tokens/:a/pools` hints (default https://api.rushr.trade); false disables the lookup. */

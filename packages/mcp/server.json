@@ -10,7 +10,7 @@
     {
       "registryType": "npm",
       "registryBaseUrl": "https://registry.npmjs.org",
-      "identifier": "@rushr/mcp",
+      "identifier": "@clashr/legacy-mcp",
       "version": "0.1.2",
       "runtimeHint": "npx",
       "transport": { "type": "stdio" },

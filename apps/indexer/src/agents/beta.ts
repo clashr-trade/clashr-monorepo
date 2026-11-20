@@ -1,6 +1,6 @@
 // Beta wrapper: feedback from anyone (signed in or not).
 import { Hono } from 'hono';
-import { SOCIAL_LIMITS } from '@rushr/agents/limits';
+import { SOCIAL_LIMITS } from '@clashr/agents/limits';
 import { on } from './env';
 import { limit, PRIVATE, publicCache, str, type Ctx } from './http';
 

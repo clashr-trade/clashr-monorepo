@@ -1,6 +1,6 @@
 import { formatEther, type Address } from 'viem';
 import { parseSiweMessage, validateSiweMessage } from 'viem/siwe';
-import { statementFor } from '@rushr/agents/siwe';
+import { statementFor } from '@clashr/agents/siwe';
 import { Refusal, type Config } from './config.ts';
 import { createWalletFile, loadWallet } from './wallet.ts';
 import { createApi } from './api.ts';
@@ -96,7 +96,7 @@ export class Clashr {
           proof.uri !== origin.origin ||
           proof.version !== '1' ||
           proof.address?.toLowerCase() !== wallet.address.toLowerCase() ||
-          proof.statement !== statementFor(purpose) ||
+          ![statementFor(purpose, {}, 56), statementFor(purpose)].includes(proof.statement ?? '') ||
           proof.nonce !== challenge.nonce ||
           !proof.issuedAt ||
           !proof.expirationTime ||

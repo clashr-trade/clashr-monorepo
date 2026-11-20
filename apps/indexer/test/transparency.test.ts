@@ -3,7 +3,7 @@ import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 vi.mock('cloudflare:workers', () => ({ DurableObject: class {} }));
 
 import type { Sql } from 'postgres';
-import { RUSHR_TREASURY } from '@rushr/trade';
+import { LEGACY_ROBINHOOD_TREASURY } from '@clashr/trade';
 import { freshDb, pgAvailable } from '../../../packages/agents/test/pg';
 import { feeTotals, formatUnits, transparency } from '../src/transparency';
 import { resetPauseCache } from '../src/pause';
@@ -78,8 +78,8 @@ describe.skipIf(!ok)('GET /transparency (local Postgres)', () => {
       expect(res.status).toBe(200);
       expect(res.headers.get('cache-control')).toContain('s-maxage=60');
       const body = (await res.json()) as Awaited<ReturnType<typeof transparency>>;
-      expect(body.treasury.address).toBe(RUSHR_TREASURY);
-      expect(body.treasury.explorer).toBe(`https://robinhoodchain.blockscout.com/address/${RUSHR_TREASURY}`);
+      expect(body.treasury.address).toBe(LEGACY_ROBINHOOD_TREASURY);
+      expect(body.treasury.explorer).toBe(`https://robinhoodchain.blockscout.com/address/${LEGACY_ROBINHOOD_TREASURY}`);
       expect(body.feeRate).toMatchObject({ currentBps: 25, standardBps: 50, beta: true });
       expect(body.fees.allTime).toMatchObject({ trades: 3, traders: 2, volumeUsd: 1000, usd: 6.5 });
       expect(body.fees.allTime.byRoute.curve.trades).toBe(1);
@@ -99,10 +99,10 @@ describe.skipIf(!ok)('GET /transparency (local Postgres)', () => {
 describe('readBalances', () => {
   it('totals the Safe and the legacy treasury, and lists each account', async () => {
     const { readBalances } = await import('../src/transparency');
-    const { LEGACY_TREASURIES } = await import('@rushr/trade');
+    const { LEGACY_TREASURIES } = await import('@clashr/trade');
     const legacy = LEGACY_TREASURIES[0]!.toLowerCase();
-    const eth: Record<string, bigint> = { [RUSHR_TREASURY.toLowerCase()]: 10n ** 18n, [legacy]: 650_000_000_000_000n };
-    const usdg: Record<string, bigint> = { [RUSHR_TREASURY.toLowerCase()]: 2_500_000n, [legacy]: 0n };
+    const eth: Record<string, bigint> = { [LEGACY_ROBINHOOD_TREASURY.toLowerCase()]: 10n ** 18n, [legacy]: 650_000_000_000_000n };
+    const usdg: Record<string, bigint> = { [LEGACY_ROBINHOOD_TREASURY.toLowerCase()]: 2_500_000n, [legacy]: 0n };
     const realFetch = globalThis.fetch;
     globalThis.fetch = (async (_u: unknown, init?: RequestInit) => {
       const calls = JSON.parse(String(init?.body)) as { id: number; method: string; params: [unknown, string] }[];
@@ -113,11 +113,11 @@ describe('readBalances', () => {
       }));
     }) as typeof fetch;
     try {
-      const b = await readBalances('http://rpc.test', RUSHR_TREASURY);
+      const b = await readBalances('http://rpc.test', LEGACY_ROBINHOOD_TREASURY);
       expect(b.ETH.amount).toBe('1.00065');
       expect(b.USDG.amount).toBe('2.5');
       expect(b.accounts!.map((a) => [a.address.toLowerCase(), a.role, a.ETH.amount])).toEqual([
-        [RUSHR_TREASURY.toLowerCase(), 'current', '1'], [legacy, 'legacy', '0.00065'],
+        [LEGACY_ROBINHOOD_TREASURY.toLowerCase(), 'current', '1'], [legacy, 'legacy', '0.00065'],
       ]);
     } finally {
       globalThis.fetch = realFetch;

@@ -1,12 +1,14 @@
 'use client';
 
+import { storageKey } from './brand-compat';
+
 /**
  * A tab opened before a deploy asks for JavaScript chunks the new deploy no longer serves, and the
  * page dies with "Application error". Those errors are recognisable: reload once to pick up the new
  * build. A sessionStorage stamp stops a reload loop if the error is real.
  */
 const STALE = /ChunkLoadError|Loading (CSS )?chunk|dynamically imported module|Importing a module script failed|error loading dynamically imported|Unexpected token '<'/i;
-const KEY = 'rushr.staleReload';
+const KEY = storageKey('staleReload');
 
 export function isStaleDeployError(e: unknown): boolean {
   const err = e as { name?: string; message?: string } | null;

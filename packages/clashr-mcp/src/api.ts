@@ -20,7 +20,9 @@ export function createApi(
       redirect: 'error',
       signal: AbortSignal.timeout(30000),
     });
-    if (response.headers.get('x-rushr-chain-id') !== '56')
+    const chain = response.headers.get('x-clashr-chain-id') ?? response.headers.get('x-rushr-chain-id');
+    const legacyChain = response.headers.get('x-rushr-chain-id');
+    if (chain !== '56' || (legacyChain !== null && legacyChain !== '56'))
       throw new Refusal('wrong_api_chain', 'API did not identify itself as the BNB product');
     const data = (await response.json()) as any;
     if (!response.ok) {

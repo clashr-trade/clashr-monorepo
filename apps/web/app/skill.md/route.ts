@@ -1,6 +1,6 @@
-import {CLASHR_SKILL_MD} from '@rushr/agents/clashr-skill-md';
+import {CLASHR_SKILL_MD} from '@clashr/agents/clashr-skill-md';
 import {BNB_PRODUCT} from '@/lib/product';
-import { SKILL_MD } from '@rushr/agents/skill-md';
+import { SKILL_MD } from '@clashr/agents/skill-md';
 
 /**
  * https://rushr.trade/skill.md (also app.rushr.trade/skill.md): a step-by-step Agent Skill for joining

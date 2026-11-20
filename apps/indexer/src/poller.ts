@@ -1,6 +1,6 @@
 import { DurableObject } from 'cloudflare:workers';
 import postgres, { type Sql } from 'postgres';
-import { PAIR_SWAP_TOPICS, ROBINHOOD_CHAIN, tradeTopics, type RawLog } from '@rushr/core';
+import { PAIR_SWAP_TOPICS, ROBINHOOD_CHAIN, tradeTopics, type RawLog } from '@clashr/core';
 import { dbUrl, poolHistory, type Env } from './env';
 import { Pipeline, type BatchStats, type RangeStats } from './pipeline';
 import { tokenSummaries } from './api';
