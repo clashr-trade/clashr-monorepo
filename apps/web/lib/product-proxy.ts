@@ -1,4 +1,13 @@
 const COOKIE='rushr_bnb_session';
+async function limitedBody(request:Pick<Request,'body'>,max:number):Promise<Uint8Array<ArrayBuffer>|null>{
+  const reader=request.body?.getReader();
+  if(!reader)return new Uint8Array();
+  const chunks:Uint8Array[]=[];let size=0;
+  try{while(true){const {done,value}=await reader.read();if(done)break;size+=value.byteLength;
+    if(size>max){await reader.cancel();return null;}chunks.push(value);
+  }}finally{reader.releaseLock();}
+  const body=new Uint8Array(size);let offset=0;for(const chunk of chunks){body.set(chunk,offset);offset+=chunk.byteLength;}return body;
+}
 /** Same-origin BNB API boundary. The session token stays in an HttpOnly cookie, never browser storage. */
 export async function proxyProduct(request:Request,parts:string[],base:string|undefined,fetcher:typeof fetch=fetch):Promise<Response>{
   const headers={'cache-control':'private, no-store'};
@@ -22,10 +31,19 @@ export async function proxyProduct(request:Request,parts:string[],base:string|un
   if(origin)forwarded.set('origin',origin);
   if(request.headers.has('content-type'))forwarded.set('content-type',request.headers.get('content-type')!);
   try{
-    const body=['GET','HEAD'].includes(request.method)?undefined:await request.text();
-    if(body&&body.length>16_384)return new Response(null,{status:413});
+    const upload=request.method==='POST'&&parts.length===3&&parts[0]==='v1'&&parts[1]==='me'&&['avatar','banner'].includes(parts[2]!);
+    const max=upload?(parts[2]==='avatar'?1_000_000:3_000_000):16_384;
+    const body=['GET','HEAD'].includes(request.method)?undefined:await limitedBody(request,max);
+    if(body===null)return Response.json({error:{code:'too_large',message:'Request body exceeds the size limit.'}},{status:413,headers});
     const upstream=await fetcher(target,{method:request.method,headers:forwarded,body,redirect:'error',cache:'no-store',signal:AbortSignal.timeout(20_000)});
     if(upstream.headers.get('x-rushr-chain-id')!=='56')throw new Error('Unverified chain');
+    if(request.method==='GET'&&parts.length===5&&parts[0]==='v1'&&parts[1]==='media'&&['avatar','banner'].includes(parts[2]!)&&upstream.ok){
+      const type=upstream.headers.get('content-type')?.split(';')[0]??'';
+      if(!/^image\/(png|jpeg|webp|gif)$/.test(type))throw new Error('Invalid media type');
+      const image=await limitedBody(upstream,3_000_000);
+      if(!image||!image.byteLength)throw new Error('Invalid media size');
+      return new Response(image,{headers:{'content-type':type,'cache-control':'public, max-age=31536000, immutable','x-content-type-options':'nosniff','content-security-policy':"default-src 'none'"}});
+    }
     const responseHeaders=new Headers(headers);responseHeaders.set('content-type','application/json');
     let data=await upstream.json() as Record<string,unknown>;
     const secure=own.protocol==='https:'?'; Secure':'';

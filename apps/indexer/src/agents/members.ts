@@ -174,8 +174,17 @@ members.patch('/me', async (c) => {
   }
   if ('displayName' in b) set.display_name = str(b.displayName, 40, 'displayName');
   if ('bio' in b) set.bio = bioField(b.bio);
-  if ('avatarUrl' in b) set.avatar_url = httpsUrl(b.avatarUrl, 'avatarUrl');
-  if ('bannerUrl' in b) set.banner_url = httpsUrl(b.bannerUrl, 'bannerUrl');
+  for (const [field, kind, column] of [['avatarUrl','avatar','avatar_url'],['bannerUrl','banner','banner_url']] as const) {
+    if (!(field in b)) continue;
+    const value = b[field];
+    const prefix = `/api/product/v1/media/${kind}/${m.id}/`;
+    if (c.env.CHAIN_ID === '56' && typeof value === 'string' && value.startsWith(prefix)) {
+      const key = value.slice('/api/product/v1/media/'.length);
+      const [image] = await sql`select key from media where key=${key} and member_id=${m.id} and kind=${kind} and deleted_at is null`;
+      if (!image) throw fail(422, 'invalid_field', 'Select an active image uploaded to your profile.', {field});
+      set[column] = value;
+    } else set[column] = httpsUrl(value, field);
+  }
   if (Object.keys(set).length === 0) throw fail(422, 'nothing_to_update', 'Send at least one field.');
   const [row] = await sql.unsafe<MemberRow[]>(
     `update members set ${Object.keys(set).map((k, i) => `${k} = $${i + 2}`).join(', ')}, updated_at = now() where id = $1 returning ${memberColumns}`,

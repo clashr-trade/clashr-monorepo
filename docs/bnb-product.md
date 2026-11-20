@@ -20,6 +20,12 @@ This product uses a dedicated chain-56 database. Do not point it at the Robinhoo
    Restart the web server after changing public environment variables.
 4. Open `/trenches`, `/feed`, `/agents`, `/leaderboard` and `/rush`. The web proxy rejects a Rushr
    public API origin and requires the independent backend's chain-56 response header.
+   The local product server enables avatar/banner uploads and persists their bytes under
+   `.local-media/` at the repository root (gitignored). Set `PRODUCT_MEDIA_DIR` to select a
+   different local directory. Keep this directory across backend restarts. Production workers
+   still require `MEDIA_UPLOADS_ENABLED=1` and their R2 `MEDIA` binding; local storage is only
+   configured by the development server. BNB profile images use the same-origin
+   `/api/product/v1/media/...` route rather than an HTTP URL rejected by the external image proxy.
 5. To apply the user-authorized Robinhood event template **to this dedicated BNB database**, run
    `pnpm --filter @rushr/trade exec tsx ../../apps/indexer/scripts/configure-product-event.ts`.
    This upserts `product_events.rush` and replaces an existing event configuration. It does not copy

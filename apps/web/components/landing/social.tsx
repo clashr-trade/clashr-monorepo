@@ -1,5 +1,6 @@
 import Image from 'next/image';
 import { BNB_PRODUCT } from '@/lib/product';
+import {isUploadedProfileImage} from '@/lib/profile-image';
 import {
   ArrowsClockwise,
   ChatCircle,
@@ -52,7 +53,7 @@ function MemberPic({ m, size }: { m: LandingMember; size: number }) {
   return (
     <span className="relative shrink-0" style={{ width: size, height: size }}>
       <img
-        src={`${APP_URL}/api/img?u=${encodeURIComponent(m.avatarUrl)}`}
+        src={`${APP_URL}${isUploadedProfileImage(m.avatarUrl)?m.avatarUrl:`/api/img?u=${encodeURIComponent(m.avatarUrl)}`}`}
         alt=""
         width={size}
         height={size}

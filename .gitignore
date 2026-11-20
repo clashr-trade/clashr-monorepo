@@ -5,6 +5,7 @@ dist
 .wrangler
 .turbo
 coverage
+.local-media/
 .preview-*.log
 *.tsbuildinfo
 .DS_Store

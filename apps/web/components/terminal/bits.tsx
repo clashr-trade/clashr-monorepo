@@ -7,9 +7,10 @@ import type { RiskLevel, TokenCard } from '@/lib/api';
 import { LAUNCHPAD_LABEL } from '@/lib/format';
 import { GeneratedAvatar } from './avatar';
 import { SHOW_RISK } from '@/lib/risk-labels';
+import { isUploadedProfileImage } from '@/lib/profile-image';
 
 /** Icons go through our cached proxy (IPFS gateways are slow and flaky). */
-export const iconSrc = (url: string) => `/api/img?u=${encodeURIComponent(url)}`;
+export const iconSrc = (url: string) => isUploadedProfileImage(url) ? url : `/api/img?u=${encodeURIComponent(url)}`;
 
 /**
  * Token icon. The generated avatar (see ./avatar) is always drawn first, at the final size, and the

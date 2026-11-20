@@ -43,7 +43,7 @@ async function upload(c: C, kind: Kind) {
 
   const key = `${kind}/${m.id}/${randomId(12)}.${img.ext}`;
   await r2.put(key, bytes, { httpMetadata: { contentType: img.type, cacheControl: 'public, max-age=31536000, immutable' } });
-  const url = `${new URL(c.req.url).origin}/v1/media/${key}`;
+  const url = c.env.CHAIN_ID === '56' ? `/api/product/v1/media/${key}` : `${new URL(c.req.url).origin}/v1/media/${key}`;
   const sql = c.var.sql;
   const old = await sql<{ key: string }[]>`select key from media where member_id = ${m.id} and kind = ${kind} and deleted_at is null`;
   const [row] = await sql.begin(async (tx) => {

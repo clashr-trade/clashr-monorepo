@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { API_URL } from './api';
 import {BNB_PRODUCT} from './product';
 import { auth } from './auth';
-import { V1 } from './members';
+import { V1, setMe } from './members';
 import type { Callout } from './callouts';
 
 /**
@@ -251,7 +251,10 @@ export async function patchMe(patch: ProfilePatch): Promise<{ ok: true; member: 
   try {
     const r = await fetch(`${V1}/me`, { method: 'PATCH', headers: { ...(await authHeaders()), 'content-type': 'application/json' }, body: JSON.stringify(patch) });
     const b = await readJson<{ member?: ProfileMember; error?: { message?: string } }>(r.clone());
-    if (r.ok && b?.member) return { ok: true, member: b.member };
+    if (r.ok && b?.member) {
+      setMe({status:'registered',member:b.member});
+      return { ok: true, member: b.member };
+    }
     const err = await r.json().catch(() => null);
     return { ok: false, message: (err as { error?: { message?: string } } | null)?.error?.message ?? 'Couldn’t save. Try again.' };
   } catch {
