@@ -1,20 +1,20 @@
 # @clashr/core
 
-Clashr chain registries, event decoding, token metadata and safety primitives. BNB/Flap and PancakeSwap support live alongside the retained Robinhood integrations.
-
-The registry notes below describe the inherited Robinhood implementation from the original Rushr project; its addresses and token facts are historical, not BNB configuration. This package has no servers, signing keys or databases.
+Clashr chain configuration, PancakeSwap event definitions, event decoding, token metadata, position accounting and safety primitives for BNB Chain. This package has no servers, signing keys or databases.
 
 | Path | What |
 | --- | --- |
-| `src/chain/robinhood.ts` | Registry: Uniswap v2/v3/v4, quote assets (ETH, WETH, USDG, stock tokens), launchpads (Doppler, PONS, lift.fun, …) with their launchers, hooks and event topics |
-| `src/ingest/decode.ts` | Turns raw logs into launches, pools, swaps, migrations and transfers, including launchpads without public ABIs (decoded by layout) |
+| `src/chain/networks.ts` | Explicit network lookup (`getNetwork`) for BNB Smart Chain mainnet (56) and testnet (97); unknown chains are rejected rather than defaulted |
+| `src/chain/pancake.ts` | PancakeSwap v2/v3 mainnet factories, wrapped BNB, ABIs and event topics |
+| `src/chain/bsc-rpc.ts` | The official public BNB Chain RPC endpoint, used only when no provider is configured |
+| `src/ingest/decode.ts` | Turns raw logs into launches, pools, swaps, migrations and transfers, including contracts without public ABIs (decoded by layout) |
 | `src/ingest/metadata.ts` | Finds a token's icon, website, X and Telegram from launch calldata, `tokenURI` and IPFS metadata |
+| `src/pnl/position.ts` | Average-cost position and realized-PnL accounting (`applyTrade`) |
 | `src/signals/compute.ts` | Safety signals and the plain-language risk verdict |
-| `docs/chain-recon.md` | How every registry entry was confirmed on-chain, with decoded examples |
 
 ## Safety signals
 
-Every token in the terminal gets these, computed from on-chain data only:
+Computed from on-chain data only (the Flap safety pipeline uses `computeSignals`):
 
 - **Snipers**: wallets (other than the dev) that bought in the first 5 seconds.
 - **Bundle**: buys in the first 3 blocks after launch, plus early buyers sharing a funder with them or the dev.
@@ -32,24 +32,20 @@ The thresholds live in `THRESHOLDS` in `src/signals/compute.ts`. They are public
 npm install
 npm test              # decoders, metadata and signals
 npm run typecheck
-npm run registry -- out   # registry as JSON
-RPC_URL=https://… npm run recon -- 3000   # re-check the registry against the last 3,000 blocks
 ```
 
 ```ts
-import { decodeLogs, computeSignals, LAUNCHPADS } from './src';
+import { decodeLogs, computeSignals, getNetwork } from './src';
 ```
 
 ## Contributing
 
 Issues and PRs are welcome, especially:
 
-- a launchpad or contract we don't recognise yet (include a transaction hash),
+- a contract we don't recognise yet (include a transaction hash),
 - a token where a signal is clearly wrong,
 - decoder fixes with a test.
 
-This repository is mirrored from Rushr's main codebase. Accepted PRs are applied there and come back here with the next sync, so your commit may show up re-applied rather than merged directly.
-
 ## License
 
-[AGPL-3.0](LICENSE). If you run a modified version as a service, you must publish your changes too.
+[AGPL-3.0](LICENSE). If you run a modified version as a service, you must publish your changes too. Portions derive from an upstream AGPL-3.0 project and remain under that license.

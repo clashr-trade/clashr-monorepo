@@ -51,19 +51,16 @@ forge test --match-contract FlapPortalForkTest -vv
 
 The repository's active [CI workflow](../.github/workflows/ci.yml) builds/tests this profile and checks SDK ABI parity. Fork checks run only when a BNB RPC secret is configured. The workflow under `contracts/.github` is relevant only if this directory is extracted as a separate repository.
 
-## Retained drafts and compatibility
+## Other sources in this directory
 
-The earlier source and tests remain unchanged:
-
-- `src/ClashrLegacyRouter.sol`, `src/ClashrLegacyPonsRouter.sol` and `src/TreasuryTimelock.sol` are original Robinhood/Uniswap/PONS drafts. Use `FOUNDRY_PROFILE=legacy`, install the original `forge-std` dependency, and follow [the legacy documentation](LEGACY.md) and [legacy review checklist](LEGACY_REVIEW.md). Do not point these contracts at Flap or inherit their fee/treasury settings.
-- `src/bnb/BnbFourMemeRouter.sol` is a separate Four.meme draft. Its previous tests are available with `FOUNDRY_PROFILE=fourmeme`. The old `bnb` profile name now selects Flap; callers needing the Four.meme suite must select `fourmeme` explicitly.
+`src/ClashrLegacyRouter.sol`, `src/ClashrLegacyPonsRouter.sol`, `src/TreasuryTimelock.sol` and their tests are retained drafts outside the BNB/Flap integration. The default profile does not compile them; they build only under `FOUNDRY_PROFILE=legacy`, which needs `forge-std` installed in `lib/`. Do not point them at Flap or reuse their fee/treasury settings.
 
 Changing the Foundry default does not alter SDK transaction targets, wallet permissions, contract bytecode already deployed elsewhere, or database state. Reverting this workspace change restores the previous build selection; no on-chain or data rollback is required.
 
 ## Sources and review
 
-Local validation on 2026-11-20: all 7 Flap tests passed, including 2 read-only BNB fork checks at block `134682954` against Portal `v5.27.2`; all 10 retained Four.meme tests passed (including 256 fuzz runs); all 22 SDK Flap tests passed. Formatting, build, SDK ABI parity and checker lint passed. Paris fork execution failed on the live Portal; Cancun execution passed, so the current profile uses Cancun. The original Robinhood suite was not rerun because its separate `forge-std` dependency is not installed.
+Local validation on 2026-11-20: all 7 Flap tests passed, including 2 read-only BNB fork checks at block `134682954` against Portal `v5.27.2`; all 22 SDK Flap tests passed. Formatting, build, SDK ABI parity and checker lint passed. Paris fork execution failed on the live Portal; Cancun execution passed, so the current profile uses Cancun.
 
 Verified against Flap's published [BNB contract addresses](https://docs.flap.sh/en/flap/v2/developers/deployed-contract-addresses), [Portal interface](https://github.com/flap-sh/flap-skills/blob/main/trade-flap-token/references/interface.md), [token-state rules](https://github.com/flap-sh/flap-skills/blob/main/trade-flap-token/references/token-state.md) and [receipt semantics](https://github.com/flap-sh/flap-skills/blob/main/trade-flap-token/references/receipt.md) on 2026-11-20. Portal is an external upgradeable dependency: the address alone does not pin its implementation forever.
 
-Read [REVIEW.md](REVIEW.md) for the current integration checklist. This work is not an independent audit and makes no new deployment or token-launch claim. License: [AGPL-3.0-only](LICENSE); preserve upstream attribution in the retained sources.
+This work is not an independent audit and makes no new deployment or token-launch claim. License: [AGPL-3.0-only](LICENSE); preserve upstream attribution in the retained sources.

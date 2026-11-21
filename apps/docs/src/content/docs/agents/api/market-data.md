@@ -1,61 +1,61 @@
 ---
 title: Market data and safety
-description: Trenches columns, token detail, trades, holders, candles, search, wallet positions and token safety.
+description: The indexed Flap market, token trades and holders, search, wallet positions and token safety on BNB Chain.
 ---
 
-These reads are public: no API key needed. With a key, GETs count against your per-key limit.
+These reads are public: no API key needed. With a key, `/v1` GETs count against your per-key limit.
 
-## Trenches
+## Flap market
 
 ```http
-GET /tokens?column=new
+GET /flap/market
 ```
 
-`column` is `new` (new launches), `almost` (almost bonded) or `migrated` (graduated). An unknown `column` falls back to `new`.
+The indexed Flap launches on BNB Smart Chain, from finalized Portal events: up to 50 each of new curves, almost-bonded curves (at least 50% progress) and migrated tokens. `GET /flap/market?address=<token>` returns one token.
 
-Each token has `address`, `symbol`, `name`, `launchpad`, `status`, `price_usd`, `market_cap_usd`, `volume_24h_usd`, `liquidity_usd` (often `null` for v4 pools), `holders`, `bonding_progress`, and `risk` and `verdict` (the same check as the safety view's `riskLevel`).
+The response is `{ chainId: 56, source: "flap", provenance: "finalized-onchain", cursor, checkedAt, lagBlocks, stale, items }`.
 
-Agents can trade all three. `new` and `almost` tokens are still on their PONS bonding curve and trade on the curve, with the Rushr fee as a second transaction ([details](/agents/api/trade/#bonding-curve-trades)).
+- `stale: true` means the index checkpoint is older than 60 seconds or more than 100 blocks behind.
+- Each item has `coin` (`address`, `name`, `symbol`, `image`), `listed` (`true` once migrated), `progress` (curve progress in percent), `quoteToken`, `tax` (`buyTaxBps`, `sellTaxBps`), `decimals`, `totalSupply`, `priceNative` (for BNB-quoted curves), `priceUsd`, `creator`, `createdAt`, `holders`, `safety` and `safetyStatus`.
+- Prices are denominated in the curve's quote asset; `priceUsd` is an indicative conversion. Unknown creation dates, creators and metadata stay `null`.
+- `safetyStatus` is `ready`, `partial`, `indexing`, `retrying` or `history-unavailable`. None of them means a token is safe.
 
-## Token detail
+An index that isn't ready answers `503 {"error":"flap_index_not_ready"}`. A malformed address answers `400 {"error":"invalid_address"}`.
+
+## Token trades and holders
 
 | Call | What |
 | --- | --- |
-| [`GET /tokens/<address>`](https://api.rushr.trade/tokens/0xa8ceeeb747fcf136947c35c5de6187ee90d6bfed) | Market data for one token. |
-| `GET /tokens/<address>/trades` | Recent trades. |
-| `GET /tokens/<address>/holders` | Holders. |
-| `GET /tokens/<address>/candles?interval=1m` | Candles. `interval` is `1s`, `15s`, `30s`, `1m`, `5m`, `15m`, `1h` or `4h`; an unknown one falls back to `1m`. |
-| `GET /tokens/<address>/pools` | Pools the token trades in. |
-| `GET /tokens/<address>/stats` | Stats. |
-| `GET /tokens/<address>/signals` | The safety signals, including `buyTaxBps` and `sellTaxBps`. |
-
-A token Rushr hasn't indexed yet answers `202 {"address","state":"hydrating","source":"chain"}`: Rushr is fetching it from the chain. Retry in a few seconds.
+| `GET /flap/trades?address=<token>` | Recent indexed curve buys and sells for one token. |
+| `GET /flap/holders?address=<token>` | Holder balances, published only when a complete snapshot exactly sums to total supply. Otherwise `available: false`. |
 
 ## Search
 
-[`GET /search?q=RUSHR`](https://api.rushr.trade/search?q=RUSHR) searches by ticker, name or address. Tickers aren't unique: always trade by address.
+`GET /search?q=<text>` searches indexed tokens by address, ticker or name. Tickers aren't unique: always trade and call by address.
 
 ## Your wallet
 
-- `GET /wallets/<wallet>/holdings`: your holdings, from indexed swaps.
-- `GET /wallets/<wallet>/positions/<token>`: one position. `held_tokens` is in base units, ready to use as a sell's `amountIn`.
+| Call | What |
+| --- | --- |
+| `GET /wallets/<wallet>/holdings` | Holdings. |
+| `GET /wallets/<wallet>/positions/<token>` | One position. |
+| `GET /wallets/<wallet>/trades` | Recorded trades (`?limit=` up to 200). |
+| `GET /wallets/<wallet>/pnl` | PnL, with `/pnl/history` for its history. |
 
-## ETH/USD
-
-[`GET /transparency`](https://api.rushr.trade/transparency) has `treasury.ethUsd`, for sizing trades in dollars.
+These come from Clashr's verified trade records, not from a full scan of every on-chain swap.
 
 ## Token safety
 
 ```http
-GET /v1/tokens/0xa8ceeeb747fcf136947c35c5de6187ee90d6bfed/safety
+GET /v1/tokens/<address>/safety
 ```
 
 ```json
-{ "safety": { "riskLevel": "medium", "verdict": "Medium risk: …", "flags": [], "blocked": false, "updatedAt": "…", "stale": false } }
+{ "chainId": 56, "safety": { "riskLevel": "unknown", "verdict": null, "flags": [], "blocked": false, "updatedAt": null, "stale": true }, "note": "Unassessed tokens remain unknown. Quote and simulation success is not a sellability or safety guarantee." }
 ```
 
-- `riskLevel` is `low`, `medium`, `high` or `unknown`. A `high` buy is refused with `unsafe_token` unless you send `"acceptRisk": "high"`.
-- `blocked: true` means a known honeypot or spam. Buys are refused with `honeypot`, with no override.
-- `stale: true` means the signals are more than 10 minutes old. Reading the view asks for a refresh, so read it again in a few seconds for a fresh verdict.
+- `riskLevel` is `low`, `medium`, `high` or `unknown`. Unassessed tokens stay `unknown`.
+- `blocked: true` means a known spam or blocked token. Buy quotes and builds are refused with `blocked_token`.
+- `stale: true` means there's no assessment, or it's more than 10 minutes old.
 
-The signals behind the verdict (dev history, bundled and sniped supply, insiders, fresh wallets, top-10 concentration, measured tax, copycat tickers) are open source in [`packages/core/src/signals`](https://github.com/rushr-dev/platform/tree/main/packages/core/src/signals).
+The holder-concentration, sniper, bundle, insider and fresh-wallet signals behind the trenches are described in [Safety checks](/trading/safety-checks/#safety-signals).

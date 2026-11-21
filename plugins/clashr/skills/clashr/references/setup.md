@@ -14,7 +14,7 @@ CLASHR_SLIPPAGE_BPS=100
 
 The local defaults require the independent BNB product API on this machine. A remote operator must supply an owned HTTPS API and matching product origin. The launcher also accepts `CLASHR_CONFIG_FILE` as an absolute path to a different local configuration file. It reads only the supported Clashr/BSC settings and always forces dry-run mode.
 
-State defaults to `~/.clashr/agent-wallet.json`, outside the versioned plugin cache. Existing Clashr MCP wallets remain compatible across clients and plugin updates. Optional `CLASHR_WALLET_FILE` or `CLASHR_STATE_DIR` selects a different state location. Never use a Rushr keyfile as if it were a chain-56 Clashr wallet. Restrict the state/config directory to the operator account; Windows requires NTFS permissions, not just POSIX mode bits.
+State defaults to `~/.clashr/agent-wallet.json`, outside the versioned plugin cache. Existing Clashr MCP wallets remain compatible across clients and plugin updates. Optional `CLASHR_WALLET_FILE` or `CLASHR_STATE_DIR` selects a different state location. Never point these settings at the legacy MCP's keyfile or state directory. Restrict the state/config directory to the operator account; Windows requires NTFS permissions, not just POSIX mode bits.
 
 After changing configuration, reconnect the MCP server or start a new client session. Inspect `my_status`. API health and RPC must identify BNB mainnet 56. The API origin's SIWE product domain must match `CLASHR_PRODUCT_ORIGIN`. The presence of a logo or plugin listing does not verify a backend deployment.
 

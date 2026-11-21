@@ -12,7 +12,7 @@ pnpm --filter @clashr/mcp build:plugin
 
 This produces `dist/clashr-plugin-marketplace/`, `dist/clashr-plugin-marketplace-0.1.0.tgz` and its SHA-256 file. The marketplace contains Codex, Claude Code and Cursor catalogs. `plugins/clashr` contains the portable/Claude wrapper; `plugins/clashr-cursor` contains the Cursor wrapper. Both include the same bundled MCP runtime, logos, license and skill. Runtime changes require rebuilding and refreshing/reinstalling the client plugin.
 
-The builder uses an explicit source allowlist; it does not package `.env` files, wallets, API keys, node_modules or machine paths. The runtime contains no npm/registry installer. Existing Rushr source/catalogs are not renamed or modified. No lifecycle hooks run setup, install dependencies or create accounts.
+The builder uses an explicit source allowlist; it does not package `.env` files, wallets, API keys, node_modules or machine paths. The runtime contains no npm/registry installer. Legacy plugin sources and catalogs are not modified. No lifecycle hooks run setup, install dependencies or create accounts.
 
 ## Configure your local backend
 
@@ -28,7 +28,7 @@ CLASHR_SLIPPAGE_BPS=100
 
 Replace the RPC placeholder locally; never add this file to the package. Alternatively set `CLASHR_CONFIG_FILE` to an absolute local env-file path. Only supported Clashr/BSC settings are read from that file. Dry-run mode is forced after loading it; `NODE_OPTIONS` and arbitrary environment settings are ignored. State remains in `~/.clashr`, outside the client cache, so plugin updates do not replace a wallet. Protect the directory with account-only permissions/Windows NTFS ACLs.
 
-Remote users need their own configured API origin and matching product domain; localhost always refers to their own machine. Both the API and RPC must identify chain 56. The original public Rushr backend and chain-4663 wallets are not fallbacks.
+Remote users need their own configured API origin and matching product domain; localhost always refers to their own machine. Both the API and RPC must identify chain 56. There is no fallback to a public backend or to non-BNB wallets.
 
 ## Install in Codex
 

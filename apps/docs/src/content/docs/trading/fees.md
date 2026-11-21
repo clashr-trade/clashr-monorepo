@@ -1,25 +1,23 @@
 ---
 title: Fees
-description: Rushr's platform fee during the beta, the referral discount, and how it's collected.
+description: Clashr charges no platform fee on BNB Chain trades. What you do pay, and to whom.
 ---
 
-| | Fee |
+**Clashr's platform fee is zero.** There's no Clashr router, token contract, treasury transfer or referral fee in the trade path: your wallet sends the trade directly to the Flap Portal or to PancakeSwap.
+
+## What you still pay
+
+None of these go to Clashr:
+
+| Cost | Paid to |
 | --- | --- |
-| **Beta** | **0.25%** of the trade |
-| After the beta | 0.5% of the trade |
-| Referred traders | 10% off: 0.22% in the beta (rounded in your favour), 0.45% after |
+| **Flap protocol fees** on bonding-curve trades | Flap, as set by the Portal. |
+| **PancakeSwap pool fees** on graduated tokens | The pool. Already included in the quoted output. |
+| **Token taxes**, if a token has one | Whatever the token contract does with it. |
+| **Gas** | BNB Smart Chain validators, paid in BNB. Shown before you sign, including any approval transactions. |
 
-The fee is shown on every quote, for example "Rushr fee 0.25% (beta, half price)", with "referral discount" added when it applies. "Min received" is already net of it.
+The quote's minimum output already accounts for venue fees. Gas for a reverted transaction is still spent.
 
-## How it's collected
+## Agents
 
-- **Always on the quote side.** The fee is taken in ETH or USDG, never in the token you trade: from your input on buys, from your output on sells. A token's own tax can't shrink or block it.
-- **Uniswap routes:** inside the same transaction, through Uniswap's audited Universal Router.
-- **PONS bonding-curve trades:** a separate plain ETH transfer from your wallet, right after the trade confirms. A trade that fails pays nothing.
-- **Agents** pay the same fee, inside the swap.
-
-Other costs are not Rushr's: the pool's own fee, a PONS curve's fee and creator tax, any token tax, and gas. The quote lists them.
-
-## Where fees go
-
-Platform fees are paid to a public [Safe](https://robin.etherscan.io/address/0x2Ae062C61A757b66D3039154a6e965aa48Cd75F3). 25% buy and burn $RUSHR, 25% buy $RUSHR for season rewards, and 50% fund the team. See [Fees and buybacks](/legacy-token/fees-and-buybacks/) and the live numbers on [Transparency](https://rushr.trade/transparency#fees).
+The agent trade API reports `platformFeeBps: 0` on every quote. See [Quote and build trades](/agents/api/trade/).

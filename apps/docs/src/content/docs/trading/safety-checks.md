@@ -1,45 +1,38 @@
 ---
 title: Safety checks
-description: The honeypot sell check that fails closed, price impact and the PONS pool tax, and Rushr's other guards.
+description: The checks Clashr runs before your wallet signs, price impact and token taxes, and the safety signals from its Flap index.
 ---
 
-Rushr checks every buy before your wallet signs it. These checks are information and guard rails, not guarantees: tokens on Robinhood Chain are extremely risky.
+Clashr checks every trade before your wallet signs it. These checks are information and guard rails, not guarantees: meme tokens are extremely risky, and no check proves you'll be able to sell later.
 
-## Honeypot sell check
+## Before you sign
 
-A honeypot is a token you can buy but can't sell. Before a buy on a Uniswap pool, Rushr **simulates buying the token and then selling it back**, in one block, without signing or sending anything.
+- **Chain and contracts.** Quotes need a BNB Smart Chain provider that reports chain id 56. PancakeSwap factories, routers, quoters and pools are checked and pinned to one fresh block; third-party token cards, prices or pool hints never choose a route or set your minimum.
+- **Curve state.** Flap curve trades are only built for a tradable curve. The SDK also checks the token's supported extensions, any NFT gate and remaining buy quota for your wallet.
+- **Fresh quote.** Quotes expire after 60 seconds. A changed block, quote, wallet account or network stops the trade.
+- **Stateful simulation.** Before any signature, the exact approval sequence and the exact swap are simulated together against your real balances, with no fake funding. Not enough BNB for the trade plus all gas, a failed call, unsafe output, or an RPC that can't run the simulation stops the trade; there's no weaker fallback.
+- **Re-check during execution.** The trade is simulated again before sending and after approvals. If the gas budget rises, the attempt stops instead of retrying.
 
-- **If the sell fails,** the buy is blocked: "Our simulation could not sell this token after buying it (possible honeypot)."
-- **If the check can't run** (for example the RPC fails), the buy is blocked too, and retried: "Couldn't run the sell check for this token yet, so buying is paused. Retrying…". The check **fails closed**: a buy never goes through unchecked.
-- Tokens still on their PONS bonding curve skip this check. They're standard PONS contracts, and selling goes back to the curve.
-
-The same check runs for agents on every buy quote and build. They get `honeypot` (no override) or `safety_unverified` (retry). See [the trade API](/agents/api/trade/#guards).
-
-**Sells are never blocked**, so getting out always works.
+:::caution
+A successful buy simulation is not a round-trip sellability or honeypot check, and a successful historical sell doesn't prove a future sell will work. Clashr makes no safety clearance.
+:::
 
 ## Price impact and pool tax
 
-Price impact is how much worse your price is than the current price, because of your trade.
+Price impact is how much worse your price is than the pool's current rate, because of your trade.
 
-**Graduated PONS tokens** trade in a hooked Uniswap v4 pool that takes a fixed tax on every trade, often 1-4%, whatever the size. That tax is **included in the price impact** you see. So a small trade on such a token can still show a few percent of impact. The token's measured buy and sell tax are shown too.
-
-On a token **still on its curve**, the curve's fee and creator tax are shown on the Route line instead, and left out of price impact.
-
-## Other guards
-
-| Check | What happens |
-| --- | --- |
-| Price impact above 30% | Blocked: "try a smaller amount". |
-| Price impact above 5% | Warning. |
-| Token tax above 5% | Warning, with the measured tax. |
-| Pool fee above 3% | Warning. Pools charging over 10% aren't used. |
-| PONS snipe tax active | Buys blocked until it's gone (a few seconds after launch). |
-| Above your per-trade cap | Blocked. Change it in [Trading settings](/trading/token-page/#trading-settings). |
-| High-risk token | Needs the "I understand" tick. |
-| Not enough ETH | Blocked. |
-
-Every trade is also simulated before it's signed. Rushr routes only through Uniswap's Universal Router and the PONS curves: no custom contracts.
+- On PancakeSwap routes, Clashr computes it from the pinned reserves or price, **including the pool's own fee**, and refuses routes whose impact is above 5%.
+- **Token taxes** (transfer taxes) aren't a pool fee. On v2 routes, the balance-checking router methods handle fee-on-transfer tokens. On v3 routes, if the wallet would receive less than the router's nominal output (for example from a transfer tax or rebasing), the trade is refused rather than silently accepted.
+- On a Flap bonding curve, the Portal's own fees and any token tax are part of the curve quote. Check the minimum output before you sign.
 
 ## Safety signals
 
-Token pages and cards show signals computed from Rushr's own index of the chain: the dev's launch history and rugs, serial launchers, bundled and sniped supply, insiders funded by the dev, fresh wallets, top-10 concentration, measured buy/sell tax and copycat tickers. The rules are open source in [`packages/core/src/signals`](https://github.com/rushr-dev/platform/tree/main/packages/core/src/signals), with tests: if a verdict looks wrong, the code that made it is there.
+Token pages and cards show signals computed from Clashr's own index of finalized Flap events and token balances on BNB Smart Chain:
+
+- **Top-holder concentration**, excluding the Flap Portal, the token itself, its migration pool, burn addresses and other contracts. Burned tokens are removed from circulating supply.
+- **Snipers**, using a five-second rule after launch, and **launch bundles** (a three-block heuristic, not evidence of coordination).
+- **Insiders, fresh wallets and funding-linked bundles**, only when the wallet funding history is complete enough.
+
+Each signal shows how complete its data is. Missing launch history or funding coverage stays **unknown** instead of being guessed. Snapshots are refreshed in the background and are at most five minutes old when shown, with their checkpoint and computation time.
+
+Clashr doesn't infer an overall risk verdict, contract source verification, renunciation status or a honeypot pass. The rules are plain code in `packages/core/src/signals`, with fixture tests.

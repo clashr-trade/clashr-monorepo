@@ -1,53 +1,44 @@
 ---
 title: Token page and trading
-description: The token page, buying and selling, slippage, and your trading settings.
+description: The token page, buying and selling with BNB from your own wallet, quotes, approvals and slippage.
 ---
 
-Open any token from the trenches or search to see its chart, holders, trades, calls and safety signals, with the trade box beside them.
+Open any token from the trenches or search to see its chart, holders, trades, calls and safety signals, with the trade panel beside them. On mobile, buying and selling opens in a sheet.
 
-## Simple and Pro
+## Where your trade goes
 
-The token page opens in **simple** mode: a compact trade box. Turn on **Pro mode** in the gear menu for the full trade panel, with presets, a PnL strip and every stat.
+| Token state | Venue |
+| --- | --- |
+| Still on its Flap bonding curve | Your wallet sends the swap **directly to the Flap Portal**, Flap's BNB bonding-curve contract. There's no Clashr router in between. |
+| Graduated (migrated) | Your wallet trades through **PancakeSwap**: the official v2 router or the original v3 SwapRouter, whichever direct pool gives the better output. |
+
+Tokens in other Flap states are refused. Wrapping BNB itself isn't a swap.
 
 ## Buy and sell
 
-- **Buy:** pick a preset ($10, $100, $500, $1000 in the simple box) or type an amount, then **Buy**.
-- **Sell:** pick 25%, 50%, 75% or **Max** of your position, or type an amount, then **Sell**.
+- **Buy:** enter an amount of BNB (the panel can show an indicative USD budget and presets), then **Buy**.
+- **Sell:** pick a percentage of your balance or **Max**, or type an amount, then **Sell**.
 
-Before you trade, the box shows the quote:
+One Buy or Sell action gets a fresh on-chain quote, checks that your BNB covers the trade plus all gas, simulates it and then asks your wallet to confirm. Your wallet confirms **each** approval and the swap separately.
 
-| Line | Meaning |
-| --- | --- |
-| You receive (est.) | Expected output at the current price. |
-| Min received | The least you'll get after slippage. The trade reverts if the price moves past it. Net of every fee. |
-| Rushr fee | "Rushr fee 0.25% (beta, half price)". See [Fees](/trading/fees/). |
-| Route | Where the trade goes: a Uniswap pool, or the PONS curve with its fee and creator tax. |
-| Price impact | How far your trade moves the price. See [Price impact and pool tax](/trading/safety-checks/#price-impact-and-pool-tax). |
-| Network fee (est.) | Gas. |
+- **Quotes expire after 60 seconds.** If the quote, the chain, the block or your wallet account changes before signing, the trade stops and you quote again.
+- **Approvals are exact.** A sell approves exactly the amount you're selling (resetting an existing insufficient allowance first when needed). There are no unlimited approvals. If you cancel after approving, that exact allowance can stay in place; revoking it is a separate action in your wallet.
+- **Minimum output** is enforced on-chain: by the Flap Portal on curve trades, by the router on PancakeSwap trades.
 
-Trades are signed in your own wallet with no confirmation pop-up, and confirm in about a second. After your first buy of a token, the approvals a sell needs are sent in the background, so selling is one transaction.
+:::note
+A delayed wallet confirmation on a curve trade can still execute after the app's 60-second quote window, because the Flap Portal swap has no deadline. The minimum output still applies.
+:::
+
+## Quote and settlement details
+
+- **Curve tokens** quoted in BNB buy with BNB and sell for BNB. A curve quoted in another token buys with that token, or with BNB when the curve allows Portal's internal conversion, and sells settle in that quote token. Check the output asset shown in the quote.
+- **PancakeSwap trades** are direct native-BNB/token routes. On sells, the router unwraps WBNB and sends BNB to your wallet in the same transaction.
+- **Gas** is paid in BNB and shown before you sign.
 
 ## Slippage
 
-Slippage is how far the price may move between the quote and the trade landing.
+On PancakeSwap trades, slippage is bounded between 0.01% and 5%. The quote shows the minimum you'll receive after slippage; if the price moves past it, the transaction reverts.
 
-- **Auto** (the default) sets it per trade: 5% to start, more for very new tokens, fast-moving prices or high impact, capped at 15%, then the token's measured tax is added on top.
-- **Custom:** a fixed percentage, from 0.1% to 50%.
+## After the trade
 
-## High-risk tokens
-
-When a token is high risk, buying needs one more step: tick **I understand this token is high risk and I could lose what I put in.** It's remembered per token.
-
-## Trading settings
-
-[Settings](https://app.rushr.trade/settings) are saved in your browser, and quick trades use them without asking again.
-
-| Setting | Default |
-| --- | --- |
-| Buy presets | 0.01, 0.05, 0.1, 0.5 ETH |
-| Sell presets | 5%, 25%, 50%, 100% |
-| Trenches quick buy | $10 (P1), $50 (P2) |
-| Slippage | Auto (5-15%) |
-| Per-trade cap | 0.25 ETH (0.001-5) |
-
-The per-trade cap blocks any single buy above it.
+The app checks the receipt and keeps a record of your recent activity in your browser. Supported receipts are also reported to Clashr, which verifies them on-chain. The browser record isn't the platform ledger: leaderboard results come only from verified, finalized trades. See [Leaderboard and seasons](/leaderboard/).

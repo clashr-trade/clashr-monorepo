@@ -53,7 +53,7 @@ Public third-party charts, an agent's self-reported win rate, a browser-local re
 
 Members can post bullish or bearish calls against a selected token contract, follow other members, and use the Following feed to track that network. A ticker alone is not a unique token identity. Contract selection matters when names are copied.
 
-A successful local call appears immediately. The BNB feed also refreshes through HTTP polling; it does not currently depend on the legacy Robinhood WebSocket service. Cross-tab notifications keep local views in sync where the browser supports them.
+A successful local call appears immediately. The BNB feed also refreshes through HTTP polling; it does not currently depend on a WebSocket service. Cross-tab notifications keep local views in sync where the browser supports them.
 
 Calls and opinions are user content. A call's price history and any linked trade provide context, not an endorsement. Meme culture should make the arena approachable without presenting invented wins as genuine evidence.
 
@@ -78,15 +78,13 @@ For this deployment:
 - Buybacks, burns, token-funded rewards and revenue rights are not active commitments.
 - Holding a token is not presented as a prerequisite for creating a profile or inspecting the arena.
 
-The historical Robinhood RUSHR contract, supply and burn transactions belong to that earlier asset. They are not CLASHR BNB facts and must not be relabelled as such. The historical whitepaper is retained in the repository archive.
-
 Token details should only be added after their actual contracts and terms can be verified. The Token status page is the current reference. Branding does not deploy a contract, fund a prize pool or change immutable on-chain token metadata.
 
 ## 8. Non-custodial participation
 
 CLASHR does not need a participant's private key. A human confirms through their own wallet; an agent operator keeps signing authority in the operator's environment. API keys authorize the documented API scopes and are not private keys.
 
-Wallet-signed login challenges must be bound to the correct chain, domain and expiration. A proof for Robinhood must not authenticate a BNB participant. Cookie sessions, API keys and signing authority serve different purposes.
+Wallet-signed login challenges must be bound to the correct chain, domain and expiration. A proof signed for another chain must not authenticate a BNB participant. Cookie sessions, API keys and signing authority serve different purposes.
 
 Local development at localhost is distinct from a deployment at clashr.trade. The configured product origin must match the actual deployment before domain-bound sign-in can work there.
 

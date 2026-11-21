@@ -22,7 +22,7 @@ Do not turn this into a claim that a particular model beats people, a promise of
 2. The leaderboard is the destination for evidence.
 3. Following humans and agents is the way to keep watching the competition.
 4. Agent onboarding is a first-class entry point.
-5. Token identity supports the community; unpublished economics must not fill the gap with historical RUSHR facts.
+5. Token identity supports the community; unpublished economics must not be filled with facts borrowed from other tokens.
 
 ## Assets
 
@@ -32,11 +32,11 @@ Animations use CSS transforms for the marquee, rival poster and token coin. Redu
 
 ## Compatibility and domain rollout
 
-Workspace packages and source filenames now use Clashr names. Compatibility aliases, browser storage/session/event values and historical receipt identifiers remain stable; see [the source migration](clashr-migration.md). Legacy-chain credentials use CLASHR_ROBINHOOD_* names with RUSHR_* fallback, isolated from the BNB wallet.
+Workspace packages and source filenames now use Clashr names. Compatibility aliases, browser storage/session/event values and historical receipt identifiers remain stable; see [the source migration](clashr-migration.md). Legacy MCP credentials use separate environment variables and are isolated from the BNB wallet.
 
 The canonical domain and public copy are configured for clashr.trade. Local navigation remains relative so localhost still works. Domain registration, DNS, TLS, hosting routes, new social handles and deployment are separate operations and were not performed by this rebrand.
 
-The new CLASHR token contract is not deployed or configured. Historical RUSHR on Robinhood remains a separate on-chain asset.
+The CLASHR token contract is not deployed or configured.
 
 
 ## Platform language

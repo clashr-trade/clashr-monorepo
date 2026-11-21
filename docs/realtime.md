@@ -1,8 +1,8 @@
-# Rushr realtime protocol (v2)
+# Clashr realtime protocol (v2)
 
 The terminal's live data: one WebSocket per client, a **snapshot** per subscribed topic, then ordered **deltas**. HTTP stays for the first server render and one-off queries; after load the socket is the source of truth.
 
-Server: `apps/indexer` (gateways and token hydrators). Client: `apps/web/lib/live.ts`.
+Server: `apps/indexer` (gateways and token hydrators). Client: `apps/web/lib/live.ts`. The BNB product feed currently refreshes through HTTP polling and does not depend on this socket.
 
 ## Connect
 
@@ -10,8 +10,10 @@ Server: `apps/indexer` (gateways and token hydrators). Client: `apps/web/lib/liv
 wss://api.rushr.trade/ws?v=2
 ```
 
+The host is the indexer worker's configured custom domain (`routes` in `apps/indexer/wrangler.jsonc`).
+
 - `?v=2` selects this protocol. Without it you get the v1 feed (today's `{topic,type,data,source}` events from the single `LiveFeed`), which keeps working until Terminal has switched.
-- Later, agents authenticate with `Sec-WebSocket-Protocol: rushr.v2, key.<api-key>`. This is not enforced yet; anonymous sockets get the public topics below.
+- Later, agents authenticate with `Sec-WebSocket-Protocol: rushr.v2, key.<api-key>` (`rushr.v2` is the protocol's retained compatibility name). This is not enforced yet; anonymous sockets get the public topics below.
 
 Right after the upgrade, and **always as the first frame**, the server sends the following. You may send `subscribe` before it arrives; ops are processed in order once the socket is open.
 

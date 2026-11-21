@@ -24,7 +24,7 @@ This fixes the observed busy-range crash that left the API serving an hour-old s
 
 ## Local activation verified, 19 November 2026
 
-The local index runs in `rushr_bnb_flap_local` on PostgreSQL port 55432. The existing product database stays separate. `BSC_INDEX_DATABASE_URL` tells the product API where to read Flap projections; the worker uses the same URL. Connection settings and the supplied Alchemy key are in ignored `apps/web/.env.local`, never in this document.
+The local index runs in its own database (for example `clashr_bnb_flap_local`) on the local PostgreSQL server. The existing product database stays separate. `BSC_INDEX_DATABASE_URL` tells the product API where to read Flap projections; the worker uses the same URL. Connection settings and the supplied Alchemy key are in ignored `apps/web/.env.local`, never in this document.
 
 Alchemy's current plan limits log ranges to ten blocks. The RPC adapter splits larger batches into bounded ten-block requests. Portal state and event payloads use PostgreSQL JSON parameters to avoid double-encoded strings.
 

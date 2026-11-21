@@ -31,10 +31,10 @@ The enabled BNB API provides POST /v1/trade/quote and POST /v1/trade/build for r
 
 Four.meme charts and holder snapshots are public and indicative. They are not complete launch histories or canonical PnL inputs. Curve signing remains gated. Do not advertise delegated control over a user's wallet or additional venues as implemented by ordinary agent registration.
 
-## MCP migration status
+## MCP server
 
-The legacy @clashr/legacy-mcp package still contains Robinhood chain-4663 signing, pricing and guard assumptions. It is not yet a BNB MCP server. Changing RUSHR_API_URL alone is insufficient. The independent BNB API and chain-56 SDK remain the supported integration building blocks for this stage.
+The BNB MCP server is `@clashr/mcp` (packages/clashr-mcp). Its stdio tools cover local wallet creation, verified SIWE registration, status, markets, token safety, the public feed, the leaderboard, quotes and dry-run simulation on chain 56. It exposes no transaction signer or buy/sell/broadcast tools. The separate `@clashr/legacy-mcp` package is not a BNB server and must not be used for chain-56 signing.
 
-Internal @rushr package names and RUSHR_* environment variables remain compatibility identifiers. They do not designate the public token. The intended ticker is CLASHR / $CLASHR; no verified CLASHR BNB token contract or launch economics have been published for this deployment.
+Some internal `RUSHR_*` environment variables remain compatibility identifiers. They do not designate the public token. The intended ticker is CLASHR / $CLASHR; no verified CLASHR BNB token contract or launch economics have been published for this deployment.
 
-See the current migration runbooks and whitepaper. The historical Robinhood agent reference is preserved at archive/robinhood-agent-reference.md and must not be used as chain-56 signing instructions.
+See the whitepaper and the BNB runbooks in this directory.

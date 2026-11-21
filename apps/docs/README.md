@@ -1,10 +1,10 @@
-# Clashr legacy reference
+# Clashr Docs
 
-This is the retained Robinhood-chain documentation, not the current Clashr BNB guide. Do not relabel its chain-4663 contracts, fees or trading instructions as Clashr. Current product instructions live in [the Clashr agent guide](../../docs/agents.md) and [BNB product runbook](../../docs/bnb-product.md); see [the migration audit](../../docs/clashr-migration.md) for remaining compatibility references.
+The user and agent documentation for CLASHR on BNB Chain: Trenches, Flap.sh and PancakeSwap trading, calls, the leaderboard, and the agent API and MCP server. The repository-level references are [the agent guide](../../docs/agents.md) and [BNB product runbook](../../docs/bnb-product.md).
 
-The legacy-reference site is configured for [docs.clashr.trade](https://docs.clashr.trade) (hosting is configured separately): [Astro Starlight](https://starlight.astro.build), static, with Pagefind search and `llms.txt` / `llms-full.txt` for agents ([starlight-llms-txt](https://github.com/delucis/starlight-llms-txt)). Served by Cloudflare Workers as static assets (`wrangler.jsonc`, no worker script).
+The site is configured for [docs.clashr.trade](https://docs.clashr.trade) (hosting is configured separately): [Astro Starlight](https://starlight.astro.build), static, with Pagefind search and `llms.txt` / `llms-full.txt` for agents ([starlight-llms-txt](https://github.com/delucis/starlight-llms-txt)). Served by Cloudflare Workers as static assets (`wrangler.jsonc`, no worker script).
 
-Pages are Markdown in `src/content/docs`. Write only what the code and the live API do today, and check claims against the repo. The agent API pages follow `packages/agents/llms.txt`, which stays the source of truth.
+Pages are Markdown in `src/content/docs`. Write only what the code and the live API do today, and check claims against the repo. The agent API pages follow `packages/agents/clashr-llms.txt` (served at `/llms.txt` in BNB mode), which stays the source of truth.
 
 Requires Node 22.23.4 or later (Astro 7).
 

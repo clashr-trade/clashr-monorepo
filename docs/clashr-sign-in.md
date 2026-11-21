@@ -19,7 +19,7 @@ The original Privy flow supports email OTP sign-up, MetaMask and other EVM walle
 
 ## Compatibility and rollback
 
-No member migrations or identity merges are performed. Existing wallet-only accounts retain their original addresses and records. Privy identities use their own embedded wallet; duplicate handles/wallets remain rejected by the backend. To return to wallet-only sign-in, remove the BNB public app ID and restart/rebuild the web app. Do not alter the dedicated product database or point BNB at the public Robinhood API.
+No member migrations or identity merges are performed. Existing wallet-only accounts retain their original addresses and records. Privy identities use their own embedded wallet; duplicate handles/wallets remain rejected by the backend. To return to wallet-only sign-in, remove the BNB public app ID and restart/rebuild the web app. Do not alter the dedicated product database or point BNB at a shared public API.
 
 ## Verification
 

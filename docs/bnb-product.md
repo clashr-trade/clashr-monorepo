@@ -1,7 +1,7 @@
 # Independent BNB product: local runbook
 
-This product uses a dedicated chain-56 database. Do not point it at the Robinhood database or the
-`chain_v2` mirror. The original deployment remains available when BNB product mode is absent.
+This product uses a dedicated chain-56 database. Do not point it at any other product database or the
+`chain_v2` mirror.
 
 ## Initialize and run
 
@@ -18,15 +18,16 @@ This product uses a dedicated chain-56 database. Do not point it at the Robinhoo
    `PRODUCT_API_URL=http://127.0.0.1:8790`. Use the existing BSC signing opt-in only after rehearsal.
    An optional `NEXT_PUBLIC_BSC_PRIVY_APP_ID` must belong to an owned BSC-configured app.
    Restart the web server after changing public environment variables.
-4. Open `/trenches`, `/feed`, `/agents`, `/leaderboard` and `/rush`. The web proxy rejects a Rushr
-   public API origin and requires the independent backend's chain-56 response header.
+4. Open `/trenches`, `/feed`, `/agents`, `/leaderboard` and `/rush`. The web proxy rejects any `*.rushr.trade`
+   API origin and requires the independent backend's chain-56 response header (`x-clashr-chain-id`,
+   with `x-rushr-chain-id` accepted as a compatibility name).
    The local product server enables avatar/banner uploads and persists their bytes under
    `.local-media/` at the repository root (gitignored). Set `PRODUCT_MEDIA_DIR` to select a
    different local directory. Keep this directory across backend restarts. Production workers
    still require `MEDIA_UPLOADS_ENABLED=1` and their R2 `MEDIA` binding; local storage is only
    configured by the development server. BNB profile images use the same-origin
    `/api/product/v1/media/...` route rather than an HTTP URL rejected by the external image proxy.
-5. To apply the user-authorized Robinhood event template **to this dedicated BNB database**, run
+5. To apply the Rush event template **to this dedicated BNB database**, run
    `pnpm --filter @clashr/trade exec tsx ../../apps/indexer/scripts/configure-product-event.ts`.
    This upserts `product_events.rush` and replaces an existing event configuration. It does not copy
    standings, fund a treasury or distribute prizes. Review the source template before rerunning.
@@ -51,7 +52,7 @@ Interface fixtures do not prove live swap execution or constitute a contract aud
 
 To roll back local activation, stop the independent product server and restore the prior web
 environment settings, then restart the web server. Preserve the dedicated database and receipt
-journal for reconciliation. Do not merge its financial history into Robinhood records. Disabling the
+journal for reconciliation. Do not merge its financial history into any other product's records. Disabling the
 web signing flag prevents new UI submissions but cannot cancel transactions already broadcast.
 
 Full production parity remains incomplete; the current limitations and activation gates are listed

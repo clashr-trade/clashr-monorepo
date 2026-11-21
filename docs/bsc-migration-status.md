@@ -12,8 +12,8 @@ an independent chain-56 product database/API. `/bsc` aliases redirect to canonic
   prices are preserved when metadata refreshes. Columns have bounded, equal-height scrolling.
 - Feed, member onboarding, agent registration, leaderboard and Rush use the independent BNB API.
   Wallet sign-in uses chain/domain-bound SIWE sessions; an owned BSC Privy app is optional.
-  Robinhood profiles, social records and performance are not copied into this product database.
-- At the user's explicit request, the local BNB Rush configuration copies the Robinhood template:
+  Profiles, social records and performance from other deployments are not copied into this product database.
+- At the user's explicit request, the local BNB Rush configuration uses the existing Rush template:
   **2026-11-18 00:00 UTC through 2026-11-23 00:00 UTC**, Caller **$300**, Gainer **$300**,
   Trader **$400**; minimum buy **$20**, minimum liquidity **$5,000**. Standings remain BNB-only.
   This configuration does not fund or distribute prizes. Production must configure its own event,
@@ -36,7 +36,7 @@ Verified this stage: workspace typechecking; 160 indexer tests against disposabl
 42 web tests; 128 trade tests (10 existing live tests
 skipped); 10 router tests including 256 fuzz cases. Isolated browser checks passed canonical desktop
 and mobile navigation, genuine lifecycle rows, bounded columns, buy-review opening and the copied
-Rush configuration, with no Robinhood API/RPC reads or runtime errors.
+Rush configuration, with no legacy API/RPC reads or runtime errors.
 
 ## Earlier migration stages (historical)
 
@@ -60,7 +60,7 @@ not claim those data or execution dependencies are complete.
 
 Verified: 55 web tests, web typechecking, and isolated-browser checks using a real BNB token (100
 trades, 55 candles and 10 reported holders observed). Calls collapse, USD presets, holder/trader tabs,
-bubble distribution and mobile trading sheet passed, with no Robinhood reads, runtime errors or
+bubble distribution and mobile trading sheet passed, with no legacy reads, runtime errors or
 horizontal overflow. Counts are observations and vary with the source.
 
 The original scope was PancakeSwap v2/v3 spot first, with launchpad curves and Infinity deferred.
@@ -69,7 +69,7 @@ The descriptions below record that earlier separate-preview implementation.
 ## Implemented
 
 - Immutable network registry for 4663, 56 and 97; chain-qualified asset keys.
-- Legacy exports, transport defaults and API routes retain Robinhood semantics.
+- Legacy exports, transport defaults and API routes retain their original legacy-chain semantics.
 - RPC transports cached by chain/origin; explicit chain selection, separate provider secrets,
   provider chain verification and deduplicated checks with a 60-second expiry.
 - BSC proxy broadcast disabled; legacy execution rejects explicitly configured BSC clients.
@@ -99,7 +99,7 @@ The descriptions below record that earlier separate-preview implementation.
 - `@clashr/trade/bsc`: independent on-chain direct WBNB v2/v3 quote/build, pool identity and deployment
   verification, block/account/route/expiry binding, marginal pool-impact cap, exact/reset approvals,
   stateful wallet-delta simulation, BNB gas budgets and user-confirmed EOA execution.
-- Native v3 refund/unwrap handling; no Universal Router/Robinhood command reuse. Platform/referral fees
+- Native v3 refund/unwrap handling; no Universal Router or legacy router command reuse. Platform/referral fees
   are explicitly zero until a separate verified BNB fee path is selected.
 - Receipt/canonical-block verification, actual token/native fill and gas accounting, including failed
   transactions. Wallet-local pending-receipt recovery does not replay sends or invent USD/PnL.
@@ -113,7 +113,7 @@ with ABI-encoded RPC fixtures. No live-provider or real-block replay was perform
 No production database, external infrastructure, deployed contract or on-chain transaction changed.
 The new read API defaults off (`CHAIN_V2_READS` must explicitly equal `1`).
 The new BSC worker defaults off, with no cron/route enabled. Legacy UI/feed, auth, jobs and trading
-adapters retain Robinhood semantics. `/bsc` now reuses the original three-column Trenches UI, cards,
+adapters retain their legacy-chain semantics. `/bsc` now reuses the original three-column Trenches UI, cards,
 filters, sorting, hover-pause and mobile controls with chain-scoped preferences and no legacy socket.
 Real public PancakeSwap v2/v3 BSC data, prices, volume, liquidity, contract lookup and token charts come
 from GeckoTerminal with explicit indicative/third-party provenance. Public data never authorizes execution
@@ -122,7 +122,7 @@ no spot pool is relabelled as a verified bonding curve or launchpad migration.
 
 The gated canonical preview moved to `/bsc/indexed` and still requires `BSC_INDEXER_URL`.
 `/bsc/agents` shows the user-approved shared public agent profiles, alphabetically, without presenting
-Robinhood PnL/trade counts as BNB results. Full profile links lead to clearly labelled legacy history.
+legacy-chain PnL/trade counts as BNB results. Full profile links lead to clearly labelled legacy history.
 The BSC token page now mounts a separate external-wallet spot panel; legacy Privy auth is not mounted.
 All five terminal sections now have BNB-scoped desktop/mobile navigation. Network switching preserves
 the selected section; token contracts never carry across chains. `/bsc/feed`, `/bsc/leaderboard` and
@@ -138,7 +138,7 @@ by the wallet-local receipt history.
 Steps 3-4 of `refactor_plan.md` are **partial**: successor market storage and initial read API are
 implemented. Social references, chain-bound wallet configuration, ledger attribution beyond legacy
 copying, versioned sockets and mutations remain to be implemented. Finality and scoped jobs are
-implemented for the separate BSC path, not retrofitted onto historical Robinhood facts.
+implemented for the separate BSC path, not retrofitted onto historical legacy-chain facts.
 Step 5 has a bounded WBNB discovery/ingestion implementation, not full-chain discovery, verified
 current/USD pricing, wallet accounting or a production-ready BSC terminal feed.
 
@@ -161,8 +161,8 @@ cloud deployment or real-block replay was performed. The disposable PostgreSQL s
 Frontend validation: 22 web tests and web typechecking passed. An isolated headless Chrome verified
 the live public BSC terminal (27-29 token cards observed), real token candlesticks/pools, and 13 shared
 public agents. No legacy market WebSocket subscriptions, page overflow at desktop/mobile widths,
-Robinhood PnL labels on the BNB directory, or runtime exceptions were observed. Counts are observations,
-not fixed inventory. Header contract search and unchanged Robinhood Trenches navigation also passed.
+legacy-chain PnL labels on the BNB directory, or runtime exceptions were observed. Counts are observations,
+not fixed inventory. Header contract search and unchanged legacy Trenches navigation also passed.
 Public-market reads share in-flight requests and bounded caches; partial pool refresh is labelled.
 No sample rows were inserted. The independent canonical preview remains disconnected
 until a ready BSC API origin is configured.
@@ -176,7 +176,7 @@ mobile layout, account/network invalidation and nonce CSP; zero sends/runtime/CS
 Real funded-wallet signing and post-broadcast reconciliation remain rehearsal gates, not claimed tests.
 
 Navigation-stage validation (2026-11-17): 35 web tests and web typechecking passed. An isolated browser
-verified all five tabs and active states at 390/768/1024/1440px, mobile tab clicks, BNB/Robinhood
+verified all five tabs and active states at 390/768/1024/1440px, mobile tab clicks, BNB/legacy network
 round-trip switching that preserves Feed, and reachable BNB markets/Agents. BNB unavailable-service
 pages made no legacy feed, ranking or event reads; no runtime errors or horizontal overflow observed.
 
@@ -206,8 +206,8 @@ No legacy identities or native amount units have been rewritten.
 
 - Replaced the landing with a BNB gold/charcoal human-versus-agent arena, original comic assets, responsive layout, reduced-motion animations and a real chain-56 leaderboard preview with human/agent filters.
 - Added the CLASHR wordmark, angular C/lightning mark and token coin; canonical domain is clashr.trade. Internal package/env/storage identifiers retain compatibility.
-- Rewrote the whitepaper and BNB agent docs around competing, following and comparing humans and agents. Archived the historical Robinhood references. BNB skill.md/llms.txt now serve the CLASHR guide; the legacy MCP remains pending migration.
-- BNB token status explicitly has no published contract or launch economics. Historical RUSHR addresses and burns are not presented as CLASHR facts. No DNS, production deploy or token deployment was performed.
+- Rewrote the whitepaper and BNB agent docs around competing, following and comparing humans and agents. BNB skill.md/llms.txt now serve the CLASHR guide; the legacy MCP remains pending migration.
+- BNB token status explicitly has no published contract or launch economics. No DNS, production deploy or token deployment was performed.
 - Verified workspace typecheck, 55 web tests, 11 agent-core tests and generated-document parity. Local desktop/mobile browser checks: no runtime exceptions or horizontal overflow, loaded artwork, filter empty states, mobile menu/Escape, reduced motion, canonical URL and no GitHub links. Whitepaper, agent-docs, skill.md, llms.txt, token status, icon and OG image returned HTTP 200.
 - Artwork source, served assets and final built-in imagegen prompts: docs/clashr-asset-prompts.md.
 
@@ -221,7 +221,7 @@ No legacy identities or native amount units have been rewritten.
 
 ## Finalized Flap safety snapshots - 2026-11-19
 
-- Added migration 0019 and a separate bounded safety worker using Rushr's snapshot and signal maths. Concentration excludes BSC protocol pools, burns and contracts; creator holdings, sniper count/share, funding-linked bundles, insiders and fresh-wallet metrics carry explicit coverage requirements.
+- Added migration 0019 and a separate bounded safety worker using the shared snapshot and signal maths. Concentration excludes BSC protocol pools, burns and contracts; creator holdings, sniper count/share, funding-linked bundles, insiders and fresh-wallet metrics carry explicit coverage requirements.
 - Fixed the initial funding probe incompatibility by using an explicit finalized block number instead of the `finalized` tag for the transfer-history method. The configured local provider returned real funding records. Unsupported/missing history remains unknown and is retried with backoff.
 - The API serves fresh cached snapshots and holder tags without adding RPC work to feed requests. The UI displays safety checkpoint/time and no longer computes Top 10 from raw protocol reserve balances. No honeypot, explorer verification, renunciation or overall risk pass is invented.
 - Applied the additive migration only to the dedicated local Flap index database and started its worker. Production deployment/scheduling remains unchanged. Setup, budgets, coverage limits and rollback are in docs/flap-safety.md.
@@ -251,7 +251,7 @@ No legacy identities or native amount units have been rewritten.
 
 ## Clashr MCP first local milestone - 2026-11-19
 
-- Added separate `packages/clashr-mcp` (`@clashr/mcp` 0.1.0), preserving the legacy Robinhood package. Node stdio tools support local wallet creation, verified SIWE registration/key recovery, status, finalized Flap markets, token safety, feed, 30d-default leaderboard, direct Flap/PancakeSwap quotes and real-balance dry-run simulation. No transaction signer or buy/sell/broadcast tools are exposed.
+- Added separate `packages/clashr-mcp` (`@clashr/mcp` 0.1.0), alongside the separate legacy MCP package. Node stdio tools support local wallet creation, verified SIWE registration/key recovery, status, finalized Flap markets, token safety, feed, 30d-default leaderboard, direct Flap/PancakeSwap quotes and real-balance dry-run simulation. No transaction signer or buy/sell/broadcast tools are exposed.
 - Uses isolated chain-56 state, API-origin-bound keys, chain/domain/nonce/purpose/expiry validation, input/slippage caps and expiring session quote IDs. Reuses the existing SDK for contract/route verification, exact approvals, minimum output and ERC20 Flap settlement. Unknown safety remains unknown.
 - Verified 13 MCP tests, one actual-product registration/restart/key-recovery test in a throwaway database, and 45 adapter tests. MCP/indexer typechecks, build and npm package-content dry run passed. Real stdio checks passed local API reads, mainnet Flap quote/build/simulation and a PancakeSwap quote. A public trader address was used; no mainnet registration, signature or broadcast occurred. Unsupported/gated launches still correctly refuse quotes.
 - Setup: `packages/clashr-mcp/README.md`. No npm publication, plugin-wrapper installation, production deployment or running product database change. Public plugin packaging is the next milestone.
@@ -259,7 +259,7 @@ No legacy identities or native amount units have been rewritten.
 ## Claude Code / Codex plugin wrapper
 
 - Added `plugins/clashr` with portable and Claude-compatible manifests, branded PNG assets derived from the existing Clashr SVG, a scoped skill, local setup reference and a secret-safe launcher. No lifecycle hooks, auto-registration or registry fallback.
-- `pnpm --filter @clashr/mcp build:plugin` emits the standalone `dist/clashr-plugin-marketplace` with both client catalogs, fully bundled runtime, file hashes, versioned `.tgz` and checksum. The source-file allowlist excludes project dependencies, secrets and wallet/config state. Existing Rushr plugin/catalogs are preserved.
+- `pnpm --filter @clashr/mcp build:plugin` emits the standalone `dist/clashr-plugin-marketplace` with both client catalogs, fully bundled runtime, file hashes, versioned `.tgz` and checksum. The source-file allowlist excludes project dependencies, secrets and wallet/config state. The existing legacy plugin/catalogs are preserved.
 - The launcher reads the dedicated local `~/.clashr/mcp.env` or explicit config path, accepts only supported settings and forces dry-run after parsing. Wallet state remains outside client caches. Portable `${PLUGIN_ROOT}` and Claude `${CLAUDE_PLUGIN_ROOT}` paths handle relocation and spaces.
 - Passed MCP typecheck, all 16 MCP/wrapper tests, official portable plugin/MCP schema validation and skill validation. Archive extraction tests launch both client definitions with no checkout dependencies. Native Codex marketplace install, catalog and MCP registry discovery passed in a disposable home; user client configuration was unchanged. Claude CLI is unavailable, so native Claude install/validation remains a user-side check; its manifest and actual launcher are tested.
 - Real read-only stdio checks through the bundled launcher passed local BNB API status/markets/feed/leaderboard/safety and mainnet Flap/PancakeSwap quotes. No mainnet registration, signature or broadcast. Installation instructions: `plugins/clashr/README.md`. No npm/public-directory publication or production deployment.

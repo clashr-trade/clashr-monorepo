@@ -9,8 +9,8 @@ for pools created before the configured start block, and no chain-wide swap-topi
 
 `0013_finalized_markets.sql` adds cursor, completed-job, canonical-header, raw-log, verified-pool and
 pool-swap tables under `chain_v2`. Legacy writers, cursors, Durable Objects, queues, API routes and
-Robinhood projections retain their existing identities. The old queue consumer explicitly rejects
-version-2 or non-4663 identities before opening SQL/RPC. Untagged historical jobs still mean 4663.
+projections retain their existing identities. The legacy queue consumer explicitly rejects version-2
+and other-chain identities before opening SQL/RPC, so BSC jobs never reach it.
 
 Every batch verifies `eth_chainId=56`, reads `eth_getBlockByNumber("finalized",false)`, checks the
 persisted cursor hash, fetches contiguous headers, validates every log against its header, and rechecks
@@ -26,7 +26,7 @@ This is a finality-violation response, not automatic speculative rollback. Inves
 chain, reconcile a restored copy, then perform a reviewed reset/replay. Do not clear `halt_reason` alone.
 
 Factory emitters are allowlisted, and `getPair`/`getPool` at the pinned block must agree with each new
-event. Pancake v3 uses its protocol-fee-extended Swap ABI; a Uniswap-v3-shaped payload is not accepted.
+event. Pancake v3 uses its protocol-fee-extended Swap ABI; a payload with the plain (non-fee-extended) v3 Swap layout is not accepted.
 Non-WBNB pairs are outside this release's scope. Raw factory events in the scanned range are retained,
 including the non-WBNB creations that are not projected.
 
@@ -114,7 +114,7 @@ No production rollout is justified until the real-block comparison, capacity and
 The terminal now reuses the original Trenches UI at `/bsc`, with a public GeckoTerminal BSC market
 adapter and `/bsc/token/:address` charts/pools. This third-party data is explicitly indicative, never
 canonical or used for wallet PnL/execution. `/bsc/agents` shows the approved shared public directory,
-with Robinhood history kept separate. The independent canonical preview is at `/bsc/indexed`.
+with no other-chain history mixed in. The independent canonical preview is at `/bsc/indexed`.
 Header contract lookup, column filters/sorting, hover-pause and mobile column selection reuse the
 existing terminal interactions. BSC filter/sort/chart preferences have separate keys. Unsupported
 second candles and market-cap chart modes are not offered without the data needed to produce them.
@@ -149,8 +149,8 @@ this verifies local bundling/configuration only and neither provisions queues no
 
 Disable BSC market reads and the separate worker's indexing flag; stop its cron/producer/consumer as
 appropriate. Disabled consumers retry with a delay and ultimately DLQ according to queue policy, so
-pause delivery for an extended shutdown. Preserve canonical rows, cursor and job history. Robinhood
-continues independently; no reverse synchronization is required. Do not delete jobs and blindly replay
+pause delivery for an extended shutdown. Preserve canonical rows, cursor and job history. Legacy
+indexing continues independently; no reverse synchronization is required. Do not delete jobs and blindly replay
 old identities or change the epoch over existing projections.
 
 Remaining before trading: production-grade discovery/sharding and historical replay, provider comparison,

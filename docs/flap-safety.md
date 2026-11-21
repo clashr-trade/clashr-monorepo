@@ -1,6 +1,6 @@
 # BNB Flap safety enrichment
 
-This ports Rushr's indexed snapshot and deterministic signal calculations to chain 56. It does not import Robinhood balances, infrastructure addresses, risk verdicts or funding records.
+This applies Clashr's indexed snapshot and deterministic signal calculations (`packages/core/src/signals`) to chain 56. Balances, infrastructure addresses, risk verdicts and funding records all come from BSC data; nothing is imported from another chain.
 
 ## Inputs and coverage
 
@@ -8,7 +8,7 @@ This ports Rushr's indexed snapshot and deterministic signal calculations to cha
 - On-chain total supply, creator identity and canonical holder checkpoint hash.
 - Contract bytecode at that checkpoint, cached for five minutes. Only empty code and exact EIP-7702 delegation designators count as EOAs.
 - Protocol Portal, token itself, selected migration pool, burns and other contracts are excluded from concentration. Burn balances reduce the circulating-supply denominator. The raw holder distribution still includes protocol reserves.
-- Snipers reuse Rushr's five-second rule. Metrics require a contiguous index cursor spanning creation through the holder checkpoint; incomplete launch history stays unknown. The original three-block bundle window remains a heuristic, not evidence of coordination.
+- Snipers use the shared five-second rule. Metrics require a contiguous index cursor spanning creation through the holder checkpoint; incomplete launch history stays unknown. The three-block bundle window remains a heuristic, not evidence of coordination.
 - First-funding enrichment probes `alchemy_getAssetTransfers` on the configured, chain-verified BSC provider with a fixed upper block. Unsupported responses have a one-hour worker cooldown; failures or empty history are unknown. Insiders, fresh wallets and funding-linked bundles require complete relevant funding coverage. Common funders seen across 50 cached wallets are excluded from clustering.
 
 No overall risk verdict, source-verification/renunciation status or honeypot pass is inferred. A successful historical sell does not prove a future sell will succeed. These fields remain unknown pending independent adapters and simulation work.

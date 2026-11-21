@@ -1,8 +1,8 @@
 # BSC spot execution
 
 This stage adds direct native-BNB/token exact-input trading through the official PancakeSwap v2
-router and original v3 SwapRouter. It is independent from the Robinhood encoders, assets, treasury,
-wallet auth and fee policy. Contract wallets, delegated accounts, multihop/split routes, ERC20 quote
+router and original v3 SwapRouter. It has its own encoders, assets, wallet auth and fee policy,
+and uses no legacy treasury. Contract wallets, delegated accounts, multihop/split routes, ERC20 quote
 assets, Infinity and launchpad curves are outside this adapter. Wrapped BNB itself is not a swap.
 
 ## Quotes and transaction construction
@@ -25,12 +25,12 @@ minimum, impact and expiry. Quotes expire after 60 seconds; build/sign checks re
 quote blocks, changed identities, wallet accounts/networks and expired quotes.
 
 v2 uses the balance-checking `SupportingFeeOnTransferTokens` methods and the router's on-chain quote;
-it does not assume Robinhood's fee formula. v3 uses the **original** SwapRouter tuple with a deadline,
+it does not assume any other venue's fee formula. v3 uses the **original** SwapRouter tuple with a deadline,
 not SmartRouter or Universal Router commands. Native buys include refund handling; native sells send
 WBNB output to the router then atomically unwrap to the signing account. No quote routes to an
-arbitrary recipient/spender, and no BSC call passes through a Robinhood router.
+arbitrary recipient/spender, and no BSC call passes through a legacy router contract.
 
-**Platform/referral fees are zero.** Venue fees remain included in the quoted output. No Robinhood
+**Platform/referral fees are zero.** Venue fees remain included in the quoted output. No legacy
 treasury or platform-fee transfer is reused. Charging platform fees requires a separately selected,
 verified collection path; a standalone second fee transfer is not fabricated as atomic collection.
 
@@ -93,8 +93,8 @@ NEXT_PUBLIC_BSC_SWAP_ENABLED=1
 ```
 
 This is a build-time Next public flag; restart/rebuild for changes. BSC signing is independent from
-`NEXT_PUBLIC_PREVIEW_ONLY`: keep that shared-API write protection enabled when browsing Rushr's API.
-Keep the independent Robinhood swap flag off and its Privy app ID unset unless that legacy deployment
+`NEXT_PUBLIC_PREVIEW_ONLY`: keep that shared-API write protection enabled when browsing a shared public API.
+Keep the legacy `NEXT_PUBLIC_SWAP_ENABLED` flag off and its Privy app ID unset unless that legacy deployment
 is separately owned/configured. BSC external-wallet signing itself does not require Privy.
 On 2026-11-17, BSC signing was enabled in the local `.env.local` at the user's request. Example files
 remain off by default; no production deployment or funded-wallet rehearsal was performed.

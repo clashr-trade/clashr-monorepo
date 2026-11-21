@@ -2,7 +2,7 @@
 
 Clashr's BNB-mainnet MCP server runs on the operator's machine. It supports agent registration, finalized Flap index reads, safety, feed, rolling leaderboards, verified Flap/PancakeSwap v2/v3 quotes and real-balance simulation. **There is no transaction signing or broadcast implementation, and no buy/sell tool.** SIWE registration signs an identity proof and creates a real account; simulation never does.
 
-This sibling package leaves the original `@clashr/legacy-mcp` untouched. Core adapters and identity verification derive from the Rushr platform (AGPL-3.0-only); the bundled workspace SDKs retain that license. This package is not yet published to npm, registered in a public directory, or installed into the user's clients.
+This package is separate from `@clashr/legacy-mcp` and does not change it. It is licensed AGPL-3.0-only; see [LICENSE](LICENSE) and [NOTICE](NOTICE). This package is not yet published to npm, registered in a public directory, or installed into the user's clients.
 
 ## Build locally
 
@@ -18,10 +18,10 @@ The build inlines private workspace modules into `dist/index.js`; MCP SDK, viem 
 
 ## Configuration
 
-- `CLASHR_API_URL`: owned BNB API **origin**, default `http://127.0.0.1:8790`. All responses must identify chain 56 using the `x-clashr-chain-id` header. The `/health` body must also report `{ok:true,chainId:56,product:"bnb"}`. No public Rushr API fallback.
+- `CLASHR_API_URL`: owned BNB API **origin**, default `http://127.0.0.1:8790`. All responses must identify chain 56 using the `x-clashr-chain-id` header. The `/health` body must also report `{ok:true,chainId:56,product:"bnb"}`. There is no public API fallback, and legacy API origins are rejected.
 - `CLASHR_PRODUCT_ORIGIN`: origin used in SIWE challenges. Defaults to `http://localhost:3000` only for loopback APIs; mandatory for a remote API. It must exactly match the BNB API's `PRODUCT_ORIGIN`.
 - `CLASHR_RPC_URL`: BNB RPC. Falls back to the existing local `BSC_RPC_URL`, then the public BNB endpoint. Chain ID is checked before proofs, quotes and simulation. RPC credentials are never returned or logged.
-- `CLASHR_STATE_DIR`: defaults to `~/.clashr`; never loads `~/.rushr`.
+- `CLASHR_STATE_DIR`: defaults to `~/.clashr`; never loads the legacy MCP state directory `~/.rushr`.
 - `CLASHR_WALLET_FILE`: optional explicit Clashr keyfile path; otherwise `<stateDir>/agent-wallet.json`.
 - `CLASHR_MAX_BUY_BNB`: positive native input limit, default `0.02`. No USD or daily execution budget is advertised because this milestone cannot execute trades.
 - `CLASHR_SLIPPAGE_BPS`: 1..500, default 100.

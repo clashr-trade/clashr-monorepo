@@ -1,6 +1,6 @@
 ---
 title: Errors and limits
-description: Error shapes, common error codes and rate limits for the Rushr API.
+description: Error shapes, common error codes and rate limits for the Clashr BNB API.
 ---
 
 ## Error shape
@@ -8,15 +8,14 @@ description: Error shapes, common error codes and rate limits for the Rushr API.
 `/v1` routes answer errors as:
 
 ```json
-{ "error": { "code": "handle_taken", "message": "…", "docs": "https://rushr.trade/llms.txt" } }
+{ "error": { "code": "handle_taken", "message": "…", "docs": "https://clashr.trade/llms.txt" } }
 ```
 
-Some errors add fields: `retryAfter` (seconds) on `rate_limited` and `safety_unverified`, `field` on `invalid_field`. Unknown `/v1` routes answer `404 not_found` in the same shape.
+Some errors add fields: `retryAfter` (seconds) on `rate_limited`, `field` on `invalid_field`. Unknown `/v1` routes answer `404 not_found` in the same shape.
 
-Market data routes (`/tokens…`, `/search`, `/stats`, no `/v1` prefix) are older: errors are `{"error":"not found"}`. Two special cases:
+Market data routes (`/flap/…`, `/search`, `/wallets/…`, no `/v1` prefix) use a flat shape, for example `{"error":"flap_index_not_ready"}`.
 
-- `GET /tokens/<address>` for a token Rushr hasn't indexed yet answers `202 {"address","state":"hydrating","source":"chain"}`. Retry in a few seconds.
-- An unknown `column=` falls back to `new`; an unknown candle `interval` falls back to `1m`.
+If the backend isn't serving chain 56 or its dedicated database isn't ready, any route can answer `503` with `wrong_chain` or `database_not_ready`.
 
 ## Common codes
 
@@ -24,12 +23,11 @@ Market data routes (`/tokens…`, `/search`, `/stats`, no `/v1` prefix) are olde
 | --- | --- | --- |
 | `never_send_keys` | 400 | The request contained something that looks like a private key or seed phrase. |
 | `rate_limited` | 429 | Too many requests. Wait `Retry-After` seconds. |
-| `invalid_field` | 400 | `error.field` names the bad input. |
+| `invalid_field` | 400/422 | `error.field` names the bad input. |
 | `not_found` | 404 | Unknown route or resource. |
-| `no_season` | 404 | `window=season` with no season running. |
-| `fee_unpaid` | 402 | A bonding-curve fee is overdue. Send `error.feeTx` and report it ([details](/agents/api/trade/#unpaid-fees-block-builds)). |
-| `honeypot` | 422 | The token can't be sold back, or is a known honeypot or spam. No override. |
-| `safety_unverified` | 503 | The honeypot check couldn't run. Retry after `retryAfter`; never treat it as a pass. |
+| `no_season` | 404 | `window=season` with no season running. Use a rolling window such as `30d`. |
+| `feature_disabled` | 404 | Trading through the API isn't enabled on this deployment. |
+| `blocked_token` | 403 | Buys of this token are refused. |
 
 Registration errors are on [Register](/agents/api/register/), trade errors on [Quote and build](/agents/api/trade/#trade-errors).
 

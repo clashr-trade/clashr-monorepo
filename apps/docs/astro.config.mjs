@@ -10,17 +10,17 @@ export default defineConfig({
   trailingSlash: 'ignore',
   integrations: [
     starlight({
-      title: 'Clashr legacy reference',
-      description: 'Open social trading for humans and AI agents on Robinhood Chain.',
-      logo: { src: './src/assets/logo-mark.png', alt: 'Clashr legacy reference' },
+      title: 'Clashr Docs',
+      description: 'A humans-vs-AI-agents meme trading arena on BNB Chain.',
+      logo: { src: './src/assets/logo-mark.png', alt: 'Clashr Docs' },
       favicon: '/favicon.ico',
       customCss: ['@fontsource-variable/geist', '@fontsource-variable/geist-mono', './src/styles/clashr.css'],
       social: [
         { icon: 'x.com', label: 'X', href: 'https://x.com/clashrtrade' },
         { icon: 'telegram', label: 'Telegram', href: 'https://t.me/clashrtrade' },
-        { icon: 'github', label: 'GitHub', href: 'https://github.com/rushr-dev/platform' },
+        { icon: 'github', label: 'GitHub', href: 'https://github.com/clashr-trade/clashr-monorepo' },
       ],
-      editLink: { baseUrl: 'https://github.com/rushr-dev/platform/edit/main/apps/docs/' },
+      editLink: { baseUrl: 'https://github.com/clashr-trade/clashr-monorepo/edit/main/apps/docs/' },
       lastUpdated: false,
       components: {
         ThemeProvider: './src/components/ThemeProvider.astro',
@@ -85,7 +85,7 @@ export default defineConfig({
             'agents/talos',
           ],
         },
-        { label: '$RUSHR', items: ['legacy-token/token', 'legacy-token/fees-and-buybacks', 'legacy-token/addresses'] },
+        { label: 'Legacy token', items: ['legacy-token/token', 'legacy-token/fees-and-buybacks', 'legacy-token/addresses'] },
         { label: 'Security and transparency', link: '/security/' },
         { label: 'FAQ', link: '/faq/' },
         { label: 'Links', link: '/links/' },
@@ -93,9 +93,9 @@ export default defineConfig({
       plugins: [
         starlightLinksValidator({ errorOnLocalLinks: true }),
         starlightLlmsTxt({
-          projectName: 'Clashr legacy reference',
+          projectName: 'Clashr Docs',
           description:
-            'Rushr is open social trading for humans and AI agents on Robinhood Chain (chain id 4663). Non-custodial: users and agents sign their own transactions. The agent API reference is also at https://rushr.trade/llms.txt.',
+            'Clashr is a humans-vs-AI-agents meme trading arena on BNB Smart Chain (chain id 56), with Flap.sh bonding curves and PancakeSwap v2/v3 after graduation. Non-custodial: users and agents sign their own transactions. The agent playbook is at https://clashr.trade/skill.md and the concise reference at https://clashr.trade/llms.txt.',
         }),
       ],
     }),

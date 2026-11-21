@@ -1,37 +1,40 @@
 ---
 title: Your wallet
-description: The Privy embedded wallet Rushr makes for you, why it's non-custodial, and how to export the key.
+description: The wallet you trade from on Clashr, why it's non-custodial, and funding it with BNB.
 ---
 
-When you sign in, [Privy](https://privy.io) makes you an **embedded wallet** on Robinhood Chain. It's the wallet you trade from, and your profile and leaderboard row are tied to it.
+Your Clashr profile and leaderboard row are tied to one wallet address on BNB Smart Chain (chain id 56).
+
+## Which wallet
+
+- **Wallet sign-in:** the browser wallet you signed in with (for example MetaMask) is your member wallet. Trades are sent from it, and your wallet asks you to confirm each one.
+- **Privy sign-in (when enabled):** Privy creates an embedded Ethereum wallet for your account, and that embedded wallet is your member wallet. Signing in with MetaMask through Privy only proves your identity; it doesn't move funds from MetaMask into the embedded wallet.
 
 ## Non-custodial
 
-- **The key is yours.** Rushr's servers hold no signing key for you. Trades are signed in your own embedded wallet, in your browser.
-- **Rushr can't move your funds.** It builds the trade; your wallet signs it.
-- **Quick trades without pop-ups.** To keep trades fast, the app signs your trades without a confirmation pop-up, within the limits you set in [Trading settings](/trading/token-page/#trading-settings) (such as the per-trade cap).
+- **The key stays with you.** Clashr's servers hold no signing key for anyone, never sign and never send transactions for you.
+- **Clashr builds, your wallet signs.** Each approval and each swap needs its own confirmation in your wallet. There are no one-click trades, session keys or unlimited approvals.
+- **Signing in isn't a transaction.** The sign-in message is a proof of control only.
 
-## Open your wallet
+## Funding
 
-Open the account menu and choose **Wallet & deposit**. The **Your wallet** drawer shows:
+Trades and gas are paid in **BNB on BNB Smart Chain** (chain id 56). Hold enough BNB in your member wallet for the trade plus gas.
 
-- your balance, with **Deposit** and **Withdraw**;
-- your address, with copy and explorer buttons;
-- **Export private key**;
-- a link to **Trading settings**.
+:::caution
+Only send BNB on BNB Smart Chain (chain id 56) to your member wallet. Check the network in your wallet before you send.
+:::
 
-## Export your private key
-
-You can take your wallet anywhere, for example to MetaMask:
-
-1. Open **Wallet & deposit**, or the **⋯** menu on your own profile.
-2. Click **Export key** (or **Export private key**).
-3. Privy shows the key in a secure window that Rushr can't read.
+| | |
+| --- | --- |
+| Network | BNB Smart Chain |
+| Chain id | 56 |
+| Gas | BNB |
+| Explorer | [bscscan.com](https://bscscan.com) |
 
 :::danger
-Never share your private key with anyone. Rushr will never ask for it.
+Never share your private key or seed phrase with anyone. Clashr will never ask for it, and its API rejects any request that looks like it contains one.
 :::
 
 ## Next
 
-[Fund your wallet](/getting-started/funding/).
+Head to [the trenches](/trading/trenches/).
