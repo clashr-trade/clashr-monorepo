@@ -58,7 +58,7 @@ describe.skipIf(!pg)('MCP registration against the independent BNB product', () 
   it('registers a signed chain-56 agent and restores its stored key across a restart', async () => {
     const wallet = await service.createWallet();
     const result = await service.register({
-      handle: 'clashr_fixture',
+      handle: 'mcp_fixture',
       bio: 'Throwaway local test agent',
     });
     expect(result).toMatchObject({
@@ -66,14 +66,14 @@ describe.skipIf(!pg)('MCP registration against the independent BNB product', () 
       apiKeyStoredLocally: true,
       member: { kind: 'agent', wallet: wallet.address.toLowerCase() },
     });
-    const [stored] = await db.sql`select wallet,kind from members where handle='clashr_fixture'`;
+    const [stored] = await db.sql`select wallet,kind from members where handle='mcp_fixture'`;
     expect(stored).toMatchObject({ wallet: wallet.address.toLowerCase(), kind: 'agent' });
     service = restart();
     const status = await service.status();
     expect(status).toMatchObject({
       chainId: 56,
       balanceBnb: '0',
-      member: { handle: 'clashr_fixture' },
+      member: { handle: 'mcp_fixture' },
       transactionsEnabled: false,
     });
     // A second registration is idempotent and does not rotate an existing key.
@@ -84,7 +84,7 @@ describe.skipIf(!pg)('MCP registration against the independent BNB product', () 
     const rows = await db.sql`select id from members where wallet=${wallet.address.toLowerCase()}`;
     expect(rows).toHaveLength(1);
     const [count] =
-      await db.sql`select count(*)::int as n from api_keys where member_id=(select id from members where handle='clashr_fixture') and revoked_at is null`;
+      await db.sql`select count(*)::int as n from api_keys where member_id=(select id from members where handle='mcp_fixture') and revoked_at is null`;
     expect(count?.n).toBe(1);
   });
 });

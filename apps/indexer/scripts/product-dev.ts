@@ -7,7 +7,9 @@ import {productServer} from './product-server';
 if(!process.env.DATABASE_URL)throw new Error('Set DATABASE_URL to the dedicated BNB product database');
 const env={...process.env,CHAIN_ID:'56',AGENTS_ENABLED:'1',LEADERBOARD_ENABLED:'1',AGENT_SIGNUP_ENABLED:'1',AGENT_TRADE_ENABLED:'1',
   MEDIA_UPLOADS_ENABLED:'1',MEDIA:localMedia(process.env.PRODUCT_MEDIA_DIR??fileURLToPath(new URL('../../../.local-media',import.meta.url))),
-  PRODUCT_ORIGIN:process.env.PRODUCT_ORIGIN??'http://localhost:3000',WEB_ORIGINS:process.env.PRODUCT_ORIGIN??'http://localhost:3000'} as unknown as AgentsEnv;
+  PRODUCT_ORIGIN:process.env.PRODUCT_ORIGIN??'http://localhost:3000',
+  // DEV_ALLOWED_ORIGIN: the web dev server reached by address (see apps/web/lib/dev-origin.ts). The SIWE domain stays PRODUCT_ORIGIN.
+  WEB_ORIGINS:[process.env.PRODUCT_ORIGIN??'http://localhost:3000',process.env.DEV_ALLOWED_ORIGIN].filter(Boolean).join(',')} as unknown as AgentsEnv;
 const server=productServer(env);
 server.listen(8790,'127.0.0.1',()=>console.log('BNB product API http://127.0.0.1:8790'));
 let syncing=false;

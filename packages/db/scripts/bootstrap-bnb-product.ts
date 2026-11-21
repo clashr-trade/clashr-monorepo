@@ -2,8 +2,9 @@
 import postgres from 'postgres';
 import {readFile} from 'node:fs/promises';
 const adminUrl=process.env.BNB_PRODUCT_ADMIN_URL;
-const name=process.env.BNB_PRODUCT_DATABASE??'rushr_bnb_local';
-if(!adminUrl||!/^rushr_bnb_[a-z0-9_]+$/.test(name))throw new Error('Explicit admin URL and rushr_bnb_* database name required');
+const name=process.env.BNB_PRODUCT_DATABASE??'clashr_bnb_local';
+// rushr_bnb_* stays accepted for databases created before the Clashr rename.
+if(!adminUrl||!/^(clashr|rushr)_bnb_[a-z0-9_]+$/.test(name))throw new Error('Explicit admin URL and clashr_bnb_* (or legacy rushr_bnb_*) database name required');
 const admin=postgres(adminUrl,{max:1,prepare:false});
 try {
   const [exists]=await admin`select 1 from pg_database where datname=${name}`;

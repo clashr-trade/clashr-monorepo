@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { buildCsp, newNonce } from './components/trade/csp';
+import { devAllowedOrigin } from './lib/dev-origin';
 
 /** Terminal routes: served on app.rushr.trade, with the strict per-request-nonce CSP (see components/trade/csp.ts). */
 const APP_ROUTES = /^\/(bsc|trenches|token|feed|people|clash|contest|swap|settings|me|u|leaderboard|agents|rush)(\/|$)/;
@@ -36,7 +37,7 @@ function redirect(req: NextRequest, host: string, pathname = req.nextUrl.pathnam
  */
 export function middleware(req: NextRequest) {
   const host = (req.headers.get('host') ?? req.nextUrl.host).toLowerCase();
-  const local = LOCAL.test(host);
+  const local = LOCAL.test(host) || host === devAllowedOrigin()?.host.toLowerCase();
   const path = req.nextUrl.pathname;
   if (process.env.NEXT_PUBLIC_PRODUCT_CHAIN_ID === '56') {
     const destination = path === '/bsc' ? '/trenches'

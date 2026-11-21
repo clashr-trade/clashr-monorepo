@@ -13,7 +13,17 @@ const UNUSED_PRIVY_PEERS = [
   'permissionless',
 ];
 
+/** Dev server reached by address instead of localhost (see lib/dev-origin.ts). */
+const devHost = (() => {
+  try {
+    return process.env.DEV_ALLOWED_ORIGIN ? new URL(process.env.DEV_ALLOWED_ORIGIN).hostname : null;
+  } catch {
+    return null;
+  }
+})();
+
 const nextConfig: NextConfig = {
+  ...(devHost ? { allowedDevOrigins: [devHost] } : {}),
   transpilePackages: ['@clashr/agents', '@clashr/core', '@clashr/trade'],
   images: { unoptimized: true },
   async redirects() {
