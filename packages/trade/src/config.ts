@@ -6,7 +6,7 @@ import { TradeError } from './errors';
  * Platform fee configuration.
  *
  * Treasury (decided 2026-11-12): currently a single EOA (no code on 4663), moving to a Safe. Known
- * risk (docs/trading.md): a single key. Mitigations: hardware-wallet key, regular sweeps, move to a Safe
+ * risk (docs/trading.md, removed; see git history): a single key. Mitigations: hardware-wallet key, regular sweeps, move to a Safe
  * before volume grows. Since 2026-11-16 the treasury is a Safe (`LEGACY_ROBINHOOD_TREASURY`); the on-chain routers, once
  * deployed, can only move it through their guardian timelock (TreasuryTimelock), and this default must match.
  *

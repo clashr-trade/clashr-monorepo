@@ -3,7 +3,7 @@
  * in ONE transaction? The test address is given the 7702 delegation designator (0xef0100 ‖ delegate)
  * as a state override in eth_simulateV1. It then calls its own executeBatch with
  * [fee transfer, curve.buy], then [approve, curve.sell, fee transfer]. Nothing is signed or broadcast.
- * See docs/trading.md, "Fees on curve trades".
+ * See docs/trading.md, removed; see git history, "Fees on curve trades".
  *
  *   pnpm --filter @clashr/trade exec tsx scripts/batch7702-sim.ts <token> [--eth 0.01]
  */

@@ -16,7 +16,7 @@ import type { QuickTrade, WalletCall } from './quick';
  *
  * Both amounts come from the curve's CurveBuy / CurveSell events. A trade that reverted or never
  * confirmed pays no fee. EIP-7702 batching (one atomic transaction) is the later path: see
- * docs/trading.md "Fees on curve trades".
+ * docs/trading.md, removed; see git history "Fees on curve trades".
  */
 
 /** `CurveBuy(address buyer, address recipient, uint256 quoteIn, uint256 tokensOut, uint256 fee, uint256 creatorTax)` */

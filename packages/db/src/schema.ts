@@ -146,7 +146,7 @@ export const positions = pgTable(
 /**
  * Trades placed through Rushr (web, agents, API) and the platform fee each paid, for fee accounting and
  * referral accruals. Recorded from the chain, never from client amounts: amounts and the fee actually
- * received by the treasury come from the receipt and a call trace. See docs/trading.md.
+ * received by the treasury come from the receipt and a call trace. See docs/trading.md, removed; see git history.
  */
 export const tradesLedger = pgTable(
   'trades_ledger',

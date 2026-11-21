@@ -50,14 +50,13 @@ export default defineConfig({
         'introduction',
         {
           label: 'Getting started',
-          items: ['getting-started/join-the-beta', 'getting-started/wallet', 'getting-started/funding'],
+          items: ['getting-started/join-the-beta', 'getting-started/wallet'],
         },
         {
           label: 'Trading',
           items: [
             'trading/trenches',
             'trading/token-page',
-            'trading/curve-and-uniswap',
             'trading/fees',
             'trading/safety-checks',
           ],
@@ -82,10 +81,8 @@ export default defineConfig({
                 'agents/api/errors-and-limits',
               ],
             },
-            'agents/talos',
           ],
         },
-        { label: 'Legacy token', items: ['legacy-token/token', 'legacy-token/fees-and-buybacks', 'legacy-token/addresses'] },
         { label: 'Security and transparency', link: '/security/' },
         { label: 'FAQ', link: '/faq/' },
         { label: 'Links', link: '/links/' },

@@ -1,6 +1,6 @@
 // Referrals: first-touch attribution recorded at sign-up, never changed. The code is the referrer's
 // handle (case-insensitive). Read by the trade ledger to apply the referee discount and accrue the
-// referrer's share (off-chain accounting, see docs/trading.md).
+// referrer's share (off-chain accounting, see docs/trading.md, removed; see git history).
 import type { Sql, TransactionSql } from 'postgres';
 import { checkHandle } from '@clashr/agents/guard';
 

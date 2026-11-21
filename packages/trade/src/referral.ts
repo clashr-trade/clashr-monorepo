@@ -29,7 +29,7 @@ export function referralDiscount(feeBasis: bigint, cfg: TradeConfig, appliedBps:
  * One row per executed trade: everything the off-chain fee and referral ledger needs. Built from the
  * quote at submit time (`status: 'submitted'`), then completed from the receipt (`status: 'confirmed'`)
  * with the fee actually paid, which is the number payouts must use.
- * Proposed table: see docs/trading.md "Referral ledger".
+ * Proposed table: see docs/trading.md, removed; see git history "Referral ledger".
  */
 export interface TradeRecord {
   status: 'quoted' | 'submitted' | 'confirmed' | 'failed';
