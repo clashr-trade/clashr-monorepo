@@ -4,7 +4,7 @@ pragma solidity 0.8.26;
 import {TreasuryTimelock} from "./TreasuryTimelock.sol";
 
 /// @notice Minimal views of the PONS launch factory and per-token bonding curve on Robinhood Chain.
-/// Selectors were resolved from deployed bytecode and checked with eth_simulateV1 (see docs/trading.md).
+/// Selectors were resolved from deployed bytecode and checked with eth_simulateV1 (see docs/trading.md, removed; see git history).
 interface IPonsFactory {
     /// @dev Returns a larger struct; only the first two words (token, curve) are read.
     function getLaunchedToken(address token) external view returns (address token_, address curve);

@@ -22,7 +22,6 @@ coverage
 .claude/
 .mcp.json
 # ...except the Claude Code plugin's server config, which ships with the plugin.
-!plugins/clashr-legacy/.mcp.json
 !plugins/clashr/.mcp.json
 skills-lock.json
 

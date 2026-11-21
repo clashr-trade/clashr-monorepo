@@ -36,7 +36,7 @@ import { TradeBox } from './trade-box';
  */
 
 const client = createPublicClient({ chain: robinhoodChain, transport: http(), batch: { multicall: true } }) as PublicClient;
-// Placeholder fee config (see docs/trading.md): 1% to a placeholder treasury. Signing is refused until it is set.
+// Placeholder fee config (see docs/trading.md, removed; see git history): 1% to a placeholder treasury. Signing is refused until it is set.
 const cfg = resolveConfig();
 /** Used when no wallet is connected: an empty address, funded only inside the simulation. */
 const SIM_TRADER: Address = '0x00000000000000000000000000000000c0ffee01';

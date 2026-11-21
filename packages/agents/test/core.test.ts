@@ -133,9 +133,5 @@ describe('llms.txt', () => {
     expect(SKILL_MD).toBe(readFileSync(new URL('../skill.md', import.meta.url), 'utf8'));
     const front = /^---\nname: clashr-legacy\ndescription: (.+)\n---\n/.exec(SKILL_MD);
     expect(front?.[1]?.length ?? 0).toBeGreaterThan(40);
-    // The copy at the repo root that skill directories index.
-    expect(readFileSync(new URL('../../../skills/clashr-legacy/SKILL.md', import.meta.url), 'utf8')).toBe(SKILL_MD);
-    // And the copy bundled in the Codex / Claude Code plugin.
-    expect(readFileSync(new URL('../../../plugins/clashr-legacy/skills/clashr-legacy/SKILL.md', import.meta.url), 'utf8')).toBe(SKILL_MD);
   });
 });

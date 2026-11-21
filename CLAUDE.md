@@ -89,7 +89,7 @@ Legacy Robinhood mode: `pnpm dev:indexer` (wrangler, with `apps/indexer/.dev.var
   - Also leaderboard/PnL primitives and the `llms.txt`/`skill.md` generators.
 - **`packages/db`**: see Database below.
 - **MCP**: `packages/clashr-mcp` (`@clashr/mcp`, BNB) exposes `my_status`, `create_wallet`, `register`, `scan`, `token`, `feed`, `leaderboard`, `quote`, `dry_run`, and **never submits transactions**. `packages/mcp` (`@clashr/legacy-mcp`) still targets Robinhood. Keep their credentials and state isolated (`CLASHR_PRIVATE_KEY`/`CLASHR_STATE_DIR` versus `CLASHR_ROBINHOOD_*`/`RUSHR_*`).
-- **`plugins/clashr`** (active), `plugins/clashr-legacy`, `skills/`, `.claude-plugin/marketplace.json`: agent plugin distribution.
+- **`plugins/clashr`**, `.claude-plugin/marketplace.json`, `.agents/plugins/marketplace.json`: agent plugin distribution. The legacy plugin and skill folders were removed; `packages/agents/skill.md` / `llms.txt` remain only as the non-BNB-mode `/skill.md` and `/llms.txt`.
 - **`contracts`**: Flap Portal interface declarations only. Trades go directly from the user's wallet to the external Flap Portal, with no Clashr router or fee. The router/treasury contracts are unused legacy drafts.
 
 ### `apps/indexer` (Hono on Cloudflare Workers)

@@ -8,7 +8,7 @@ Owned source and workspace packages use Clashr names, while existing runtime ide
 - `packages/trade/src/clashr-router.ts` exports `clashrLegacy*` helpers for the retained legacy router adapter. The former module subpath and exported symbols remain explicit aliases to the same code.
 - `packages/mcp/src/clashr.ts` exports `ClashrLegacyClient`, with its former class/result aliases. This client targets the legacy deployment and must not share the BNB client's credentials.
 - Contract sources/tests use `ClashrLegacyRouter` and `ClashrLegacyPonsRouter` filenames and symbols. They remain unused legacy drafts. Current Flap trading calls the external BNB Portal directly.
-- Legacy plugin/skill folders are `plugins/clashr-legacy` and `skills/clashr-legacy`. The active plugin is `plugins/clashr`.
+- The active plugin is `plugins/clashr`. The legacy plugin and skill folders have been removed.
 - Documentation CSS uses `clashr.css` and matching CSS variables/classes. Redirects preserve former public URLs.
 
 ## Compatibility deliberately retained

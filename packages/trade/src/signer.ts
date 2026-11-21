@@ -3,7 +3,7 @@ import { TradeError } from './errors';
 import type { TradeConfig } from './config';
 
 /**
- * Session signing for one-click trading (docs/wallets.md). Runs on Cloudflare Workers: fetch + WebCrypto
+ * Session signing for one-click trading (docs/wallets.md, removed; see git history). Runs on Cloudflare Workers: fetch + WebCrypto
  * only, no Node built-ins.
  *
  * Gates, all of which must pass before anything is signed:
