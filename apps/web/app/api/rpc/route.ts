@@ -44,12 +44,20 @@ const json = (body: unknown, status = 200) => new Response(JSON.stringify(body),
 
 export async function POST(req: Request) {
   const origin = req.headers.get('origin');
-  if (origin && !ORIGINS.has(origin) && origin !== devAllowedOrigin()?.origin) return json(rpcError(null, -32000, 'origin not allowed'), 403);
+  const configuredOrigins = [process.env.NEXT_PUBLIC_APP_URL, process.env.NEXT_PUBLIC_SITE_URL].flatMap((value) => {
+    try { const url = new URL(value ?? ''); return ['http:', 'https:'].includes(url.protocol) ? [url.origin] : []; }
+    catch { return []; }
+  });
+  if (origin && !ORIGINS.has(origin) && !configuredOrigins.includes(origin) && origin !== devAllowedOrigin()?.origin) return json(rpcError(null, -32000, 'origin not allowed'), 403);
 
   let chainId;
   try { chainId = requestedRpcChain(req.url); }
   catch { return json(rpcError(null, -32602, 'unsupported chain'), 400); }
-  const { env } = getCloudflareContext() as unknown as { env: Env };
+  // next start on a VPS has no Worker context. Retain Worker bindings when
+  // deployed through OpenNext; native Node uses server-only process.env below.
+  const env: Env = process.env.CLASHR_WEB_RUNTIME === 'node'
+    ? {}
+    : (getCloudflareContext() as unknown as { env: Env }).env;
   // Worker secrets take priority; Next development also loads server-only .env.local settings.
   const upstreamUrl = rpcUpstream({
     RPC_URL: env.RPC_URL ?? process.env.RPC_URL,
