@@ -1,6 +1,7 @@
 import { existsSync, readFileSync, writeFileSync, renameSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { isIP } from 'node:net';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const defaultOrigin = 'http://135.181.237.187:3000';
@@ -19,7 +20,12 @@ export function configureEnv(source, value) {
     NEXT_PUBLIC_SITE_URL: url.origin,
     PRODUCT_ORIGIN: url.origin,
     NEXT_PUBLIC_PRODUCT_CHAIN_ID: '56',
+    CLASHR_HTTP_PREVIEW_ORIGIN: url.protocol === 'http:' && isIP(url.hostname) === 4 ? url.origin : '',
   };
+  // The API must not call itself via a public HTTPS redirect or a firewall.
+  if (!/^[ \t]*(?:export[ \t]+)?PRODUCT_MARKET_ORIGIN[ \t]*=/m.test(source)) {
+    settings.PRODUCT_MARKET_ORIGIN = 'http://127.0.0.1:3000';
+  }
   const newline = source.includes('\r\n') ? '\r\n' : '\n';
   for (const [key, value] of Object.entries(settings)) {
     const assignment = new RegExp(`^[ \\t]*(?:export[ \\t]+)?${key}[ \\t]*=[^\\r\\n]*`, 'gm');
@@ -47,8 +53,8 @@ function main() {
     renameSync(temporary, destination);
     console.log(`Updated ${file}; private settings retained.`);
   }
-  console.log(`Restart dev:web and dev:backend. Open ${new URL(origin).origin}.`);
-  console.log('HTTP IP access is for development. start:web still requires an HTTPS reverse proxy for public access.');
+  console.log(`Restart the frontend and backend. Open ${new URL(origin).origin}.`);
+  console.log('For an optimized IP preview: npm run build:web, then npm run start:vps. HTTP is unencrypted; wallet providers may still require HTTPS.');
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

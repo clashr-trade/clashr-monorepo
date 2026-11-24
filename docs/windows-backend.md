@@ -84,7 +84,7 @@ On a small VPS, pause other memory-heavy jobs during the build. Check available
 RAM and Windows page-file configuration before increasing any Node heap limit;
 a Rust allocation failure is not controlled solely by V8's heap limit.
 
-## Access through the VPS IP during development
+## Optimized access through the VPS IP
 
 With your environment already configured, run this from the repository root:
 
@@ -97,12 +97,49 @@ enables BNB product mode. It updates `apps/web/.env.local` and an existing root
 `.env.vps`, preserving unrelated settings and secrets. Both files stay ignored
 by Git; pulling the repository does not modify them automatically.
 
-Restart `pnpm run dev:web` and `pnpm run dev:backend` (or the backend command
-with your custom environment-file option). Open **http://135.181.237.187:3000**,
-not HTTPS. Ensure the frontend is listening on all interfaces and that Windows
-and provider firewalls permit TCP 3000. Keep the database and API ports private.
+It also explicitly sets `CLASHR_HTTP_PREVIEW_ORIGIN` for this exact IP and port.
+This allows an optimized Node build to serve HTTP for that origin without
+redirecting it to HTTPS or dropping its port. Other public hosts still require
+HTTPS. Build and run the frontend with:
+
+```powershell
+npm run build:web
+# Only after a successful build:
+npm run start:vps
+```
+
+`start:vps` binds the frontend to `0.0.0.0:3000`. Restart `npm run dev:backend`
+(or the backend command with your custom environment-file option) in another
+terminal. Open **http://135.181.237.187:3000**, not HTTPS. A bare IP without
+`:3000` uses a different port and needs a separate proxy. Windows and provider
+firewalls must permit inbound TCP 3000. Keep database and API ports private.
 
 For a different origin, use `pnpm run env:vps --origin=https://your-domain.example`.
-The HTTP preview exception does not apply to `start:web`; production public
-access requires a valid HTTPS reverse proxy. Wallet providers that require a
-secure browser context will still need HTTPS outside localhost.
+Using an HTTPS origin clears the HTTP preview flag; normal production hosting
+should use a valid HTTPS reverse proxy. HTTP preview traffic is unencrypted.
+Wallet providers requiring a secure browser context still need HTTPS outside
+localhost. It does not bypass wallet confirmations or BNB execution validation.
+
+## Diagnose RPC access and metadata sync
+
+```powershell
+npm run check:backend
+# Or, if the backend uses the root environment file:
+npm run check:backend -- --env-file=.env.vps
+```
+
+This performs read-only chain, finalized-header, historical-header and one-block
+Flap log probes. It identifies blocked methods and safe provider error categories
+without printing API keys or changing database cursors. HTTP 401/403 failures
+back off for at least 60 seconds; rate limits also back off. No alternative
+provider or unverified data is substituted.
+
+Alchemy quota/capacity exhaustion must be resolved in the provider account.
+Verify that BNB mainnet is enabled, the key has log and historical-read access,
+and any IP allowlist permits the VPS. Do not paste credentials in logs or chat.
+
+The Node backend uses `PRODUCT_MARKET_ORIGIN=http://127.0.0.1:3000` for metadata
+sync, separately from the public `PRODUCT_ORIGIN` used by wallet login. Override
+the internal origin if the frontend listens on a different local port. If sync
+still returns 503, verify both `/health` on port 8790 and `/api/bsc/market` on
+port 3000; an unready index or provider failure can also make the feed unavailable.

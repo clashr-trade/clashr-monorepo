@@ -19,19 +19,20 @@ const LOAD_AFTER_MS = 1_500;
  * Loads Privy after the terminal is on screen (it's a big SDK), or immediately when someone asks to
  * sign in. Without NEXT_PUBLIC_PRIVY_APP_ID, sign-in stays off and nothing loads.
  */
-export function AuthRoot() {
+export function AuthRoot({allowHttpPreview=false}:{allowHttpPreview?:boolean}) {
   const path = usePathname();
-  if (BNB_PRODUCT) return privyAppId()?<LegacyAuthRoot/>:<><BnbAuthHost /><MemberGate /></>;
-  return path.startsWith('/bsc') ? null : <LegacyAuthRoot />;
+  if (BNB_PRODUCT) return privyAppId()?<LegacyAuthRoot allowHttpPreview={allowHttpPreview}/>:<><BnbAuthHost /><MemberGate /></>;
+  return path.startsWith('/bsc') ? null : <LegacyAuthRoot allowHttpPreview={allowHttpPreview}/>;
 }
-function LegacyAuthRoot() {
+function LegacyAuthRoot({allowHttpPreview}:{allowHttpPreview:boolean}) {
   const [load, setLoad] = useState(false);
   useEffect(() => {
     // Privy's embedded wallet throws over plain http (and took the whole page down). The middleware
-    // redirects http → https; if a page still arrives insecure, switch to https and never mount Privy here.
+    // handles normal HTTPS redirects. Explicit IP previews may browse without
+    // mounting Privy; they must not be redirected to a non-existent TLS server.
     if (!window.isSecureContext) {
-      if (window.location.protocol === 'http:') window.location.replace(window.location.href.replace(/^http:/, 'https:'));
-      setAuthState({ ready: true });
+      if (!allowHttpPreview && window.location.protocol === 'http:') window.location.replace(window.location.href.replace(/^http:/, 'https:'));
+      setAuthState({ ready: true, enabled: false });
       return;
     }
     if (!privyAppId()) {
@@ -66,7 +67,7 @@ function LegacyAuthRoot() {
       stop();
       window.clearTimeout(t);
     };
-  }, []);
+  }, [allowHttpPreview]);
   return (
     <>
       {load && <PrivyHost />}

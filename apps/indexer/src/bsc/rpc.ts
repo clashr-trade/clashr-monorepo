@@ -13,6 +13,31 @@ export const hash = (v: unknown): v is Hex => typeof v === 'string' && /^0x[0-9a
 export const address = (v: unknown): v is Hex => typeof v === 'string' && /^0x[0-9a-f]{40}$/.test(v);
 const hexData = (v: unknown): v is Hex => typeof v === 'string' && /^0x(?:[0-9a-f]{2})*$/.test(v);
 
+export class BscRpcRequestError extends Error {
+  readonly reason: string;
+  readonly rpcCode: number | undefined;
+  readonly retryAfterMs: number;
+  constructor(readonly method: string, readonly status: number, providerError?: unknown) {
+    const error = providerError && typeof providerError === 'object' ? providerError as Record<string,unknown> : {};
+    const message = typeof providerError === 'string' ? providerError : typeof error.message === 'string' ? error.message : '';
+    const reason = /monthly|daily|quota|credits|capacity|compute unit/i.test(message) ? 'provider capacity/quota exceeded'
+      : /allowlist|whitelist|origin|referer|ip address/i.test(message) ? 'provider allowlist rejected this request'
+      : /api.?key|unauthorized|authentication/i.test(message) ? 'provider credentials rejected'
+      : /not supported|not available|disabled|not allowed|method not found/i.test(message) ? 'provider method unavailable or restricted'
+      : /historical|archive|missing trie/i.test(message) ? 'provider historical data unavailable'
+      : status === 429 ? 'provider rate limit exceeded'
+      : status === 401 || status === 403 ? 'provider access denied; check quota, key and allowlists'
+      : 'provider request failed';
+    const code = typeof error.code === 'number' && Number.isFinite(error.code) ? error.code : undefined;
+    // Never include the raw provider body or URL: either can contain an API key.
+    super(`BSC RPC ${method} HTTP ${status}${code === undefined ? '' : ` code ${code}`}: ${reason}`);
+    this.name = 'BscRpcRequestError';
+    this.reason = reason;
+    this.rpcCode = code;
+    this.retryAfterMs = status === 401 || status === 403 || /capacity|quota/.test(reason) ? 60_000 : status === 429 ? 30_000 : 0;
+  }
+}
+
 /** Strict, bounded, read-only RPC. No public or legacy provider fallback. */
 export class BscRpc implements MarketRpc {
   private id = 0;
@@ -24,9 +49,13 @@ export class BscRpc implements MarketRpc {
     if (id > 200 || remaining <= 0) throw new Error('BSC RPC batch budget exhausted');
     const response = await this.fetcher(this.url, { method: 'POST', headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ jsonrpc: '2.0', id, method, params }), signal: AbortSignal.timeout(Math.min(10_000, remaining)) });
-    if (!response.ok) throw new Error(`BSC RPC HTTP ${response.status}`);
+    if (!response.ok) {
+      const body = await response.json().catch(() => null) as {error?:unknown}|null;
+      throw new BscRpcRequestError(method,response.status,body?.error);
+    }
     const body = await response.json() as { id?: number; error?: unknown; result?: T };
-    if (body.id !== id || body.error || body.result == null) throw new Error(`BSC RPC invalid ${method} response`);
+    if (body.error) throw new BscRpcRequestError(method,response.status,body.error);
+    if (body.id !== id || body.result == null) throw new Error(`BSC RPC invalid ${method} response`);
     return body.result;
   }
   async chainId() {

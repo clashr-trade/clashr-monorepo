@@ -8,18 +8,18 @@ export async function syncProductMarket(sql:Sql,origin:string,rpcUrl=BSC_PUBLIC_
   if(!response.ok)throw new Error('BNB market source unavailable');
   const market=await response.json() as {chainId:number;source:string;tokens:Record<string,unknown>[]};
   if(market.chainId!==56||!['flap','geckoterminal'].includes(market.source)||!Array.isArray(market.tokens))throw new Error('Wrong market source');
-  const client=createPublicClient({chain:bsc,transport:http(rpcUrl)});
-  if(await client.getChainId()!==56)throw new Error('Wrong provider chain');
   const groups=['new','almost','migrated'].map(column=>market.tokens.filter(token=>token.market_column===column));
   const fair=Array.from({length:60},(_,index)=>groups.flatMap(group=>group[index]?[group[index]!]:[])).flat().filter(token=>Number.isFinite(Date.parse(String(token.created_at)))).slice(0,150);
   if(!fair.length)return {chainId:56,updated:0,source:market.source,metadataOnly:true};
+  const client=createPublicClient({chain:bsc,transport:http(rpcUrl,{retryCount:0,timeout:8000})});
   const knownRows=await sql`select address,decimals,total_supply from tokens where address in ${sql(fair.map(t=>String(t.address)))}`;
   const knownByAddress=new Map(knownRows.map(row=>[row.address,row]));
   const missing=fair.filter(token=>!knownByAddress.has(token.address)).slice(0,30);
-  const metadata=await client.multicall({allowFailure:true,contracts:missing.flatMap(token=>[
+  if(missing.length&&await client.getChainId()!==56)throw new Error('Wrong provider chain');
+  const metadata=missing.length?await client.multicall({allowFailure:true,contracts:missing.flatMap(token=>[
     {address:token.address as Address,abi:erc20Abi,functionName:'decimals' as const},
     {address:token.address as Address,abi:erc20Abi,functionName:'totalSupply' as const},
-  ])});
+  ])}):[];
   missing.forEach((token,index)=>{const decimals=metadata[index*2],supply=metadata[index*2+1];if(decimals?.status==='success'&&supply?.status==='success')knownByAddress.set(token.address,{address:token.address,decimals:decimals.result,total_supply:supply.result});});
   let updated=0;
   for(const token of fair){

@@ -2,6 +2,7 @@ import { getCloudflareContext } from '@opennextjs/cloudflare';
 import { LEGACY_CHAIN_ID } from '@clashr/core/chain/networks';
 import { requestedRpcChain, rpcUpstream, verifyRpcChain, type RpcEnvironment } from '../../../lib/rpc-upstream';
 import { devAllowedOrigin } from '../../../lib/dev-origin';
+import { httpPreviewOrigin } from '../../../lib/http-preview';
 
 /**
  * JSON-RPC proxy to our Alchemy endpoint for the browser: wallet balances, quotes, simulations and sending signed
@@ -48,7 +49,7 @@ export async function POST(req: Request) {
     try { const url = new URL(value ?? ''); return ['http:', 'https:'].includes(url.protocol) ? [url.origin] : []; }
     catch { return []; }
   });
-  if (origin && !ORIGINS.has(origin) && !configuredOrigins.includes(origin) && origin !== devAllowedOrigin()?.origin) return json(rpcError(null, -32000, 'origin not allowed'), 403);
+  if (origin && !ORIGINS.has(origin) && !configuredOrigins.includes(origin) && origin !== devAllowedOrigin()?.origin && origin !== httpPreviewOrigin()?.origin) return json(rpcError(null, -32000, 'origin not allowed'), 403);
 
   let chainId;
   try { chainId = requestedRpcChain(req.url); }

@@ -1,5 +1,6 @@
 import { BNB_SESSION_COOKIE } from './brand-compat';
 import { devAllowedOrigin } from './dev-origin';
+import { httpPreviewOrigin } from './http-preview';
 const COOKIE=BNB_SESSION_COOKIE;
 async function limitedBody(request:Pick<Request,'body'>,max:number):Promise<Uint8Array<ArrayBuffer>|null>{
   const reader=request.body?.getReader();
@@ -22,7 +23,7 @@ export async function proxyProduct(request:Request,parts:string[],base:string|un
   if(parts.some(p=>!p||p==='.'||p==='..'||/[\/\\%?#\u0000]/.test(p)))return new Response(null,{status:400});
   const own=new URL(request.url),origin=request.headers.get('origin');
   // The dev server reports request.url as localhost, so an address-based dev origin is matched explicitly.
-  if(!['GET','HEAD','OPTIONS'].includes(request.method)&&origin!==own.origin&&origin!==devAllowedOrigin()?.origin)return new Response('Invalid origin',{status:403,headers});
+  if(!['GET','HEAD','OPTIONS'].includes(request.method)&&origin!==own.origin&&origin!==devAllowedOrigin()?.origin&&origin!==httpPreviewOrigin()?.origin)return new Response('Invalid origin',{status:403,headers});
   target.pathname=`/${parts.join('/')}`;target.search=own.search;
   const forwarded=new Headers({'accept':'application/json'});
   const token=request.headers.get('cookie')?.split(';').map(v=>v.trim()).find(v=>v.startsWith(`${COOKIE}=`))?.slice(COOKIE.length+1);

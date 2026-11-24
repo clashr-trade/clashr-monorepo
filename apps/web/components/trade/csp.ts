@@ -14,7 +14,7 @@
  */
 import { BSC_PUBLIC_RPC } from '@clashr/core/chain/bsc-rpc';
 
-export function buildCsp(opts: { nonce: string; dev?: boolean; apiUrl?: string;chainId?:56 }): string {
+export function buildCsp(opts: { nonce: string; dev?: boolean; httpPreview?: boolean; apiUrl?: string;chainId?:56 }): string {
   const api = (opts.apiUrl ?? 'https://api.rushr.trade').replace(/\/+$/, '');
   const ws = api.replace(/^http/, 'ws');
   const directives: Record<string, string[]> = {
@@ -50,7 +50,7 @@ export function buildCsp(opts: { nonce: string; dev?: boolean; apiUrl?: string;c
   const policy = Object.entries(directives)
     .map(([k, v]) => `${k} ${v.join(' ')}`)
     .join('; ');
-  return opts.dev ? policy : `${policy}; upgrade-insecure-requests`;
+  return opts.dev || opts.httpPreview ? policy : `${policy}; upgrade-insecure-requests`;
 }
 
 /** Fresh base64 nonce (Workers / Edge: WebCrypto only). */

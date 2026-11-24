@@ -1,4 +1,4 @@
-import { spawn } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import path from 'node:path';
@@ -78,11 +78,11 @@ export function runServices(services, { cwd = root, env = process.env } = {}) {
 async function main() {
   const args = process.argv.slice(2);
   if (args.includes('--help')) {
-    console.log('Usage: pnpm run dev:backend [--env-file=apps/web/.env.local] [--check]');
+    console.log('Usage: pnpm run dev:backend [--env-file=apps/web/.env.local] [--check|--check-rpc]');
     console.log('Starts the API and six Flap workers. Ctrl+C stops the group. PostgreSQL must already be running.');
     return;
   }
-  if (args.some((arg) => arg !== '--check' && !arg.startsWith('--env-file='))
+  if (args.some((arg) => arg !== '--check' && arg !== '--check-rpc' && !arg.startsWith('--env-file='))
       || args.filter((arg) => arg.startsWith('--env-file=')).length > 1) {
     throw new Error('Unknown or duplicate option. Run with --help.');
   }
@@ -111,6 +111,14 @@ async function main() {
   let loader;
   try { loader = pathToFileURL(require.resolve('tsx')).href; }
   catch { throw new Error('tsx is not installed. Run pnpm install --frozen-lockfile first.'); }
+  if (args.includes('--check-rpc')) {
+    console.log(`BSC_RPC_URL source: ${process.env.BSC_RPC_URL ? 'process environment (overrides file)' : envPath}`);
+    const result = spawnSync(process.execPath, ['--import', loader, path.join(root,'apps/indexer/scripts/check-backend-rpc.ts')], {
+      cwd:root,env,stdio:'inherit',windowsHide:true,
+    });
+    process.exitCode=result.status??1;
+    return;
+  }
   const services = workers.map(([name, file, extra]) => ({
     name, args: ['--import', loader, path.join(root, 'apps/indexer/scripts', file), ...extra],
   }));
