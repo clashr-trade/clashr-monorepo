@@ -11,7 +11,8 @@ import { WHITEPAPER_MD } from '@/components/landing/whitepaper-source.generated'
 
 // docs/whitepaper.md is the source of truth. It is bundled as a string at build time (scripts/gen-whitepaper.mjs),
 // so editing the markdown and redeploying is all a text change needs.
-export const dynamic = 'force-static';
+// The document is bundled at build time; its UI language comes from the request cookie.
+// force-static would hide that cookie from the shared root layout.
 export const viewport: Viewport = { themeColor: '#f7f5f2' };
 
 const SHARE = {
