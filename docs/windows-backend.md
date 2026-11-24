@@ -53,3 +53,26 @@ pnpm run dev:web
 ```
 
 If PowerShell blocks `pnpm.ps1`, use `pnpm.cmd` in the same commands.
+
+## Access through the VPS IP during development
+
+With your environment already configured, run this from the repository root:
+
+```powershell
+pnpm run env:vps
+```
+
+This sets the app and wallet-login origins to `http://135.181.237.187:3000` and
+enables BNB product mode. It updates `apps/web/.env.local` and an existing root
+`.env.vps`, preserving unrelated settings and secrets. Both files stay ignored
+by Git; pulling the repository does not modify them automatically.
+
+Restart `pnpm run dev:web` and `pnpm run dev:backend` (or the backend command
+with your custom environment-file option). Open **http://135.181.237.187:3000**,
+not HTTPS. Ensure the frontend is listening on all interfaces and that Windows
+and provider firewalls permit TCP 3000. Keep the database and API ports private.
+
+For a different origin, use `pnpm run env:vps --origin=https://your-domain.example`.
+The HTTP preview exception does not apply to `start:web`; production public
+access requires a valid HTTPS reverse proxy. Wallet providers that require a
+secure browser context will still need HTTPS outside localhost.

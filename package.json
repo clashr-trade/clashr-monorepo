@@ -6,6 +6,7 @@
     "node": ">=22.23.4"
   },
   "scripts": {
+    "env:vps": "node scripts/configure-vps-env.mjs",
     "dev:backend": "node scripts/dev-backend.mjs",
     "dev:web": "pnpm --filter @clashr/web dev",
     "build:web": "node scripts/web-node.mjs build",
