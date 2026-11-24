@@ -30,7 +30,23 @@ independently managed as a Windows service. The launcher does not initialize or
 migrate databases, start the frontend, install a Windows service, or configure
 automatic startup. This remains the existing development runtime.
 
-Run the frontend in a second terminal:
+For VPS page performance, build the frontend once and run the optimized Node
+server in a second terminal. Stop `dev:web` before switching to `start:web`:
+
+```powershell
+pnpm run build:web
+pnpm run start:web
+```
+
+Rebuild after source changes or changes to `NEXT_PUBLIC_*` settings in
+`apps/web/.env.local`. `start:web` uses port 3000; optionally pass
+`--hostname 127.0.0.1` when serving through a reverse proxy. It uses server-only
+environment settings for the RPC proxy without starting a Cloudflare dev proxy.
+Set `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_SITE_URL`, and the backend's
+`PRODUCT_ORIGIN` to the actual HTTPS origin when using a public domain. The
+development-only `DEV_ALLOWED_ORIGIN` is ignored in production.
+
+For source development with hot reload instead:
 
 ```powershell
 pnpm run dev:web

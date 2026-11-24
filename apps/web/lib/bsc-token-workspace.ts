@@ -4,7 +4,7 @@ import { BSC_PUBLIC_RPC } from '@clashr/core/chain/bsc-rpc';
 import type { Candle } from './api';
 import { type HolderInfo, type Tx } from './trades';
 import { getPublicBscToken, getPublicBscCandles, type PublicBscDetail } from './bsc-public-market';
-import { getBnbProductToken, getFlapTokenInfo, getFlapCandles, getFlapTrades, getFlapHolders } from './flap-market';
+import { getBnbProductToken, getFlapTokenInfo, getFlapTrades, getFlapHolders } from './flap-market';
 import { BNB_PRODUCT } from './product';
 import { verifyRpcChain } from './rpc-upstream';
 
@@ -159,9 +159,9 @@ export function getBscTokenWorkspace(address: string): Promise<BscTokenWorkspace
   return task;
 }
 async function load(address: string): Promise<BscTokenWorkspace | null> {
+  const infoPromise = BNB_PRODUCT ? getFlapTokenInfo(address).catch(() => null) : Promise.resolve(null);
   const detail = await (BNB_PRODUCT ? getBnbProductToken(address) : getPublicBscToken(address));
   if (!detail) return null;
-  const infoPromise = BNB_PRODUCT ? getFlapTokenInfo(address).catch(() => null) : Promise.resolve(null);
   const metadata = async () => {
     const info=await infoPromise;
     if(detail.source==='flap'&&Number.isInteger(info?.decimals)&&Number(info?.decimals)>=0&&Number(info?.decimals)<=36&&/^\d+$/.test(String(info?.totalSupply??'')))return {decimals:Number(info!.decimals),totalSupply:String(info!.totalSupply)};
@@ -209,10 +209,14 @@ async function load(address: string): Promise<BscTokenWorkspace | null> {
   };
   // Flap holder/trade units are not inferred from Four.meme's unrelated API schema.
   const holders = async ():Promise<HolderInfo[]|null> => detail.source==='flap'?getFlapHolders(address):null;
+  const rowsPromise = activity().catch(()=>({trades:[] as Tx[],activity:'unavailable' as const}));
   const [meta, candles, rows, holderRows, info] = await Promise.all([
     metadata().catch(() => ({ decimals: detail.token.decimals, totalSupply: null })),
-    (detail.source === 'flap' && !detail.pools.length ? getFlapCandles(address, '1m') : getPublicBscCandles(address, '1m')).catch(() => []),
-    activity().catch(()=>({trades:[] as Tx[],activity:'unavailable' as const})),
+    // Reuse the trade table's sample for curve candles instead of fetching twice.
+    (detail.source === 'flap' && !detail.pools.length
+      ? rowsPromise.then(({trades})=>candlesFromBscTrades(trades,60))
+      : getPublicBscCandles(address, '1m')).catch(() => []),
+    rowsPromise,
     holders().catch(() => null),
     infoPromise,
   ]);

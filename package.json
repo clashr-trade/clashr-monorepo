@@ -8,6 +8,8 @@
   "scripts": {
     "dev:backend": "node scripts/dev-backend.mjs",
     "dev:web": "pnpm --filter @clashr/web dev",
+    "build:web": "node scripts/web-node.mjs build",
+    "start:web": "node scripts/web-node.mjs start",
     "dev:indexer": "pnpm --filter @clashr/indexer dev",
     "build": "pnpm -r build",
     "typecheck": "pnpm -r typecheck",
