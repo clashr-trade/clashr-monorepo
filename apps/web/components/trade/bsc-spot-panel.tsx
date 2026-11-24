@@ -263,10 +263,10 @@ export function BscSpotPanel({ token, symbol,presentation='review',initialAmount
     {quote && <div className="mt-4 space-y-2 border-t border-white/[0.07] pt-4 text-[11px]">
       <Line label={translateUI("Receive (estimated)")} value={`${formatUnits(quote.amountOut, side === 'buy' ? quote.tokenDecimals : quote.venue==='flap'?quote.quoteDecimals:18)} ${side === 'buy' ? symbol : quote.venue==='flap'?quote.quoteSymbol:'BNB'}`} />
       <Line label={translateUI("Minimum received")} value={`${formatUnits(quote.minAmountOut, side === 'buy' ? quote.tokenDecimals : quote.venue==='flap'?quote.quoteDecimals:18)} ${side === 'buy' ? symbol : quote.venue==='flap'?quote.quoteSymbol:'BNB'}`} />
-      <Line label={translateUI("Route")} value={`${quote.venue} ${quote.feeTier == null ? '' : `· ${quote.feeTier / 10_000}% pool fee`}`} />
-      <Line label={translateUI("Venue fee")} value={quote.feeTier == null ? 'Included in router quote' : `${quote.feeTier / 10_000}% included in output`} />
-      {quote.priceImpactBps !== null && <Line label={translateUI("Pool impact incl. fee")} value={`${quote.priceImpactBps / 100}% (5% maximum)`} />}
-      <Line label={translateUI("Quote block")} value={quote.blockNumber.toString()} /><Line label={translateUI("Expiry")} value={expired ? 'Expired — refresh required' : `${Math.max(0, quote.expiresAt - now)} seconds`} />
+      <Line label={translateUI("Route")} value={`${quote.venue} ${quote.feeTier == null ? '' : `· ${quote.feeTier / 10_000}% ${translateUI("pool fee")}`}`} />
+      <Line label={translateUI("Venue fee")} value={quote.feeTier == null ? translateUI("Included in router quote") : `${quote.feeTier / 10_000}% ${translateUI("included in output")}`} />
+      {quote.priceImpactBps !== null && <Line label={translateUI("Pool impact incl. fee")} value={`${quote.priceImpactBps / 100}% (5% ${translateUI("maximum")})`} />}
+      <Line label={translateUI("Quote block")} value={quote.blockNumber.toString()} /><Line label={translateUI("Expiry")} value={expired ? translateUI("Expired — refresh required") : `${Math.max(0, quote.expiresAt - now)} ${translateUI("seconds")}`} />
       <Line label={translateUI("Platform fee")} value="0 BNB" />
       {proof && <><Line label={translateUI("Max network budget")} value={`${formatUnits(proof.maxGasCostWei, 18)} BNB`} /><Line label={translateUI("Token approvals")} value={String(proof.build.approvals.length)} /></>}
       <a href={`https://bscscan.com/address/${quote.router}`} target="_blank" rel="noopener noreferrer" className="flex items-center justify-between pt-2 font-mono text-muted">{translateUI("Router")} {quote.router.slice(0, 8)}…{quote.router.slice(-4)}<ArrowSquareOut /></a>
@@ -274,8 +274,8 @@ export function BscSpotPanel({ token, symbol,presentation='review',initialAmount
     </div>}
     {account && chain === 56 && <p className="mt-3 text-[10px] leading-relaxed text-muted">{translateUI('Confirm approvals and the swap in your wallet.')}</p>}
     {pending && !busy && <p role="status" className="mt-3 text-[11px] text-muted">{translateUI('Recheck the pending receipt before trading again')}</p>}
-    {stage && <p role="status" className="mt-4 flex items-start gap-2 text-[11px] leading-relaxed text-muted">{busy && <CircleNotch className="shrink-0 animate-spin" size={14} />}{stage}</p>}
-    {error && <p role="alert" className="mt-4 break-words text-[11px] leading-relaxed text-risk-high">{error}</p>}
+    {stage && <p role="status" className="mt-4 flex items-start gap-2 text-[11px] leading-relaxed text-muted">{busy && <CircleNotch className="shrink-0 animate-spin" size={14} />}{translateUI(stage)}</p>}
+    {error && <p role="alert" className="mt-4 break-words text-[11px] leading-relaxed text-risk-high">{translateUI(error)}</p>}
     {busy && <button onClick={() => { generation.current++; operation.current?.abort(); setStage('Cancel requested; already submitted transactions still need receipt checks.'); }} className="mt-3 text-[11px] text-muted underline">{translateUI("Stop after the current wallet request")}</button>}
     {!signing && <p className="mt-4 text-[10px] leading-relaxed text-muted">{translateUI("Quote and simulation previews do not enable transaction signing. BSC execution remains off until explicitly enabled after rehearsal.")}</p>}
     {!!activity.length && <div className="mt-5 border-t border-white/[0.07] pt-4">
@@ -293,7 +293,7 @@ function Line({ label, value }: { label: string; value: string }) {
 function ActivityRow({row,symbol}:{row:BscActivity;symbol:string}) {
   const {t:translateUI}=usePlatformLanguage();
   return <div className="mt-3 space-y-1 border-b border-white/[0.05] pb-3 text-[10px] text-muted">
-    <a href={`https://bscscan.com/tx/${row.hash}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1">{row.kind} · {row.status} · {row.hash.slice(0,8)}…<ArrowSquareOut size={11}/></a>
+    <a href={`https://bscscan.com/tx/${row.hash}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1">{translateUI(row.kind)} · {translateUI(row.status)} · {row.hash.slice(0,8)}…<ArrowSquareOut size={11}/></a>
     {row.fill && row.status!=='reverted' && <p className="break-all font-mono">{row.fill.side==='buy'?translateUI("Bought"):translateUI("Sold")} {formatUnits(BigInt(row.fill.tokenAmount),row.fill.tokenDecimals)} {symbol} / {row.fill.settlement ? `${row.fill.settlement.amount===null?translateUI('Up to')+' ':''}${formatUnits(BigInt(row.fill.settlement.amount??row.fill.settlement.maximum),row.fill.settlement.decimals)} ${row.fill.settlement.symbol}` : row.fill.nativeAmount!==null?`${formatUnits(BigInt(row.fill.nativeAmount),18)} BNB`:translateUI('Native spend unverified')}</p>}
     {row.networkFeeWei && <p className="break-all font-mono">{translateUI("Network fee:")} {formatUnits(BigInt(row.networkFeeWei),18)}  {translateUI("BNB")}</p>}
     {row.fill && !row.fill.meetsMinimum && row.status!=='reverted' && <p className="text-risk-high">{translateUI("Minimum-output discrepancy: inspect the receipt.")}</p>}

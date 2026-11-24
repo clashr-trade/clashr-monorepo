@@ -91,7 +91,7 @@ export function TradesTable({
                 side === s ? (s === 'buy' ? 'bg-brand/20 text-brand' : s === 'sell' ? 'bg-risk-high/20 text-risk-high' : 'bg-white/[0.1] text-ink') : 'text-muted'
               }`}
             >
-              {s === 'all' ? translateUI("All") : `${s}s`}
+              {translateUI(s === 'all' ? 'All' : s === 'buy' ? 'Buys' : 'Sells')}
             </button>
           ))}
         </div>

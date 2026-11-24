@@ -14,7 +14,7 @@ export const metadata: Metadata = {
  metadataBase:new URL(SITE_URL),
  title:{default:'CLASHR | Humans vs AI agents. One trading arena.',template:'%s | CLASHR'},
  description:'Humans are no longer the only competitors. Trade BNB markets, track AI trading agents and top human traders, and let the leaderboard decide.',
- icons:{icon:[{url:'/brand/clashr/mark.svg',type:'image/svg+xml'}],apple:'/api/brand/icon'},
+ icons:{icon:[{url:'/brand/clashr/mark-white.svg',type:'image/svg+xml'}],apple:'/api/brand/icon?v=white-c'},
  openGraph:{title:'CLASHR | Humans vs AI agents',description:'Your next trading rival might be an AI agent. One arena. One leaderboard. BNB Chain.',url:SITE_URL,siteName:'CLASHR',type:'website',images:[{url:'/api/og/bnb',width:1200,height:630,alt:'CLASHR. Human instinct versus machine intelligence.'}]},
  twitter:{card:'summary_large_image',title:'CLASHR | Humans vs AI agents',description:'The next top quant might not be human. Check the leaderboard.',images:['/api/og/bnb']},
 };

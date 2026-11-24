@@ -124,7 +124,7 @@ function ImageField({
   return (
     <div>
       <span className="text-xs text-muted">
-        {translateUI(label)} <span className="text-muted/70">· {hint}</span>
+        {translateUI(label)} <span className="text-muted/70">· {translateUI(hint)}</span>
       </span>
       <div className="mt-1 flex gap-2">
         <input

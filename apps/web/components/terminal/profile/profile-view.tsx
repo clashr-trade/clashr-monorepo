@@ -529,7 +529,7 @@ function Activity({ handle, wallet }: { handle: string | null; wallet: string | 
       <div className="flex flex-wrap items-center gap-1 border-b border-white/[0.05] px-3 py-2">
         {(
           [
-            ['calls', callouts.state === 'ready' && callouts.data.length ? `Calls ${callouts.data.length}` : 'Calls'],
+            ['calls', callouts.state === 'ready' && callouts.data.length ? `${translateUI('Calls')} ${callouts.data.length}` : 'Calls'],
             ['tx', 'Transactions'],
           ] as const
         ).map(([id, label]) => (
@@ -547,7 +547,7 @@ function Activity({ handle, wallet }: { handle: string | null; wallet: string | 
           <select value={min} onChange={(e) => setMin(Number(e.target.value))} aria-label={translateUI("Minimum size")} className="rounded-lg border border-white/[0.06] bg-bg px-1.5 py-1 text-muted outline-none">
             {[0, 10, 100, 1000].map((v) => (
               <option key={v} value={v}>
-                {v ? `Min $${countFmt(v)}` : translateUI("Any size")}
+                {v ? `${translateUI('Min $')}${countFmt(v)}` : translateUI("Any size")}
               </option>
             ))}
           </select>

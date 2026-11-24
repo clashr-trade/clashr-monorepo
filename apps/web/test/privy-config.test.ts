@@ -9,7 +9,7 @@ describe('Clashr sign-in',()=>{
     expect(config.embeddedWallets?.ethereum?.createOnLogin).toBe('all-users');
     expect(config.defaultChain?.id).toBe(56);
     expect(config.supportedChains?.map(c=>c.id)).toEqual([56]);
-    expect(config.appearance).toMatchObject({landingHeader:'Sign in to Clashr',logo:'/brand/clashr/mark.svg',accentColor:'#f0b90b'});
+    expect(config.appearance).toMatchObject({landingHeader:'Sign in to Clashr',logo:'/brand/clashr/mark-white.svg',accentColor:'#f0b90b'});
     expect(config.legal).toMatchObject({termsAndConditionsUrl:'http://localhost:3000/terms',privacyPolicyUrl:'http://localhost:3000/privacy'});
   });
   it('preserves the legacy product chain when BNB mode is off',()=>{

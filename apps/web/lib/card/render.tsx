@@ -129,7 +129,7 @@ async function Frame({ art, base, member, children }: { art: 'win' | 'loss' | 'p
       <div style={{ position: 'absolute', left: 0, top: 0, width: CARD.width, height: CARD.height, display: 'flex', backgroundImage: `linear-gradient(to right, ${PAPER} 0%, ${PAPER} 46%, rgba(247,245,242,0.9) 54%, rgba(247,245,242,0) 70%)` }} />
       <div style={{ position: 'absolute', left: 72, top: 56, bottom: 56, width: 600, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <svg width={34} height={35} viewBox="0 0 64 64"><path d="M50 10H25L10 25v20l15 15h25V46H31l-7-7V31l7-7h19Z" fill="#f0b90b"/><path d="m41 25-13 14h9l-4 13 20-24H42l4-9Z" fill="#0b0e11"/></svg>
+          <svg width={34} height={35} viewBox="0 0 64 64"><rect width="64" height="64" rx="15" fill="#f0b90b"/><path d="M50 10H25L10 25v20l15 15h25V46H31l-7-7V31l7-7h19Z" fill="#ffffff"/></svg>
           <span style={{ fontSize: 36, fontWeight: 600, letterSpacing: -1.6 }}>CLASHR.</span>
         </div>
         {children}

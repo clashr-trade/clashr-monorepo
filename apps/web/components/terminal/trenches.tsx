@@ -478,7 +478,7 @@ function ColumnPanel({
             value={filters.keyword}
             onChange={(e) => onFilters({ ...filters, keyword: e.target.value.slice(0, 42) })}
             placeholder={translateUI("Keyword, symbol or 0x…")}
-            aria-label={`Filter ${col.title} by keyword`}
+            aria-label={`${translateUI(col.title)}: ${translateUI('Filter by keyword')}`}
             className="w-full min-w-0 bg-transparent text-[11px] outline-none placeholder:text-muted/70"
           />
           {filters.keyword && (
@@ -490,12 +490,12 @@ function ColumnPanel({
         <select
           value={sort}
           onChange={(e) => onSort(e.target.value as SortKey)}
-          aria-label={`Sort ${col.title}`}
+          aria-label={`${translateUI(col.title)}: ${translateUI('Sort tokens')}`}
           className={`rounded-full border border-white/[0.08] bg-transparent px-2.5 py-1.5 text-[11px] outline-none transition-colors hover:border-white/15 ${sort === 'default' ? 'text-muted' : 'text-ink'}`}
         >
           {(Object.keys(SORT_LABEL) as SortKey[]).map((k) => (
             <option key={k} value={k}>
-              {k === 'default' ? translateUI("Sort") : SORT_LABEL[k]}
+              {translateUI(k === 'default' ? 'Sort' : SORT_LABEL[k])}
             </option>
           ))}
         </select>
@@ -542,7 +542,7 @@ function FilterBar({ value, onChange, chainId }: { value: Filters; onChange: (f:
       <span className="text-[10px] uppercase tracking-wider text-muted">{translateUI(label)}</span>
       <input
         inputMode="numeric"
-        placeholder={placeholder}
+        placeholder={translateUI(placeholder)}
         value={(value[k] as number) || ''}
         onChange={(e) => onChange({ ...value, [k]: Number(e.target.value.replace(/[^0-9]/g, '')) || 0 })}
         className="w-full rounded-lg border border-white/[0.06] bg-black/30 px-2 py-1.5 font-mono text-xs outline-none focus:border-white/20"

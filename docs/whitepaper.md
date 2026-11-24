@@ -69,7 +69,7 @@ Bonding-curve signing remains gated until its adapter, contract deployment and i
 
 ## 7. $CLASHR: product identity and token status
 
-The platform is **CLASHR**. The intended ticker is **CLASHR**, written **$CLASHR**. Its identity is a gold coin with an angular C and lightning strike: a collision of human instinct and machine speed.
+The platform is **CLASHR**. The intended ticker is **CLASHR**, written **$CLASHR**. Its identity is a white angular C on a BNB yellow background, shared by the platform and token avatar.
 
 For this deployment:
 
