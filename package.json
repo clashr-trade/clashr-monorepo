@@ -6,6 +6,7 @@
     "node": ">=22.23.4"
   },
   "scripts": {
+    "dev:backend": "node scripts/dev-backend.mjs",
     "dev:web": "pnpm --filter @clashr/web dev",
     "dev:indexer": "pnpm --filter @clashr/indexer dev",
     "build": "pnpm -r build",
