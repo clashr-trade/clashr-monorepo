@@ -94,7 +94,7 @@ export function Hero() {
         */}
         <h1 className="rise flex flex-col items-center">
           <span className="flex items-center gap-3 sm:gap-4 md:gap-5">
-            <Image src="/brand/clashr/mark.svg" alt="" width={96} height={96} priority className="size-12 sm:size-[68px] md:size-[82px]" />
+            <Image src="/brand/clashr/mark-white.svg" alt="" width={96} height={96} priority className="size-12 sm:size-[68px] md:size-[82px]" />
             <span className="pb-1 text-[68px] font-semibold leading-none tracking-[-0.05em] text-ink sm:text-[92px] md:pb-2 md:text-[112px]">
               CLASHR.
             </span>
@@ -242,7 +242,7 @@ export function Floor({
         <div className={`theme-terminal overflow-hidden rounded-2xl ${TERMINAL_H} border border-black/10 bg-surface shadow-[0_50px_100px_-40px_rgba(24,32,26,0.55),0_0_0_6px_rgba(24,32,26,0.04)]`}>
           <div className="flex items-center gap-6 border-b border-white/5 px-4 py-3">
             <span className="flex items-center gap-1.5 text-sm font-semibold tracking-[-0.03em]">
-              <Image src="/brand/clashr/mark.svg" alt="" width={16} height={16} />
+              <Image src="/brand/clashr/mark-white.svg" alt="" width={16} height={16} />
               CLASHR
             </span>
             <div className="hidden gap-5 text-xs text-muted md:flex">

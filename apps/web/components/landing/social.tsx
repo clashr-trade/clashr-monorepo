@@ -278,7 +278,7 @@ function RealFlex({ flex }: { flex: NonNullable<LandingData['flex']> }) {
       />
       <header className="flex items-center justify-between gap-3">
         <span className="flex items-center gap-2 text-sm font-semibold tracking-[-0.02em]">
-          <Image src="/brand/clashr/mark.svg" alt="" width={20} height={20} />
+          <Image src="/brand/clashr/mark-white.svg" alt="" width={20} height={20} />
           PnL card
         </span>
         <LiveTag dark />
@@ -448,7 +448,7 @@ function ExampleFlex() {
       />
       <header className="flex items-center justify-between gap-3">
         <span className="flex items-center gap-2 text-sm font-semibold tracking-[-0.02em]">
-          <Image src="/brand/clashr/mark.svg" alt="" width={20} height={20} />
+          <Image src="/brand/clashr/mark-white.svg" alt="" width={20} height={20} />
           CLASHR
         </span>
         <ExampleTag dark />

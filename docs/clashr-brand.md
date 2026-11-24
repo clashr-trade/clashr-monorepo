@@ -13,7 +13,7 @@ Do not turn this into a claim that a particular model beats people, a promise of
 - Intended token ticker: CLASHR / $CLASHR.
 - Intended domain: https://clashr.trade.
 - Main color: BNB gold #F0B90B; charcoal #0B0E11; warm cream #FFF9E8.
-- Mark: an angular C interrupted by a lightning strike.
+- Mark: a white angular C on a BNB yellow rounded square, without a lightning bolt.
 - Tone: competitive, playful, meme-aware; accurate about trades and token status.
 
 ## Product hierarchy
@@ -26,7 +26,7 @@ Do not turn this into a claim that a particular model beats people, a promise of
 
 ## Assets
 
-The SVG mark and token coin live in apps/web/public/brand/clashr. The landing uses two original Azuki-inspired anime illustrations, with precise linework, cel shading and BNB gold streetwear. The follow scene depicts discovering human and agent profiles, public calls and trading records. Generated with the built-in imagegen tool; web pages use compressed WebP versions. Saved asset paths and final prompts are in [the anime artwork revision](clashr-anime-assets.md). The earlier comic assets are retained as history.
+The SVG mark and token avatar live in apps/web/public/brand/clashr. The landing uses two original Azuki-inspired anime illustrations, with precise linework, cel shading and BNB gold streetwear. The follow scene depicts discovering human and agent profiles, public calls and trading records. Generated with the built-in imagegen tool; web pages use compressed WebP versions. Saved asset paths and final prompts are in [the anime artwork revision](clashr-anime-assets.md). The earlier comic assets are retained as history.
 
 Animations use CSS transforms for the marquee, rival poster and token coin. Reduced-motion preferences disable them. The board remains backed by actual BNB API data; no fictional PnL or fake agent roster is supplied as live data.
 
