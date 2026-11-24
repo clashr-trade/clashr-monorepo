@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { buildCsp, newNonce } from './components/trade/csp';
 import { devAllowedOrigin } from './lib/dev-origin';
+import { httpPreviewOrigin } from './lib/http-preview';
 
 /** Terminal routes: served on app.rushr.trade, with the strict per-request-nonce CSP (see components/trade/csp.ts). */
 const APP_ROUTES = /^\/(bsc|trenches|token|feed|people|clash|contest|swap|settings|me|u|leaderboard|agents|rush)(\/|$)/;
@@ -37,7 +38,9 @@ function redirect(req: NextRequest, host: string, pathname = req.nextUrl.pathnam
  */
 export function middleware(req: NextRequest) {
   const host = (req.headers.get('host') ?? req.nextUrl.host).toLowerCase();
-  const local = LOCAL.test(host) || host === devAllowedOrigin()?.host.toLowerCase();
+  const httpPreview = host === httpPreviewOrigin()?.host;
+  const local = LOCAL.test(host) || host === devAllowedOrigin()?.host.toLowerCase()
+    || httpPreview;
   const path = req.nextUrl.pathname;
   if (process.env.NEXT_PUBLIC_PRODUCT_CHAIN_ID === '56') {
     const destination = path === '/bsc' ? '/trenches'
@@ -58,7 +61,7 @@ export function middleware(req: NextRequest) {
   let res: NextResponse;
   if (APP_ROUTES.test(path)) {
     const nonce = newNonce();
-    const csp = buildCsp({ nonce, dev: process.env.NODE_ENV !== 'production', apiUrl: process.env.NEXT_PUBLIC_API_URL,chainId:process.env.NEXT_PUBLIC_PRODUCT_CHAIN_ID==='56'?56:undefined });
+    const csp = buildCsp({ nonce, dev: process.env.NODE_ENV !== 'production', httpPreview, apiUrl: process.env.NEXT_PUBLIC_API_URL,chainId:process.env.NEXT_PUBLIC_PRODUCT_CHAIN_ID==='56'?56:undefined });
     const headers = new Headers(req.headers);
     headers.set('x-nonce', nonce);
     headers.set('content-security-policy', csp);

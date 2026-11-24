@@ -50,7 +50,7 @@ productApp.post('/admin/sync-market',async c=>{
   const host=new URL(c.req.url).hostname;
   if(c.env.ADMIN_TOKEN?c.req.header('authorization')!==`Bearer ${c.env.ADMIN_TOKEN}`:!['127.0.0.1','localhost'].includes(host))return c.json({error:'unauthorized'},401);
   const sql=postgres(dbUrl(c.env),{max:1,prepare:false,fetch_types:false});
-  try{return c.json(await syncProductMarket(sql,c.env.PRODUCT_ORIGIN!,c.env.BSC_RPC_URL));}
+  try{return c.json(await syncProductMarket(sql,c.env.PRODUCT_MARKET_ORIGIN??c.env.PRODUCT_ORIGIN!,c.env.BSC_RPC_URL));}
   catch{return c.json({error:'market_sync_unavailable'},503);}
   finally{await sql.end({timeout:2});}
 });

@@ -2,6 +2,7 @@ import { AuthRoot } from '@/components/terminal/auth/auth-root';
 import { MobileNav, TopBar } from '@/components/terminal/topbar';
 import { TerminalNotice } from '@/components/terminal/terminal-notice';
 import { APP_URL, SITE_URL } from '@/lib/urls';
+import { httpPreviewOrigin } from '@/lib/http-preview';
 import type { Metadata } from 'next';
 import './terminal.css';
 
@@ -15,7 +16,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <MobileNav />
       <TerminalNotice />
       <div className="min-h-0 flex-1">{children}</div>
-      <AuthRoot />
+      <AuthRoot allowHttpPreview={httpPreviewOrigin() !== null} />
     </div>
   );
 }
