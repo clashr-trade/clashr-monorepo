@@ -1,5 +1,11 @@
-@import 'tailwindcss';
+@import 'tailwindcss' source(none);
 @import './clashr.css';
+
+/* Scan application sources only. Generated build backups can contain enormous
+   bundles and must never become Tailwind input during a recovery build. */
+@source './**/*.{ts,tsx,js,jsx,mdx}';
+@source '../components/**/*.{ts,tsx,js,jsx,mdx}';
+@source '../lib/**/*.{ts,tsx,js,jsx}';
 
 /*
  * Rushr tokens. The terminal is dark (near-black with a green cast). The landing page swaps the

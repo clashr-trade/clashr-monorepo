@@ -8,6 +8,9 @@ if (!['build', 'start'].includes(command)) {
   process.exit(1);
 }
 const env = { ...process.env, CLASHR_WEB_RUNTIME: 'node' };
+// Bound native Rust compiler/scanner concurrency on memory-constrained VPS hosts.
+// This is independent of V8's heap limit and does not change page runtime speed.
+if (command === 'build') env.RAYON_NUM_THREADS = process.env.RAYON_NUM_THREADS || '1';
 function run(args) {
   return new Promise((resolve, reject) => {
     const child = spawn(process.execPath, args, { cwd: web, env, stdio: 'inherit', windowsHide: true });

@@ -54,6 +54,36 @@ pnpm run dev:web
 
 If PowerShell blocks `pnpm.ps1`, use `pnpm.cmd` in the same commands.
 
+## Build memory and recovery
+
+Native `build:web` uses one compilation worker, Webpack's memory optimizations,
+and one native Rayon thread by default. Set `RAYON_NUM_THREADS` explicitly only
+if you want to override that default. These options trade build parallelism for
+lower peak memory; they do not turn off production optimizations or type checks.
+
+Tailwind scans only `app`, `components`, and `lib` sources. Generated
+`.next-backup-*` folders are excluded from Git, TypeScript and linting too. Keep
+manual build backups outside the checkout, rather than inside an application
+source directory. Stop `dev:web` and `start:web` before rebuilding: they share
+the `.next` output directory.
+
+A native `memory allocation ... failed` error aborts the build. Missing route
+manifests after that failure are a consequence, not a second database problem.
+Do not validate or start an unfinished build. Run the build and start as one
+PowerShell script block so failure cannot fall through to the start command:
+
+```powershell
+& {
+    pnpm run build:web
+    if ($LASTEXITCODE -ne 0) { throw 'Build failed; frontend was not started.' }
+    pnpm run start:web --hostname 127.0.0.1 --port 3000
+}
+```
+
+On a small VPS, pause other memory-heavy jobs during the build. Check available
+RAM and Windows page-file configuration before increasing any Node heap limit;
+a Rust allocation failure is not controlled solely by V8's heap limit.
+
 ## Access through the VPS IP during development
 
 With your environment already configured, run this from the repository root:

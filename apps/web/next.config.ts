@@ -23,6 +23,15 @@ const devHost = (() => {
 })();
 
 const nextConfig: NextConfig = {
+  ...(process.env.CLASHR_WEB_RUNTIME === 'node' ? {
+    experimental: {
+      cpus: 1,
+      webpackBuildWorker: true,
+      webpackMemoryOptimizations: true,
+      parallelServerCompiles: false,
+      parallelServerBuildTraces: false,
+    },
+  } : {}),
   ...(devHost ? { allowedDevOrigins: [devHost] } : {}),
   transpilePackages: ['@clashr/agents', '@clashr/core', '@clashr/trade'],
   images: { unoptimized: true },
