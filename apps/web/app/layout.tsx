@@ -1,9 +1,10 @@
 import type { Metadata, Viewport } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
+import { cookies } from 'next/headers';
 import './globals.css';
 import {LanguageProvider} from '@/components/landing/language-provider';
 import { StaleDeployGuard } from '@/components/stale-deploy-guard';
-import {BNB_PRODUCT} from '@/lib/product';
+import {landingLanguage} from '@/lib/landing-languages';
 import {SITE_URL} from '@/lib/urls';
 
 const sans = Geist({ subsets: ['latin'], variable: '--font-geist-sans', display: 'swap' });
@@ -20,12 +21,13 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = { themeColor: '#050706' };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const initialLanguage = landingLanguage((await cookies()).get('clashr.language')?.value);
   return (
-    <html lang="zh-CN" data-scroll-behavior="smooth" className={`${sans.variable} ${mono.variable}`}>
+    <html lang={initialLanguage} data-scroll-behavior="smooth" className={`${sans.variable} ${mono.variable}`}>
       <body className="font-sans">
         <StaleDeployGuard />
-        <LanguageProvider>{children}</LanguageProvider>
+        <LanguageProvider initialLanguage={initialLanguage}>{children}</LanguageProvider>
       </body>
     </html>
   );

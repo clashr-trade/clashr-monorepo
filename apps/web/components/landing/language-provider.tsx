@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useSyncExternalStore, useId, useRef, useState } from 'react';
+import { createContext, useContext, useCallback, useEffect, useSyncExternalStore, useId, useRef, useState } from 'react';
 import { Globe, CaretDown, Check } from '@phosphor-icons/react';
 import {
   LANDING_LANGUAGES,
@@ -12,17 +12,18 @@ import {
 const STORAGE_KEY = 'clashr.language';
 const CHANGE_EVENT = 'clashr:language';
 let memoryLanguage: LandingLanguage | null = null;
-const serverLanguage = (): LandingLanguage => 'zh-CN';
-function currentLanguage(): LandingLanguage {
+const LanguageContext = createContext<LandingLanguage>('zh-CN');
+function currentLanguage(fallback: LandingLanguage): LandingLanguage {
   if (memoryLanguage) return memoryLanguage;
   try {
     const cookie = document.cookie
       .split('; ')
       .find((item) => item.startsWith(STORAGE_KEY + '='))
       ?.split('=')[1];
-    return landingLanguage(cookie ?? localStorage.getItem(STORAGE_KEY));
+    const saved = cookie ?? localStorage.getItem(STORAGE_KEY);
+    return saved == null ? fallback : landingLanguage(saved);
   } catch {
-    return 'zh-CN';
+    return fallback;
   }
 }
 const listeners = new Set<() => void>();
@@ -81,9 +82,9 @@ function selectLanguage(language: LandingLanguage) {
 }
 
 export function useLandingLanguage() {
-  // Each streamed boundary uses the server snapshot while it hydrates, even if
-  // another section has already switched to the saved browser preference.
-  const language = useSyncExternalStore(subscribe, currentLanguage, serverLanguage);
+  // All consumers share the provider's current value, including newly mounted
+  // route components. They must not hydrate independently with a Chinese default.
+  const language = useContext(LanguageContext);
   const t = useCallback(
     <T,>(text: T): T extends string ? string : T =>
       (typeof text === 'string' ? translateLanding(text, language) : text) as T extends string
@@ -94,12 +95,17 @@ export function useLandingLanguage() {
   return { language, t, setLanguage: selectLanguage };
 }
 
-export function LanguageProvider({ children }: { children: React.ReactNode }) {
-  const { language } = useLandingLanguage();
+export function LanguageProvider({ children, initialLanguage = 'zh-CN' }: {
+  children: React.ReactNode;
+  initialLanguage?: LandingLanguage;
+}) {
+  const getSnapshot = useCallback(() => currentLanguage(initialLanguage), [initialLanguage]);
+  const getServerSnapshot = useCallback(() => initialLanguage, [initialLanguage]);
+  const language = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
   useEffect(() => {
     document.documentElement.lang = language;
   }, [language]);
-  return children;
+  return <LanguageContext.Provider value={language}>{children}</LanguageContext.Provider>;
 }
 
 export const usePlatformLanguage = useLandingLanguage;

@@ -1,6 +1,7 @@
 import {getPublicBscToken,type PublicBscMarket,type PublicBscToken,type PublicBscDetail} from './bsc-public-market';
 import type {Candle} from './api';
 import type {Tx,HolderInfo} from './trades';
+import {cache} from 'react';
 export async function getFlapHolders(address:string):Promise<HolderInfo[]|null>{
  const origin=process.env.PRODUCT_API_URL??'http://127.0.0.1:8790';
  if(!/^0x[0-9a-f]{40}$/i.test(address))return null;
@@ -17,14 +18,20 @@ export async function getFlapTrades(address:string):Promise<Tx[]>{
  return body.trades;
 }
 const ZERO='0x0000000000000000000000000000000000000000';
-async function indexed(address?:string){
+interface IndexedFlapRow {
+ coin:{address:string;name:string;symbol:string};
+ creator:string|null;metadataCid:string|null;metadata:Record<string,unknown>|null;
+ decimals:number|null;totalSupply:string|null;
+}
+// Share metadata and page reads within a single render, without persisting data.
+const indexed=cache(async(address?:string)=>{
  const origin=process.env.PRODUCT_API_URL??'http://127.0.0.1:8790';
  const response=await fetch(`${origin}/flap/market${address?'?address='+address:''}`,{cache:'no-store',signal:AbortSignal.timeout(8000)});
  if(!response.ok)throw new Error('Flap finalized index unavailable');
- const body=await response.json() as {chainId:number;provenance:string;items:Record<string,any>[];checkedAt:string;stale?:boolean;lagBlocks?:number;cursor?:string};
+ const body=await response.json() as {chainId:number;provenance:string;items:IndexedFlapRow[];checkedAt:string;stale?:boolean;lagBlocks?:number;cursor?:string};
  if(!body||body.chainId!==56||body.provenance!=='finalized-onchain'||!Array.isArray(body.items))throw new Error('Invalid Flap index');
  return body;
-}
+});
 export function normalizeIndexedFlap(rows:unknown):PublicBscToken[]{
  if(!Array.isArray(rows))return [];
  return rows.slice(0,150).flatMap(r=>{
@@ -58,7 +65,7 @@ export async function getFlapTokenInfo(address:string):Promise<Record<string,unk
  const body=await indexed(address.toLowerCase()),r=body.items[0];
  return r?{address:r.coin.address,name:r.coin.name,symbol:r.coin.symbol,creator:r.creator,metadataCid:r.metadataCid,metadata:r.metadata,decimals:r.decimals,totalSupply:r.totalSupply}:null;
 }
-export async function getBnbProductToken(address:string):Promise<PublicBscDetail|null>{
+export const getBnbProductToken=cache(async(address:string):Promise<PublicBscDetail|null>=>{
  if(!/^0x[0-9a-f]{40}$/i.test(address))return null;
  let bodyError:unknown;let token:PublicBscToken|undefined;
  try{token=normalizeIndexedFlap((await indexed(address.toLowerCase())).items)[0];}catch(error){bodyError=error;}
@@ -68,7 +75,7 @@ export async function getBnbProductToken(address:string):Promise<PublicBscDetail
   return spot;
  }}catch{/* Existing indexed tokens remain available during third-party pool discovery failure. */}
  if(token)return {chainId:56,source:'flap',token,pools:[]};if(bodyError)throw bodyError;return null;
-}
+});
 // Historical executions displayed using the current indicative quote-asset/USD conversion.
 export async function getFlapCandles(address:string,interval:string):Promise<Candle[]>{
  const seconds:Record<string,number>={'1m':60,'5m':300,'15m':900,'1h':3600,'4h':14400};

@@ -4,7 +4,8 @@ const env = vi.hoisted(() => ({
   RPC_URL: 'https://legacy-route.invalid',
   BSC_RPC_URL: 'https://bsc-route.invalid' as string | undefined,
 }));
-vi.mock('@opennextjs/cloudflare', () => ({ getCloudflareContext: () => ({ env }) }));
+vi.mock('@opennextjs/cloudflare', () => ({ getCloudflareContext: vi.fn(() => ({ env })) }));
+import { getCloudflareContext } from '@opennextjs/cloudflare';
 import { POST } from '../app/api/rpc/route';
 
 afterEach(() => {vi.unstubAllGlobals();vi.unstubAllEnvs();env.BSC_RPC_URL='https://bsc-route.invalid';});
@@ -12,6 +13,28 @@ const request = (chain: string, body: unknown) => new Request(`https://local/api
 const read = { jsonrpc: '2.0', id: 7, method: 'eth_getBalance', params: ['0x0000000000000000000000000000000000000001', 'latest'] };
 
 describe('RPC proxy chain isolation', () => {
+  it('serves an owned VPS origin using Node environment settings without a Worker context', async () => {
+    vi.stubEnv('CLASHR_WEB_RUNTIME', 'node');
+    vi.stubEnv('NODE_ENV', 'production');
+    vi.stubEnv('NEXT_PUBLIC_APP_URL', 'https://owned-vps.invalid');
+    vi.stubEnv('BSC_RPC_URL', 'https://native-vps-rpc.invalid');
+    vi.mocked(getCloudflareContext).mockClear();
+    const fetch = vi.fn(async (_url:string, init:RequestInit) => {
+      const call = JSON.parse(init.body as string);
+      return Response.json({jsonrpc:'2.0',id:call.id,result:call.method==='eth_chainId'?'0x38':'0x2'});
+    });
+    vi.stubGlobal('fetch',fetch);
+    const from = (origin:string, method=read.method) => new Request('https://owned-vps.invalid/api/rpc?chainId=56', {
+      method:'POST',headers:{origin},body:JSON.stringify({...read,method}),
+    });
+    expect((await POST(from('https://owned-vps.invalid'))).status).toBe(200);
+    expect(getCloudflareContext).not.toHaveBeenCalled();
+    expect(fetch.mock.calls.map(([url])=>url)).toEqual(['https://native-vps-rpc.invalid','https://native-vps-rpc.invalid']);
+    fetch.mockClear();
+    expect((await POST(from('https://untrusted.invalid'))).status).toBe(403);
+    expect((await POST(from('https://owned-vps.invalid','eth_sendRawTransaction'))).status).toBe(403);
+    expect(fetch).not.toHaveBeenCalled();
+  });
   it('serves unconfigured BNB reads through the verified official provider',async()=>{
     env.BSC_RPC_URL=undefined;vi.stubEnv('BSC_RPC_URL','');
     const fetch=vi.fn().mockImplementation(async(_url:string,init:RequestInit)=>{

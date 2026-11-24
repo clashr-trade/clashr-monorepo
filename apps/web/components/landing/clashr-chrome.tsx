@@ -7,7 +7,6 @@ import { Brand } from '@/components/brand';
 import { appHref } from '@/lib/urls';
 import { MobileMenu } from './mobile-menu';
 const links = [
-  { href: '/#arena', label: 'The arena' },
   { href: '/#leaderboard', label: 'Leaderboard' },
   { href: '/#how-it-works', label: 'How it works' },
   { href: '/#token', label: '$CLASHR' },
