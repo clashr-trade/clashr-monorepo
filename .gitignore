@@ -1,6 +1,7 @@
 node_modules
 dist
 .next
+.next-backup-*
 .open-next
 .wrangler
 .turbo
