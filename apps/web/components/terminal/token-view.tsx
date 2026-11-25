@@ -7,7 +7,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { CaretLeft, CaretRight, Check, CheckCircle, Copy, Info, Lightning, Warning, WarningOctagon } from '@phosphor-icons/react';
 import { API_URL, type Candle, type SignalReason, type TokenDetail } from '@/lib/api';
-import { ageLong, compact, dateTimeUtc, dateUtc, dexscreenerUrl, EXPLORER, quoteLabel, LAUNCHPAD_LABEL, nf, pct, pctSigned, price, short, usd, usdSigned } from '@/lib/format';
+import { ageLong, compact, dateUtc, EXPLORER, quoteLabel, LAUNCHPAD_LABEL, nf, pct, pctSigned, short, usd, usdSigned } from '@/lib/format';
 import { useTopic } from '@/lib/feed/react';
 import { tokenSpec, type ServerStats, type TokenState } from '@/lib/feed/topics';
 import { useNow } from '@/lib/now';
@@ -15,7 +15,7 @@ import { aggregate, usePairs, type Pair } from '@/lib/pairs';
 import { mergePools, useApiPools } from '@/lib/pools';
 
 import { holderContext, toWhole, TRADE_LIMIT, windowStats, WINDOWS, type HolderInfo, type Tx, type WindowId, type WindowStats as WindowStatsT } from '@/lib/trades';
-import { RingedAvatar, RiskTag, ringOf, SocialLinks, riskText } from './bits';
+import { RiskTag, riskText } from './bits';
 import { hydrationLabel, isHydrating, PriceChart } from './chart';
 import dynamic from 'next/dynamic';
 import { tradingAvailable } from '@/components/trade/flag';
@@ -25,8 +25,7 @@ import { useHint } from '@/lib/session-hint';
 import { updateSettings, useSettings } from '@/lib/settings';
 import { AboutCard, PositionCard, ThesisBox } from './simple-rail';
 import { SafetyGrid } from './safety-grid';
-import { useTokenCallouts, type Callout } from '@/lib/callouts';
-import { CallsFeed } from './calls-feed';
+import { useTokenCallouts } from '@/lib/callouts';
 import { useEthUsd } from '@/lib/profile';
 
 import { BubblesTab, DevTokensTab, EarlyBuyersTab, HoldersTab, TopTradersTab, useFetch } from './token-tabs';
@@ -358,16 +357,6 @@ function ModeSwitch() {
 }
 
 /* ------------------------------------------------------------------ header */
-
-function Stat({ k, v, big, title }: { k: string; v: string; big?: boolean; title?: string }) {
- const {t:translateUI}=usePlatformLanguage();
-  return (
-    <div title={title}>
-      <div className="text-[11px] text-muted">{translateUI(k)}</div>
-      <div className={`font-mono ${big ? 'text-lg font-semibold' : 'text-sm'}`}>{v}</div>
-    </div>
-  );
-}
 
 /* ------------------------------------------------------------------ rolling windows */
 

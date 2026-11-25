@@ -51,12 +51,12 @@ export async function proxyProduct(request:Request,parts:string[],base:string|un
       return new Response(image,{headers:{'content-type':type,'cache-control':'public, max-age=31536000, immutable','x-content-type-options':'nosniff','content-security-policy':"default-src 'none'"}});
     }
     const responseHeaders=new Headers(headers);responseHeaders.set('content-type','application/json');
-    let data=await upstream.json() as Record<string,unknown>;
+    const data=await upstream.json() as Record<string,unknown>;
     const secure=own.protocol==='https:'?'; Secure':'';
     if(parts.join('/')==='v1/auth/wallet/verify'&&upstream.ok){
       if(typeof data.sessionToken!=='string'||!/^ws_[0-9a-f]{64}$/.test(data.sessionToken))throw new Error('Invalid session');
       responseHeaders.set('set-cookie',`${COOKIE}=${data.sessionToken}; HttpOnly; SameSite=Strict; Path=/api/product; Max-Age=43200${secure}`);
-      const {sessionToken:_,...publicData}=data;data=publicData;
+      delete data.sessionToken;
     }
     if(parts.join('/')==='v1/auth/wallet/logout')responseHeaders.set('set-cookie',`${COOKIE}=; HttpOnly; SameSite=Strict; Path=/api/product; Max-Age=0${secure}`);
     return Response.json(data,{status:upstream.status,headers:responseHeaders});

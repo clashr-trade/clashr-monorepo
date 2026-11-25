@@ -1,13 +1,11 @@
 import Image from 'next/image';
 import {ClashrNav,ClashrFooter} from './clashr-chrome';
-import Link from 'next/link';
 import { preload } from 'react-dom';
 import { TelegramLogo, XLogo } from '@phosphor-icons/react/dist/ssr';
 import type { RiskLevel, TokenCard, Trade } from '@/lib/api';
 import type { DexToken } from '@/lib/dexscreener';
 import { SocialLinks, TokenAvatar as Icon } from '@/components/terminal/bits';
 import { Art } from './art';
-import { MobileMenu, type NavLink } from './mobile-menu';
 import { Reveal } from './reveal';
 import { SectionHead, TG_URL, WRAP, X_URL } from './ui';
 import { appHref } from '@/lib/urls';
@@ -61,13 +59,6 @@ const SECONDARY_BTN =
 /* ---------------------------------------------------------------- nav */
 
 
-const NAV_LINKS: NavLink[] = [
-  { href: '/#social', label: 'Social' },
-  { href: '/#leaderboard', label: 'Leaderboard' },
-  { href: '/#agents', label: 'Agents' },
-  { href: '/#safety', label: 'Safety' },
-  { href: '/whitepaper', label: 'Whitepaper' },
-];
 
 export function Nav(){return <ClashrNav/>;}
 

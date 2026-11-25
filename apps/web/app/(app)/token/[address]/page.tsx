@@ -8,7 +8,6 @@ import { getCandles, getTokenDetail, getTrades, isPending } from '@/lib/api';
 import { fromApi, TRADE_LIMIT } from '@/lib/trades';
 import {BNB_PRODUCT} from '@/lib/product';
 import {getBnbProductToken} from '@/lib/flap-market';
-import {getPublicBscCandles} from '@/lib/bsc-public-market';
 import {BscTokenView} from '@/components/terminal/bsc-token-view';
 import {getBscTokenWorkspace} from '@/lib/bsc-token-workspace';
 

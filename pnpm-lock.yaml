@@ -4,10 +4,16 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+patchedDependencies:
+  ox@0.14.67: 0f3f61d0fbe63ae718e52996d84a819885d13a345ea0bc5dd65a7095362f596e
+
 importers:
 
   .:
     devDependencies:
+      '@next/eslint-plugin-next':
+        specifier: 15.5.29
+        version: 15.5.29
       eslint:
         specifier: ^10.14.0
         version: 10.15.0(jiti@2.7.0)
@@ -1924,6 +1930,9 @@ packages:
 
   '@next/env@15.5.29':
     resolution: {integrity: sha512-9SrTiTsgORa+KfhlXXAGC1eSs847E+d2MQTPUX+n7R5XA8g/B6ZitfL6GoYHNMLwG3Hzs1wjDH0/ME5WrGMqBQ==}
+
+  '@next/eslint-plugin-next@15.5.29':
+    resolution: {integrity: sha512-d3dH0WVbXr+W/3f/TMU6fl7vHJBuok7ugMCDPfRnHhCLl8ppAtFbfXgVHpnLrUirHN4vE5GkTMnId3Fmxv9UCQ==}
 
   '@next/swc-darwin-arm64@15.5.29':
     resolution: {integrity: sha512-vozRDuM23T0faRR0O3oN1eRqjEqUue4Eljhkb9f7urQgzmyzve7j3atzTv3Z1AnjQ9IeVY0X3aS1/an56TOiTg==}
@@ -4919,6 +4928,10 @@ packages:
 
   fast-deep-equal@3.1.3:
     resolution: {integrity: sha512-f3qQ9oQy9j2AhBe/H9VC91wLmKBCCU/gDOnKNAYG5hswO7BLKj09Hc5HYNz9cGI++xlpDCIgDaitVs03ATR84Q==}
+
+  fast-glob@3.3.1:
+    resolution: {integrity: sha512-kNFPyjhh5cKjrUltxs+wFx+ZkbRaxxmZ+X0ZU31SOsxCEtP9VPgtq2teZw1DebupL5GmDaNQ6yKMMVcM41iqDg==}
+    engines: {node: '>=8.6.0'}
 
   fast-glob@3.3.3:
     resolution: {integrity: sha512-7MptL8U0cqcFdzIzwOTHoilX9x5BrNqye7Z/LuC7kCMRio1EMSyqRK3BEAUD7sXRq4iT4AzTVuZdhgQ2TCvYLg==}
@@ -9327,6 +9340,10 @@ snapshots:
     optional: true
 
   '@next/env@15.5.29': {}
+
+  '@next/eslint-plugin-next@15.5.29':
+    dependencies:
+      fast-glob: 3.3.1
 
   '@next/swc-darwin-arm64@15.5.29':
     optional: true
@@ -13936,7 +13953,7 @@ snapshots:
 
   extension-port-stream@3.0.0:
     dependencies:
-      readable-stream: 3.6.2
+      readable-stream: 4.8.0
       webextension-polyfill: 0.10.0
 
   fancy-canvas@2.1.0: {}
@@ -13944,6 +13961,14 @@ snapshots:
   fast-copy@3.1.0: {}
 
   fast-deep-equal@3.1.3: {}
+
+  fast-glob@3.3.1:
+    dependencies:
+      '@nodelib/fs.stat': 2.0.5
+      '@nodelib/fs.walk': 1.2.8
+      glob-parent: 5.1.2
+      merge2: 1.4.1
+      micromatch: 4.0.8
 
   fast-glob@3.3.3:
     dependencies:
@@ -15170,7 +15195,7 @@ snapshots:
     transitivePeerDependencies:
       - zod
 
-  ox@0.14.67(typescript@5.9.3)(zod@3.22.4):
+  ox@0.14.67(patch_hash=0f3f61d0fbe63ae718e52996d84a819885d13a345ea0bc5dd65a7095362f596e)(typescript@5.9.3)(zod@3.22.4):
     dependencies:
       '@adraffy/ens-normalize': 1.11.1
       '@noble/ciphers': 1.3.0
@@ -15185,7 +15210,7 @@ snapshots:
     transitivePeerDependencies:
       - zod
 
-  ox@0.14.67(typescript@5.9.3)(zod@3.25.76):
+  ox@0.14.67(patch_hash=0f3f61d0fbe63ae718e52996d84a819885d13a345ea0bc5dd65a7095362f596e)(typescript@5.9.3)(zod@3.25.76):
     dependencies:
       '@adraffy/ens-normalize': 1.11.1
       '@noble/ciphers': 1.3.0
@@ -15200,7 +15225,7 @@ snapshots:
     transitivePeerDependencies:
       - zod
 
-  ox@0.14.67(typescript@5.9.3)(zod@4.6.7):
+  ox@0.14.67(patch_hash=0f3f61d0fbe63ae718e52996d84a819885d13a345ea0bc5dd65a7095362f596e)(typescript@5.9.3)(zod@4.6.7):
     dependencies:
       '@adraffy/ens-normalize': 1.11.1
       '@noble/ciphers': 1.3.0
@@ -16485,7 +16510,7 @@ snapshots:
       '@scure/bip39': 1.6.0
       abitype: 1.2.3(typescript@5.9.3)(zod@3.22.4)
       isows: 1.0.7(ws@8.21.0(bufferutil@4.2.0)(utf-8-validate@5.0.10))
-      ox: 0.14.67(typescript@5.9.3)(zod@3.22.4)
+      ox: 0.14.67(patch_hash=0f3f61d0fbe63ae718e52996d84a819885d13a345ea0bc5dd65a7095362f596e)(typescript@5.9.3)(zod@3.22.4)
       ws: 8.21.0(bufferutil@4.2.0)(utf-8-validate@5.0.10)
     optionalDependencies:
       typescript: 5.9.3
@@ -16502,7 +16527,7 @@ snapshots:
       '@scure/bip39': 1.6.0
       abitype: 1.2.3(typescript@5.9.3)(zod@3.25.76)
       isows: 1.0.7(ws@8.21.0(bufferutil@4.2.0)(utf-8-validate@5.0.10))
-      ox: 0.14.67(typescript@5.9.3)(zod@3.25.76)
+      ox: 0.14.67(patch_hash=0f3f61d0fbe63ae718e52996d84a819885d13a345ea0bc5dd65a7095362f596e)(typescript@5.9.3)(zod@3.25.76)
       ws: 8.21.0(bufferutil@4.2.0)(utf-8-validate@5.0.10)
     optionalDependencies:
       typescript: 5.9.3
@@ -16519,7 +16544,7 @@ snapshots:
       '@scure/bip39': 1.6.0
       abitype: 1.2.3(typescript@5.9.3)(zod@4.6.7)
       isows: 1.0.7(ws@8.21.0(bufferutil@4.2.0)(utf-8-validate@5.0.10))
-      ox: 0.14.67(typescript@5.9.3)(zod@4.6.7)
+      ox: 0.14.67(patch_hash=0f3f61d0fbe63ae718e52996d84a819885d13a345ea0bc5dd65a7095362f596e)(typescript@5.9.3)(zod@4.6.7)
       ws: 8.21.0(bufferutil@4.2.0)(utf-8-validate@5.0.10)
     optionalDependencies:
       typescript: 5.9.3

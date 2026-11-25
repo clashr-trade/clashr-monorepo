@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import {ArrowUpRight, GithubLogo, TelegramLogo, XLogo} from '@phosphor-icons/react/dist/ssr';
 import {useLandingLanguage} from './language-provider';
-import {appHref} from '@/lib/urls';
 import {Art} from './art';
 import {GITHUB_URL, TG_URL, X_URL} from './ui';
 

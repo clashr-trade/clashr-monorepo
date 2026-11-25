@@ -24,6 +24,7 @@
     "start:backend": "node scripts/dev-backend.mjs"
   },
   "devDependencies": {
+    "@next/eslint-plugin-next": "15.5.29",
     "eslint": "^10.14.0",
     "prettier": "^3.9.10",
     "typescript": "~5.9.3",

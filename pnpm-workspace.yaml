@@ -9,3 +9,5 @@ allowBuilds:
   bufferutil: false
   keccak: false
   utf-8-validate: false
+patchedDependencies:
+  ox@0.14.67: patches/ox@0.14.67.patch

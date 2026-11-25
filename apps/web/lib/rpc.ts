@@ -1,7 +1,7 @@
 'use client';
 
 import { fallback, http, type Transport } from 'viem';
-import { getNetwork, LEGACY_CHAIN_ID } from '@clashr/core/chain/networks';
+import { getNetwork } from '@clashr/core/chain/networks';
 import {PRODUCT_CHAIN_ID} from './product';
 
 /**

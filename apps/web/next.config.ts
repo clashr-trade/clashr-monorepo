@@ -22,9 +22,14 @@ const devHost = (() => {
   }
 })();
 
+const workspaceRoot = fileURLToPath(new URL('../../', import.meta.url));
+
 const nextConfig: NextConfig = {
+  outputFileTracingRoot: workspaceRoot,
+  experimental: { optimizePackageImports: ['viem/chains'] },
   ...(process.env.CLASHR_WEB_RUNTIME === 'node' ? {
     experimental: {
+      optimizePackageImports: ['viem/chains'],
       cpus: 1,
       webpackBuildWorker: true,
       webpackMemoryOptimizations: true,
@@ -40,7 +45,7 @@ const nextConfig: NextConfig = {
   },
   turbopack: {
     // Keep monorepo dependency resolution stable after checkout moves or lockfile removal.
-    root: fileURLToPath(new URL('../../', import.meta.url)),
+    root: workspaceRoot,
     resolveAlias: Object.fromEntries(UNUSED_PRIVY_PEERS.map((p) => [p, './lib/empty-module.ts'])),
   },
   webpack(config) {

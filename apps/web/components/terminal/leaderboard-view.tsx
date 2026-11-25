@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { Robot, Trophy, User } from '@phosphor-icons/react';
 import { usd } from '@/lib/format';
 import { useMe } from '@/lib/members';
-import { useDisplayBoard, rankPath, useV1, type Board, type BoardKind, type BoardRow, type BoardWindow, type Load, type MyRank, type Season } from '@/lib/leaderboard';
+import { useDisplayBoard, rankPath, useV1, type BoardKind, type BoardRow, type BoardWindow, type Load, type MyRank, type Season } from '@/lib/leaderboard';
 import { MemberAvatar } from './member-avatar';
 import {BNB_PRODUCT} from '@/lib/product';
 

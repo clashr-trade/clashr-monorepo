@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { ArrowSquareOut, Check, Copy, FileText, Key, ShieldCheck, Wallet } from '@phosphor-icons/react';
 import { usd } from '@/lib/format';
 import { V1 } from '@/lib/members';
-import { useDisplayBoard, useV1, type Board, type BoardRow } from '@/lib/leaderboard';
+import { useDisplayBoard, type BoardRow } from '@/lib/leaderboard';
 import { MemberAvatar } from './member-avatar';
 import {BNB_PRODUCT} from '@/lib/product';
 

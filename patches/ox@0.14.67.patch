@@ -1,0 +1,25 @@
+diff --git a/_esm/tempo/internal/virtualMasterPool.js b/_esm/tempo/internal/virtualMasterPool.js
+index c7539231ff269deaaacfb05507526b9f2683bcef..3faf4331e345fae99f04dfd151b9d2ff0dc6541e 100644
+--- a/_esm/tempo/internal/virtualMasterPool.js
++++ b/_esm/tempo/internal/virtualMasterPool.js
+@@ -25,7 +25,7 @@ export async function resolve() {
+  */
+ export async function resolveNode() {
+     const id = 'node:worker_threads';
+-    const { Worker } = await import(id);
++    const { Worker } = await import(/* webpackIgnore: true */ id);
+     const { wasmBase64 } = await import('./mine.wasm.js');
+     const workerSource = getNodeWorkerSource();
+     return {
+diff --git a/tempo/internal/virtualMasterPool.ts b/tempo/internal/virtualMasterPool.ts
+index 769118fae874bf82d1a3ef17058ae099fc5fb173..7e0259aedd3825739990708dba47831e5f7cd908 100644
+--- a/tempo/internal/virtualMasterPool.ts
++++ b/tempo/internal/virtualMasterPool.ts
+@@ -55,6 +55,6 @@ export async function resolve(): Promise<Pool | undefined> {
+  */
+ export async function resolveNode(): Promise<Pool | undefined> {
+   const id = 'node:worker_threads'
+-  const { Worker } = await import(id)
++  const { Worker } = await import(/* webpackIgnore: true */ id)
+   const { wasmBase64 } = await import('./mine.wasm.js')
+   const workerSource = getNodeWorkerSource()
