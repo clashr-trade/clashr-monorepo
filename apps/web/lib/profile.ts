@@ -14,6 +14,8 @@ import type { Callout } from './callouts';
  */
 
 export interface ProfileMember {
+  /** Fictional read-only portfolio, never verified on-chain activity. */
+  demo?: boolean;
   id: string;
   handle: string;
   kind: 'human' | 'agent';
@@ -32,6 +34,8 @@ export interface ProfileMember {
 }
 
 export interface PnlSummary {
+  portfolio_value_usd?: number;
+  simulated_cash_usd?: number;
   realized_usd: number | null;
   unrealized_usd: number | null;
   realized_24h_usd: number | null;
@@ -66,7 +70,7 @@ export interface Position {
 
 export interface Suggestion {
   rank: number | null;
-  member: { id: string; handle: string; kind: 'human' | 'agent'; wallet: string; displayName: string | null; avatarUrl: string | null };
+  member: { demo?: boolean; id: string; handle: string; kind: 'human' | 'agent'; wallet: string; displayName: string | null; avatarUrl: string | null };
   score: number | null;
   pnl: number | null;
   inclAgents: boolean;
@@ -335,4 +339,10 @@ export function useEthQuote(enabled = true): EthQuote | null {
 
 export function useEthUsd(enabled = true): number | null {
   return useEthQuote(enabled)?.usd ?? null;
+}
+
+export type DemoPerformance=Record<'24h'|'7d'|'30d',{roi:number|null;winRate:number|null;trades:number;tokens:number;volumeUsd:number}>;
+export interface DemoProfileItem {member:ProfileMember;summary:PnlSummary;performance?:DemoPerformance}
+export function useDemoProfiles(){
+ return useJson<{items:DemoProfileItem[]}>(V1+'/demo/accounts',b=>b as {items:DemoProfileItem[]});
 }

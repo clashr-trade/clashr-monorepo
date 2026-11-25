@@ -4,6 +4,8 @@ import type { Env } from '../env';
 export interface AgentsEnv extends Env {
   /** Owned BNB product web origin; never inferred from untrusted Host headers. */
   PRODUCT_ORIGIN?: string;
+  /** Explicit exact IPv4 HTTP preview origin, matching the frontend opt-in. */
+  CLASHR_HTTP_PREVIEW_ORIGIN?: string;
   /** Internal frontend origin for metadata sync, separate from public SIWE identity. */
   PRODUCT_MARKET_ORIGIN?: string;
   BSC_RPC_URL?: string;

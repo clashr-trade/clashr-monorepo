@@ -1,0 +1,14 @@
+import {readFileSync} from 'node:fs';
+import {parseEnv} from 'node:util';
+import {createRequire} from 'node:module';
+import {spawnSync} from 'node:child_process';
+import {fileURLToPath,pathToFileURL} from 'node:url';
+import path from 'node:path';
+const root=fileURLToPath(new URL('../',import.meta.url));
+const args=process.argv.slice(2).filter(a=>a!=='--');
+if(args.some(a=>!['--remove','--refresh'].includes(a)&&!a.startsWith('--env-file='))||args.filter(a=>a.startsWith('--env-file=')).length>1||args.includes('--remove')&&args.includes('--refresh'))throw new Error('Usage: npm run seed:demo -- [--refresh|--remove] [--env-file=PATH]');
+const envFile=args.find(a=>a.startsWith('--env-file='))?.slice(11)??'apps/web/.env.local';
+const env={...parseEnv(readFileSync(path.resolve(root,envFile),'utf8')),...process.env};
+const require=createRequire(new URL('../packages/trade/package.json',import.meta.url));
+const result=spawnSync(process.execPath,['--import',pathToFileURL(require.resolve('tsx')).href,path.join(root,'apps/indexer/scripts/seed-demo-accounts.ts'),...args.filter(a=>!a.startsWith('--env-file='))],{cwd:root,env,stdio:'inherit',windowsHide:true});
+if(result.error)throw new Error('Could not start demo seed script.');process.exitCode=result.status??1;

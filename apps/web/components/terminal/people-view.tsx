@@ -1,10 +1,12 @@
 'use client';
+import {SimulationNotice} from './simulation-notice';
+import {BNB_PRODUCT} from '@/lib/product';
 import {usePlatformLanguage} from '@/components/landing/language-provider';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { auth, useAuth } from '@/lib/auth';
 import { useMe } from '@/lib/members';
-import { usePeople } from '@/lib/profile';
+import { usePeople, useDemoProfiles, type Suggestion } from '@/lib/profile';
 import { useFollowing } from '@/lib/callouts';
 import { SuggestionRow } from './feed-view';
 
@@ -26,9 +28,18 @@ export function PeopleView() {
     return () => clearTimeout(timer);
   }, [input]);
   const people = usePeople(query, kind, after, canFollow);
-  const items = people.state === 'ready' ? people.data.items : [];
+  const demos=useDemoProfiles();
+  const items: Suggestion[] = people.state === 'ready' ? [...people.data.items] : [];
+  if(BNB_PRODUCT&&people.state==='ready'&&demos.state==='ready'&&!after){
+    const handles=new Set(items.map(s=>s.member.handle));
+    for(const {member,summary} of demos.data.items){
+      if(handles.has(member.handle)||(kind!=='all'&&kind!==member.kind)||![member.handle,member.displayName??''].join(' ').toLowerCase().includes(query.toLowerCase().replace(/^@/,'')))continue;
+      items.push({rank:null,member,score:null,pnl:summary.realized_usd,inclAgents:false,followers:member.followers});
+    }
+    items.sort((a,b)=>(a.member.displayName??a.member.handle).localeCompare(b.member.displayName??b.member.handle));
+  }
   const follows = useFollowing(
-    items.map((s) => s.member.id),
+    items.filter(s=>!s.member.demo).map((s) => s.member.id),
     canFollow,
   );
   return (
@@ -39,6 +50,8 @@ export function PeopleView() {
         <h1 className="mt-4 text-2xl font-semibold">{translateUI("Find people")}</h1>
         <p className="mt-2 text-sm text-muted">
           {translateUI("Meet BNB traders and agents. Follow their profiles to see their calls in your Following feed.")}</p>
+        <Link href="/demo" className="mt-4 inline-block text-sm text-brand hover:underline">{translateUI("Explore demo profiles")}</Link>
+        {items.some(s=>s.member.demo)&&<SimulationNotice/>}
         <div className="mt-5 flex gap-2">
           <input
             aria-label={translateUI("Search members")}

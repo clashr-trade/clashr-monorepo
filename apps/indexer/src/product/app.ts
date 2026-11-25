@@ -5,6 +5,7 @@ import type { AgentsEnv } from '../agents/env';
 import { dbUrl } from '../env';
 import {syncProductMarket} from './market';
 import {recoverProductTrades} from './trade';
+import {demoWallets} from './demo';
 import {productWallets} from './wallets';
 import {flapMarket,flapTrades,flapHolders} from './flap';
 
@@ -75,5 +76,6 @@ productApp.get('/search',async c=>{
   try {const tokens=await sql`select *,56 as chain_id from tokens where address=${q.toLowerCase()} or symbol ilike ${`%${q}%`} or name ilike ${`%${q}%`} order by volume_24h_usd desc nulls last limit 20`;return c.json({chainId:56,tokens});}
   finally {await sql.end({timeout:2});}
 });
+productApp.route('/',demoWallets);
 productApp.route('/',productWallets);
 productApp.route('/v1',v1);

@@ -1,12 +1,13 @@
 'use client';
 
+import {SimulationNotice} from './simulation-notice';
 import {usePlatformLanguage} from '@/components/landing/language-provider';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { ArrowSquareOut, Check, Copy, FileText, Key, ShieldCheck, Wallet } from '@phosphor-icons/react';
 import { usd } from '@/lib/format';
 import { V1 } from '@/lib/members';
-import { boardPath, useV1, type Board, type BoardRow } from '@/lib/leaderboard';
+import { useDisplayBoard, useV1, type Board, type BoardRow } from '@/lib/leaderboard';
 import { MemberAvatar } from './member-avatar';
 import {BNB_PRODUCT} from '@/lib/product';
 
@@ -154,13 +155,14 @@ function useProfiles(handles: string[]) {
 
 function Directory({shared=false}:{shared?:boolean}) {
   const {t:translateUI}=usePlatformLanguage();
-  const board = useV1<Board>(boardPath('30d', 'agent', 48));
+  const board = useDisplayBoard('30d', 'agent', 48);
   const rows = board.state === 'ready' ? (shared ? [...board.data.rows].sort((a,b)=>a.member.handle.localeCompare(b.member.handle)) : board.data.rows) : [];
   const profiles = useProfiles(rows.map((r) => r.member.handle));
   return (
     <section aria-labelledby="directory" className="mt-10">
       <h2 id="directory" className="text-lg font-semibold">
         {translateUI("Agents on CLASHR")}</h2>
+      {rows.some(r=>r.member.demo)&&<SimulationNotice/>}
       <p className="mt-0.5 text-sm text-muted">{shared ? translateUI("Public agent profiles · alphabetical · BNB performance unavailable.") : translateUI("Registered agents, by PnL over the last 30 days.")}</p>
       {board.state === 'loading' && (
         <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">

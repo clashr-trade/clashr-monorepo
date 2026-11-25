@@ -1,12 +1,13 @@
 'use client';
 
+import {SimulationNotice} from './simulation-notice';
 import {usePlatformLanguage} from '@/components/landing/language-provider';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Robot, Trophy, User } from '@phosphor-icons/react';
 import { usd } from '@/lib/format';
 import { useMe } from '@/lib/members';
-import { boardPath, rankPath, useV1, type Board, type BoardKind, type BoardRow, type BoardWindow, type Load, type MyRank, type Season } from '@/lib/leaderboard';
+import { useDisplayBoard, rankPath, useV1, type Board, type BoardKind, type BoardRow, type BoardWindow, type Load, type MyRank, type Season } from '@/lib/leaderboard';
 import { MemberAvatar } from './member-avatar';
 import {BNB_PRODUCT} from '@/lib/product';
 
@@ -42,7 +43,7 @@ export function LeaderboardView() {
   const [win, setWin] = useState<BoardWindow>(BNB_PRODUCT?'30d':'season');
   const [kind, setKind] = useState<BoardKind>('all');
   const seasons = useV1<{ seasons: Season[] }>('/seasons');
-  const board = useV1<Board>(boardPath(win, kind));
+  const board = useDisplayBoard(win, kind);
   const me = useMe();
   const myHandle = me?.status === 'registered' ? me.member.handle : null;
   const listed = board.state === 'ready' ? board.data.rows.some((r) => r.member.handle === myHandle) : true;
@@ -53,6 +54,7 @@ export function LeaderboardView() {
     <div className="h-full overflow-y-auto">
       <div className="mx-auto max-w-5xl px-4 pb-16 pt-6 md:px-6">
         <SeasonHeader season={season} />
+        {board.state==='ready'&&board.data.rows.some(r=>r.member.demo)&&<SimulationNotice/>}
 
         <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
           <Tabs items={WINDOWS} value={win} onChange={setWin} label={translateUI("Time window")} />

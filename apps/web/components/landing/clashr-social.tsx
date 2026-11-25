@@ -14,7 +14,7 @@ const money = (value: number) => value.toLocaleString('en-US', {style:'currency'
 const signed = (value: number) => `${value >= 0 ? '+' : '-'}${money(Math.abs(value))}`;
 
 function Portrait({handle, kind, avatarUrl}: {handle:string; kind:'human'|'agent'; avatarUrl?:string|null}) {
-  return avatarUrl ? <MemberAvatar member={{id:handle,handle,avatarUrl}} size={42}/> : <img src={`/art/avatar-${kind}.webp`} width={42} height={42} alt="" className="clashr-social-portrait"/>;
+  return avatarUrl ? <MemberAvatar member={{id:handle,handle,avatarUrl}} size={42}/> : <img src={`/art/avatar-${kind}-neutral.webp`} width={42} height={42} alt="" className="clashr-social-portrait"/>;
 }
 
 function ProfileCard({profile, kind}: {profile:LandingProfile|null; kind:'human'|'agent'}) {

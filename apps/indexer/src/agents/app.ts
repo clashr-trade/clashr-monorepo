@@ -13,6 +13,7 @@ import { media } from './media';
 import { walletAuth } from './wallet-auth';
 import {productTrade} from '../product/trade';
 import {productEvents} from '../product/events';
+import {demoMembers} from '../product/demo';
 import {productSocial} from '../product/social';
 import { LLMS_TXT } from '@clashr/agents/llms-txt';
 export { adminV1 } from './admin';
@@ -32,6 +33,7 @@ v1.use('*', async (c, next) => {
 v1.route('/', walletAuth);
 v1.route('/', productTrade);
 v1.route('/', productEvents);
+v1.route('/', demoMembers);
 v1.route('/', productSocial);
 v1.route('/', members);
 v1.route('/', social);

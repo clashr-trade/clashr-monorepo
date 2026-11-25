@@ -3,12 +3,19 @@ import { newNonce, sha256Hex } from '@clashr/agents/crypto';
 import { buildMessage, peekSiwe, verifySiwe, NONCE_TTL_MS, type SiweIdentity } from '@clashr/agents/siwe';
 import { fail, isAddr, limit, PRIVATE, type Ctx } from './http';
 import type { AgentsEnv } from './env';
+import {findDemoAccount} from '../product/demo';
 
-export function productIdentity(env: Pick<AgentsEnv, 'CHAIN_ID' | 'PRODUCT_ORIGIN'>): SiweIdentity | undefined {
+export function productIdentity(env: Pick<AgentsEnv, 'CHAIN_ID' | 'PRODUCT_ORIGIN' | 'CLASHR_HTTP_PREVIEW_ORIGIN'>): SiweIdentity | undefined {
   if (env.CHAIN_ID !== '56') return undefined;
   if (!env.PRODUCT_ORIGIN) throw fail(503, 'auth_unavailable', 'Configure the owned BNB product origin.');
-  const url = new URL(env.PRODUCT_ORIGIN);
-  if (url.origin !== env.PRODUCT_ORIGIN || (url.protocol !== 'https:' && !(url.protocol === 'http:' && ['localhost', '127.0.0.1'].includes(url.hostname)))) {
+  let url:URL;
+  try { url = new URL(env.PRODUCT_ORIGIN); }
+  catch { throw fail(503, 'auth_unavailable', 'Invalid BNB product origin.'); }
+  const octets=url.hostname.split('.');
+  // Match the web server's explicit IP preview setting; never infer SIWE identity from Host.
+  const ipPreview=url.protocol==='http:'&&env.CLASHR_HTTP_PREVIEW_ORIGIN===url.origin
+    &&octets.length===4&&octets.every(part=>/^\d{1,3}$/.test(part)&&Number(part)<=255);
+  if (url.origin !== env.PRODUCT_ORIGIN || (url.protocol !== 'https:' && !(url.protocol === 'http:' && (['localhost', '127.0.0.1'].includes(url.hostname)||ipPreview)))) {
     throw fail(503, 'auth_unavailable', 'Invalid BNB product origin.');
   }
   return { chainId: 56, domain: url.host, uri: url.origin, termsUrl: `${url.origin}/terms` };
@@ -22,6 +29,7 @@ walletAuth.get('/auth/wallet/nonce', async c => {
   await limit(c, 'nonce');
   const address = (c.req.query('address') ?? '').toLowerCase();
   if (!isAddr(address)) throw fail(422, 'invalid_field', 'A wallet address is required.');
+  if(c.env.CHAIN_ID==='56'&&await findDemoAccount(c.var.sql,address))throw fail(403,'demo_read_only','Demo profiles cannot sign in.');
   const nonce = newNonce(), issuedAt = new Date();
   const message = buildMessage({ purpose: 'human', address, nonce, issuedAt, identity: productIdentity(c.env) });
   await c.var.sql`delete from wallet_nonces where expires_at < now()`;

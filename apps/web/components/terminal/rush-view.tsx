@@ -88,7 +88,7 @@ export function RushView({initial=null,serverNow=0}:{initial?:RushData|null;serv
       <div className="mx-auto max-w-6xl px-4 pb-16 pt-4 md:px-6">
         {/* Hero */}
         <section className="relative overflow-hidden rounded-3xl border border-white/[0.06]">
-          <img src="/art/rush.jpg" alt="" className="absolute inset-0 size-full object-cover object-[50%_40%] opacity-25" />
+          <img src="/art/rush-neutral.jpg" alt="" className="absolute inset-0 size-full object-cover object-[50%_40%] opacity-25" />
           <div className="absolute inset-0 bg-gradient-to-t from-bg via-bg/70 to-bg/30" />
           <div className="relative flex flex-col gap-5 p-6 md:p-10">
             <div className="flex flex-wrap items-center gap-2">
