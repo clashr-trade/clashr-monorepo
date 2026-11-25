@@ -49,3 +49,5 @@ The config exposes only public API routes and rejects /admin/*. Keep the API bou
 First verify http://127.0.0.1:8790/health on the VPS, then https://YOUR-API-DOMAIN/health externally. Verify the external /admin/sync-market path returns 404. Backend metadata sync should succeed without any frontend server on port 3000. Then deploy Vercel and verify /api/product/v1/auth/wallet/session, wallet sign-in, trenches, token details, trade quotes/simulation and profile media. Existing sessions may need a fresh sign-in after the domain changes.
 
 Keep the prior frontend available until the Vercel checks pass. Roll back by restoring the previous deployment and its matching PRODUCT_ORIGIN, then restarting the backend. No schema migration is introduced by this deployment change.
+
+BNB app links and profile media always stay on the current frontend origin. NEXT_PUBLIC_APP_URL is ignored for BNB navigation, so a stale custom-domain or VPS value cannot move arena/agent links away from Vercel. NEXT_PUBLIC_SITE_URL still controls canonical/share metadata; set it to your actual public site URL.
