@@ -33,6 +33,18 @@ npm run seed:demo -- --refresh
 
 Keep only one backend group running. No frontend build/start process is needed on the VPS. start:backend currently uses the existing tsx runner and requires the installed workspace dependencies, including development dependencies. For unattended uptime, configure a Windows service or Task Scheduler to start it after boot; foreground terminal execution ends when that process is stopped.
 
+## Index integrity startup errors
+
+If a worker stops with an index integrity error, stop the backend group and run:
+
+~~~powershell
+npm run start:backend -- --check-index
+~~~
+
+This read-only diagnostic compares history/live start blocks and configuration hashes with their saved database cursors and checks saved finalized block hashes against the configured RPC. It prints which environment file was selected and whether process variables override it. It never resets or advances cursors.
+
+For a configuration mismatch, restore this database's original BSC_START_BLOCK, BSC_LIVE_START_BLOCK and BSC_INDEX_EPOCH from its prior deployment configuration. Local development values need not match the VPS. Changing RPC credentials alone does not change the configuration hash; start block, epoch and decoder/chain configuration do. A matching start block alone cannot recover a missing epoch from its hash. If original settings are unavailable or restored settings still mismatch, retain the diagnostic output and review the deployed decoder version before planning a replay. Do not replace config_hash, clear halt_reason or delete cursors to bypass the guard. A stored finalized block mismatch requires provider/history verification and a reviewed reconciliation.
+
 ## HTTPS API ingress
 
 Point your API domain to the VPS and configure an HTTPS reverse proxy using deploy/Caddyfile.example (replace the hostname). With Caddy installed, copy it to deploy/Caddyfile, validate it, and run it:

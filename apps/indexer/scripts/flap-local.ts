@@ -19,13 +19,17 @@ try{
     const result=await ingestBscBatch(sql,new BscRpc(env.BSC_RPC_URL!),{...config,batchBlocks:blocks},{version:2,chainId:56,kind:'market-index',configHash:config.hash,minute,step,executionId:'local-'+crypto.randomUUID()});
     console.log(JSON.stringify(result));failures=0;
     if(!live)await new Promise(resolve=>setTimeout(resolve,5000));
-    if(result.phase==='halted'||result.phase==='stale-job')throw new Error('Index requires operator reconciliation');
+    if(result.phase==='halted')throw new Error('Index requires operator reconciliation: saved finalized block integrity halt');
+    if(result.phase==='stale-job')throw new Error('Index requires operator reconciliation: stale job configuration');
     if(!('continueIndexing' in result)||!result.continueIndexing){idle=true;break;}
    }
   }catch(error){
    const message=error instanceof Error?error.message:'';
    if(/budget exceeded|budget exhausted|batch exceeds/.test(message)&&blocks>1){blocks=Math.max(1,Math.floor(blocks/2));console.log('Reducing Flap batch to',blocks);continue;}
-   if(/operator reconciliation|configuration changed|ancestry|Noncontiguous|chain mismatch/.test(message))throw new Error('Index integrity check failed; operator reconciliation required');
+   if(/operator reconciliation|configuration changed|ancestry|Noncontiguous|chain mismatch/.test(message)){
+    const reason=/configuration changed/.test(message)?'Configured start block, epoch or decoder differs from the saved cursor':/chain mismatch/.test(message)?'RPC chain is not BNB mainnet':/ancestry|Noncontiguous/.test(message)?'RPC returned inconsistent finalized block history':/stale job/.test(message)?'Stale job configuration':'Saved finalized block integrity halt';
+    throw new Error(`Index integrity check failed: ${reason}. Run npm run start:backend -- --check-index. Cursors were preserved.`);
+   }
    if(!follow)throw new Error('Flap batch failed; cursor preserved');
    failures++;console.error('Flap batch failed; cursor preserved. Retrying.',failures,/^BSC RPC/.test(message)?message:'database or transport error',typeof (error as {code?:unknown})?.code==='string'?(error as {code:string}).code:'');
    if(error instanceof BscRpcRequestError)retryDelay=error.retryAfterMs;
