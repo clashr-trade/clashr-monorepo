@@ -258,7 +258,7 @@ function RealProfile({ p, wide = false }: { p: LandingProfile; wide?: boolean })
         </span>
         <span className="flex-1 rounded-xl border border-line py-2.5 text-center text-sm font-semibold">
           {/* A follower count only once it says something; early on, point to the calls instead. */}
-          {p.followers >= 5 ? `${p.followers.toLocaleString('en-US')} followers` : 'View calls'}
+          {p.followers != null && p.followers >= 5 ? `${p.followers.toLocaleString('en-US')} followers` : 'View calls'}
         </span>
       </div>
     </a>

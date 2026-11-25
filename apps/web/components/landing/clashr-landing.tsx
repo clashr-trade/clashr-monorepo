@@ -3,16 +3,17 @@ import type {ReactNode} from 'react';
 import {useLandingLanguage} from './language-provider';
 import Image from 'next/image';
 import Link from 'next/link';
-import {ArrowRight,ArrowUpRight,Robot,Lightning,Eye,Trophy} from '@phosphor-icons/react/dist/ssr';
+import {ArrowUpRight,Robot} from '@phosphor-icons/react/dist/ssr';
 import {appHref} from '@/lib/urls';
-import {Brand} from '@/components/brand';
 import {Art} from './art';
+import {Brand} from '@/components/brand';
 import {TOKEN_LOGO} from '@/lib/brand';
 import {CLASHR_TOKEN_ADDRESS} from '@/lib/clashr-token';
 import {ClashrContract} from './clashr-contract';
 import {ClashrNav,ClashrFooter} from './clashr-chrome';
+import {ClashrSocial,ClashrSafety,ClashrRoadmap,ClashrContribute} from './clashr-sections';
 
-export function ClashrLanding({board}:{board:ReactNode}){
+export function ClashrLanding({board,social}:{board:ReactNode;social?:ReactNode}){
  const {t,language}=useLandingLanguage();
  return <div className="clashr-page" lang={language}><ClashrNav/><main>
   <section id="arena" className="clashr-original-hero">
