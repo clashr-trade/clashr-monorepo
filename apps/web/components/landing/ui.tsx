@@ -1,9 +1,10 @@
 import { Reveal } from './reveal';
 
 /** Configurable community links; official Clashr accounts are the defaults. */
-export const X_URL = process.env.NEXT_PUBLIC_X_URL || 'https://x.com/clashrtrade';
+export const X_URL = process.env.NEXT_PUBLIC_X_URL || 'https://x.com/clashrdottrade';
 /** Configurable Telegram community. */
 export const TG_URL = process.env.NEXT_PUBLIC_TELEGRAM_URL || 'https://t.me/clashrtrade';
+export const GITHUB_URL = process.env.NEXT_PUBLIC_GITHUB_URL || 'https://github.com/clashr-trade';
 
 /** The one content width every landing section uses. */
 export const WRAP = 'mx-auto w-full max-w-7xl px-4 md:px-8';

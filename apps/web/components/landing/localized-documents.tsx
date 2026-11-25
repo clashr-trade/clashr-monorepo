@@ -23,12 +23,12 @@ export function LocalizedWhitepaper({ children }: { children: ReactNode }) {
   if (language === 'en') return children;
   const toc = tocOf(blocks);
   return (
-    <div className="theme-paper clashr-docs min-h-dvh" lang={language}>
+    <div className="clashr-docs min-h-dvh" lang={language}>
       <ClashrNav />
       <main className="clashr-wrap py-14 md:py-20">
         <header className="max-w-3xl lg:ml-[17rem]">
           <p className="font-mono text-xs text-muted">
-            {t('Whitepaper · v0.2 draft · November 2026')}
+            {t('Whitepaper · v0.3 draft · November 2026')}
           </p>
           <h1 className="mt-5 text-4xl font-bold tracking-tight md:text-6xl">
             {t('CLASHR Whitepaper')}

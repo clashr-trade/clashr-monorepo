@@ -1,14 +1,16 @@
 'use client';
 import Link from 'next/link';
 import { XLogo, TelegramLogo } from '@phosphor-icons/react';
-import { X_URL, TG_URL } from './ui';
+import { X_URL, TG_URL, GITHUB_URL } from './ui';
 import { useLandingLanguage, LanguageSelect } from './language-provider';
 import { Brand } from '@/components/brand';
 import { appHref } from '@/lib/urls';
 import { MobileMenu } from './mobile-menu';
 const links = [
+  { href: '/#social', label: 'Social' },
   { href: '/#leaderboard', label: 'Leaderboard' },
-  { href: '/#how-it-works', label: 'How it works' },
+  { href: '/#safety', label: 'Safety' },
+  { href: '/#roadmap', label: 'Roadmap' },
   { href: '/#token', label: '$CLASHR' },
   { href: '/whitepaper', label: 'Whitepaper' },
 ];
@@ -19,12 +21,13 @@ export function ClashrNav() {
     <header className="clashr-nav">
       <nav
         aria-label={t('Site navigation')}
-        className="clashr-wrap flex h-20 items-center justify-between gap-4"
+        className="clashr-wrap flex h-16 items-center justify-between gap-4"
       >
-        <Link href="/" aria-label={t('CLASHR home')} className="text-2xl">
-          <Brand size={34} />
+        <Link href="/" aria-label={t('CLASHR home')} className="clashr-brand-link flex shrink-0 items-center gap-2.5 text-2xl">
+          <Brand size={30} />
+          <span className="clashr-beta">{t('Beta')}</span>
         </Link>
-        <div className="hidden items-center gap-5 text-[13px] text-[#b8b9b3] xl:flex">
+        <div className="clashr-desktop-links hidden items-center gap-[19px] text-sm text-[#b8b9b3] xl:flex">
           {translatedLinks.map((l) => (
             <Link key={l.href} href={l.href} className="transition hover:text-[#f0b90b]">
               {l.label}
@@ -59,7 +62,7 @@ export function ClashrFooter() {
   return (
     <footer className="clashr-footer">
       <div className="clashr-wrap">
-        <div className="grid gap-10 border-b border-white/15 pb-12 md:grid-cols-[1.4fr_1fr_1fr]">
+        <div className="grid gap-10 border-b border-white/15 pb-12 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr]">
           <div>
             <Link href="/" className="text-3xl" aria-label={t('CLASHR home')}>
               <Brand size={38} />
@@ -88,13 +91,16 @@ export function ClashrFooter() {
             ))}
           </div>
           <div className="flex flex-col gap-3 text-sm">
+            <span className="mb-1 font-mono text-[10px] uppercase tracking-widest text-[#8b8e86]">{t('Community')}</span>
+            <a href={X_URL} target="_blank" rel="noopener noreferrer" className="hover:text-[#f0b90b]">X (@clashrdottrade)</a>
+            <a href={TG_URL} target="_blank" rel="noopener noreferrer" className="hover:text-[#f0b90b]">Telegram</a>
+            <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer" className="hover:text-[#f0b90b]">GitHub</a>
+          </div>
+          <div className="flex flex-col gap-3 text-sm">
             <span className="mb-1 font-mono text-[10px] uppercase tracking-widest text-[#8b8e86]">
-              {t('Read the rules')}
+              {t('Legal')}
             </span>
             {[
-              [t('Whitepaper'), '/whitepaper'],
-              [t('Agent docs'), '/agent-docs'],
-              [t('Token status'), '/transparency'],
               [t('Terms'), '/terms'],
               [t('Privacy'), '/privacy'],
               [t('Risk disclosure'), '/risk'],

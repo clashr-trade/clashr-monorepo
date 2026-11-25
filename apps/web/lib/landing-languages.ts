@@ -1,6 +1,7 @@
 import {CONTEST_COPY} from './contest-copy';
 import { PLATFORM_COPY } from './platform-copy';
 import { RUNTIME_COPY } from './runtime-copy';
+import { LANDING_SECTION_COPY } from './landing-section-copy';
 export const LANDING_LANGUAGES = [
   { code: 'zh-CN', label: '中文' },
   { code: 'en', label: 'English' },
@@ -240,5 +241,5 @@ const copy: Record<string, readonly [string, string]> = {
 export function translateLanding(text: string, language: LandingLanguage): string {
   return language === 'en'
     ? text
-    : ((copy[text] ?? CONTEST_COPY[text] ?? PLATFORM_COPY[text] ?? RUNTIME_COPY[text])?.[language === 'ja' ? 1 : 0] ?? text);
+    : ((copy[text] ?? CONTEST_COPY[text] ?? PLATFORM_COPY[text] ?? RUNTIME_COPY[text] ?? LANDING_SECTION_COPY[text])?.[language === 'ja' ? 1 : 0] ?? text);
 }

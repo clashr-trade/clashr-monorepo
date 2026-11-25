@@ -3,6 +3,7 @@
 // cached a couple of minutes; anything that doesn't answer falls back to the example cards.
 import { API_URL } from './api';
 import { BNB_PRODUCT } from './product';
+import {findLandingPosition,type LandingPosition} from './landing-position';
 
 /**
  * The showcase features $RUSHR calls and trades: the landing shouldn't advertise someone else's token.
@@ -50,7 +51,9 @@ export interface LandingRow {
 export interface LandingProfile {
   row: LandingRow;
   bio: string | null;
-  followers: number;
+  followers: number | null;
+  wallet?: string;
+  statsAvailable?: boolean;
 }
 
 export interface LandingData {
@@ -61,6 +64,7 @@ export interface LandingData {
   /** The share card of the top human's best closed trade (an app-host PNG path), if any. */
   flex: { handle: string; token: string; symbol: string } | null;
   rows: LandingRow[];
+  position?: LandingPosition | null;
 }
 
 async function get<T>(path: string): Promise<T | null> {
@@ -106,10 +110,11 @@ const toCall = (c: ApiCall): LandingCall => ({
 
 const toRow = (r: ApiRow): LandingRow => ({ rank: r.rank, member: r.member, pnl: r.pnl, trades: r.trades, volumeUsd: r.volumeUsd, winRate: r.winRate });
 
-async function profileOf(row: LandingRow | undefined): Promise<LandingProfile | null> {
-  if (!row) return null;
-  const body = await get<{ member?: { bio: string | null; followers: number } }>(`/v1/members/${encodeURIComponent(row.member.handle)}`);
-  return { row, bio: body?.member?.bio ?? null, followers: body?.member?.followers ?? 0 };
+async function profileOf(row:LandingRow|undefined,author?:LandingMember):Promise<LandingProfile|null>{
+  const member=row?.member??author;if(!member)return null;
+  const body=await get<{member?:LandingMember&{bio:string|null;followers:number;wallet:string}}>(`/v1/members/${encodeURIComponent(member.handle)}`);
+  const resolved=body?.member?{...member,displayName:body.member.displayName,avatarUrl:body.member.avatarUrl}:member;
+  return {row:row?{...row,member:resolved}:{rank:0,member:resolved,pnl:0,trades:0,volumeUsd:0,winRate:null},bio:body?.member?.bio??null,followers:body?.member?.followers??null,wallet:body?.member?.wallet,statsAvailable:!!row};
 }
 
 export async function getLandingData(): Promise<LandingData> {
@@ -123,7 +128,7 @@ export async function getLandingData(): Promise<LandingData> {
   const human =
     legacyTokenCalls.sort((a, b) => b.body.length - a.body.length)[0] ??
     calls.filter((c) => c.author.kind === 'human' && c.result.sincePostPct != null).sort((a, b) => b.result.sincePostPct! - a.result.sincePostPct!)[0] ??
-    null;
+    calls.find(c=>c.author.kind==='human') ?? null;
   // An independent agent's call that explains itself (the longest take among recent ones).
   const agent =
     calls.filter((c) => c.author.kind === 'agent' && !TEAM_AGENTS.has(c.author.handle) && !isLegacyPlatformToken(c.token.address)).sort((a, b) => b.body.length - a.body.length)[0] ?? null;
@@ -131,9 +136,11 @@ export async function getLandingData(): Promise<LandingData> {
   const rows = (board?.rows ?? []).filter((r) => !BLOCKED.test(r.member.handle)).map(toRow);
   const traded = rows.filter((r) => r.trades > 0);
   const [topHuman, topAgent] = await Promise.all([
-    profileOf(traded.find((r) => r.member.kind === 'human' && r.pnl > 0 && !NOT_FEATURED.has(r.member.handle))),
-    profileOf(traded.find((r) => r.member.kind === 'agent')),
+    profileOf(traded.find((r) => r.member.kind === 'human' && r.pnl > 0 && !NOT_FEATURED.has(r.member.handle)) ?? traded.find(r=>r.member.kind==='human'&&!NOT_FEATURED.has(r.member.handle)) ?? rows.find(r=>r.member.kind==='human'&&!NOT_FEATURED.has(r.member.handle)), human?.author),
+    profileOf(traded.find((r) => r.member.kind === 'agent') ?? rows.find(r=>r.member.kind==='agent'), agent?.author ?? calls.find(c=>c.author.kind==='agent')?.author),
   ]);
+
+  const position=BNB_PRODUCT&&topHuman?await findLandingPosition(topHuman.row.member.handle,topHuman.wallet):null;
 
   // The PnL card: the best closed, profitable $RUSHR trade among the season's traders (by return).
   let flex: LandingData['flex'] = null;
@@ -149,7 +156,7 @@ export async function getLandingData(): Promise<LandingData> {
   const best = legacyTokenTrades.filter((x): x is { handle: string; ret: number } => !!x).sort((a, b) => b.ret - a.ret)[0];
   if (best) flex = { handle: best.handle, token: LEGACY_ROBINHOOD_TOKEN, symbol: 'RUSHR' };
 
-  return { call: human ? toCall(human) : null, agentCall: agent ? toCall(agent) : null, topHuman, topAgent, flex, rows: rows.slice(0, 5) };
+  return { call: human ? toCall(human) : null, agentCall: agent ? toCall(agent) : null, topHuman, topAgent, flex, position, rows: rows.slice(0, 5) };
 }
 
 async function walletOf(handle: string): Promise<string | null> {

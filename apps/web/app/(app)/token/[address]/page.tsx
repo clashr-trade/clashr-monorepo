@@ -11,6 +11,8 @@ import {getBnbProductToken} from '@/lib/flap-market';
 import {getPublicBscCandles} from '@/lib/bsc-public-market';
 import {BscTokenView} from '@/components/terminal/bsc-token-view';
 import {getBscTokenWorkspace} from '@/lib/bsc-token-workspace';
+import {getLandingPosition} from '@/lib/landing-position';
+import {ClashrPositionDialog} from '@/components/landing/clashr-position-dialog';
 
 export const dynamic = 'force-dynamic';
 
@@ -31,12 +33,13 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
   return appShare(`$${t.symbol}`, `/token/${address}`, `$${t.symbol} (${t.name}) on Robinhood Chain: live chart, safety check and calls on CLASHR.`, {}, card);
 }
 
-export default async function TokenPage({ params }: Props) {
+export default async function TokenPage({ params,searchParams }: Props) {
   const address = (await params).address.toLowerCase();
   if (!/^0x[0-9a-f]{40}$/.test(address)) notFound();
   if(BNB_PRODUCT){
-    const snapshot=await getBscTokenWorkspace(address);
-    if(!snapshot)notFound();return <BscTokenView detail={snapshot.detail} candles={snapshot.candles} initial={snapshot} serverNow={Date.now()}/>;
+    const who=(await searchParams).pnl?.toLowerCase();
+    const [snapshot,position]=await Promise.all([getBscTokenWorkspace(address),who?getLandingPosition(who,address):Promise.resolve(null)]);
+    if(!snapshot)notFound();return <><BscTokenView detail={snapshot.detail} candles={snapshot.candles} initial={snapshot} serverNow={Date.now()}/>{position&&<ClashrPositionDialog position={position}/>}</>;
   }
   // Start every read at once. Only the header data is awaited; trades and candles stream to the
   // browser as promises and fill in after the page is on screen.

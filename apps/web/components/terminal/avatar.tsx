@@ -1,4 +1,3 @@
-import { useId } from 'react';
 
 /**
  * Generated token avatar for tokens without an icon (or while the icon loads). Everything is
@@ -53,18 +52,11 @@ export function GeneratedAvatar({
   size: number;
 }) {
   const { from, to, angle, cells } = avatarSpec(address);
-  // Unique per instance: a shared id breaks when the first copy sits in a display:none subtree.
-  const id = `ga${useId().replace(/[^a-zA-Z0-9]/g, '')}`;
+  // A CSS background needs no document-scoped paint-server ID. Duplicate avatars,
+  // hidden menus and streamed server/client render paths cannot invalidate each other.
+  const background = `linear-gradient(${(angle + 90) % 360}deg, ${from}, ${to})`;
   return (
-    <svg viewBox="0 0 40 40" width={size} height={size} aria-hidden className="block">
-      <defs>
-        {/* Let SVG rotate the vector: server/browser trig rounding can differ during hydration. */}
-        <linearGradient id={id} x1="0" y1="0.5" x2="1" y2="0.5" gradientTransform={`rotate(${angle} 0.5 0.5)`}>
-          <stop offset="0" stopColor={from} />
-          <stop offset="1" stopColor={to} />
-        </linearGradient>
-      </defs>
-      <rect width="40" height="40" fill={`url(#${id})`} />
+    <svg viewBox="0 0 40 40" width={size} height={size} aria-hidden className="block" style={{background}}>
       <g fill="#fff" opacity="0.11">
         {cells.map(([c, r]) => (
           <rect

@@ -624,7 +624,7 @@ function Pill({ icon: Icon, value, bad, title, digits = 0 }: { icon: typeof Crow
   return (
     <span
       title={`${title}: ${value == null ? 'unknown' : pct(value, digits)}`}
-      className={`inline-flex shrink-0 items-center gap-0.5 rounded-md border px-1.5 py-px ${
+      className={`relative z-10 inline-flex shrink-0 items-center gap-0.5 rounded-md border px-1.5 py-px ${
         hot
           ? 'border-risk-high/30 text-risk-high'
           : warm

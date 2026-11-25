@@ -47,6 +47,6 @@ The preference is saved in browser storage and a SameSite=Lax cookie. On clashr.
 
 Product-owned interface text belongs in apps/web/lib/landing-languages.ts and platform-copy.ts. Long-form legal text is in legal-copy.ts and loaded only on legal routes. Human-facing whitepaper and agent-guide editions are localized separately. Member posts, bios, token names, contract addresses, API payloads and machine-readable skill.md/llms.txt remain original. Add both translations when changing product copy; English source copy is the fallback for unknown messages.
 
-Community URLs are configurable with NEXT_PUBLIC_X_URL and NEXT_PUBLIC_TELEGRAM_URL. Their defaults use the official clashrtrade accounts on X and Telegram.
+Community URLs are configurable with NEXT_PUBLIC_X_URL, NEXT_PUBLIC_TELEGRAM_URL and NEXT_PUBLIC_GITHUB_URL. Defaults: https://x.com/clashrdottrade, https://t.me/clashrtrade and https://github.com/clashr-trade.
 
 Verification: pnpm --filter @clashr/web typecheck; pnpm --filter @clashr/web test. With an isolated Chrome profile exposing CDP on 127.0.0.1:9223, run node apps/web/scripts/check-platform-languages.mjs. It opens its own test tab and checks route persistence, hydration errors, header order, keyboard interaction and mobile layout. Set BASE_URL or BROWSER_DEBUG_URL to use another local test environment.

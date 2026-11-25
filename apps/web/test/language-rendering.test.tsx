@@ -12,6 +12,16 @@ function render(language:LandingLanguage) {
 }
 
 describe('language on the first server render',()=>{
+  it('does not reference an absent listbox or expose tree-dependent IDs while closed',()=>{
+    const element=<LanguageProvider initialLanguage="en"><LanguageSelect/></LanguageProvider>;
+    const server=renderToString(element,{identifierPrefix:'server-tree-'});
+    const client=renderToString(element,{identifierPrefix:'client-tree-'});
+    expect(client).toBe(server);
+    expect(server).toContain('aria-expanded="false"');
+    expect(server).toContain('aria-haspopup="listbox"');
+    expect(server).not.toContain('aria-controls=');
+    expect(server).not.toContain('role="listbox"');
+  });
   it('renders English arena labels and selector before any browser scripts run',()=>{
     const html=render('en');
     expect(html).toContain('lang="en"');

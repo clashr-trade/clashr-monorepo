@@ -2,9 +2,11 @@
 import postgres from 'postgres';
 import {bscConfig} from '../src/bsc/config';
 import {BscRpc,BscRpcRequestError} from '../src/bsc/rpc';
+import {resumeFlapLiveWindow} from '../src/bsc/flap-live-window';
 import {ingestBscBatch} from '../src/bsc/ingest';
 const env={...process.env,DATABASE_URL:process.env.BSC_INDEX_DATABASE_URL??process.env.DATABASE_URL,BSC_INDEX_ENABLED:'1',BSC_INDEX_SOURCE:'flap'};
 if(!env.DATABASE_URL||!['127.0.0.1','localhost'].includes(new URL(env.DATABASE_URL).hostname))throw new Error('Explicit local DATABASE_URL required');
+const historyConfig=await bscConfig(env);
 const live=process.argv.includes('--live');
 if(live){if(!process.env.BSC_LIVE_START_BLOCK)throw new Error('Explicit live start block required');env.BSC_START_BLOCK=process.env.BSC_LIVE_START_BLOCK;env.BSC_INDEX_EPOCH=(env.BSC_INDEX_EPOCH??'')+'_live';}
 const config={...await bscConfig(env),live},sql=postgres(env.DATABASE_URL,{max:1,prepare:false,fetch_types:false});
@@ -14,6 +16,7 @@ try{
  do{
   let idle=false,retryDelay=0;
   try{
+   if(live){const resumed=await resumeFlapLiveWindow(sql,new BscRpc(env.BSC_RPC_URL!),config,historyConfig.hash);if(resumed)console.log('Resumed recent Flap window; history backfill retained',JSON.stringify(resumed));}
    const minute=Math.floor(Date.now()/60000);
    for(let step=0;step<20;step++){
     const result=await ingestBscBatch(sql,new BscRpc(env.BSC_RPC_URL!),{...config,batchBlocks:blocks},{version:2,chainId:56,kind:'market-index',configHash:config.hash,minute,step,executionId:'local-'+crypto.randomUUID()});
@@ -30,7 +33,7 @@ try{
    failures++;console.error('Flap batch failed; cursor preserved. Retrying.',failures,/^BSC RPC/.test(message)?message:'database or transport error',typeof (error as {code?:unknown})?.code==='string'?(error as {code:string}).code:'');
    if(error instanceof BscRpcRequestError)retryDelay=error.retryAfterMs;
   }
-  if(!follow||(!live&&idle))break;
+  if(!follow)break;
   await new Promise(resolve=>setTimeout(resolve,failures?Math.max(retryDelay,Math.min(30000,1000*2**Math.min(failures,5))):idle?500:250));
  }while(true);
 }finally{await sql.end({timeout:2});}

@@ -13,7 +13,7 @@ import { EXPLORER, dateUtc, nf, short, usd } from '@/lib/format';
 
 // Live numbers from the API's transparency feed, refreshed at most once a minute.
 export const revalidate = 60;
-export const viewport: Viewport = { themeColor: '#f7f5f2' };
+export const viewport: Viewport = { themeColor: '#0b0e11' };
 
 const SHARE = {
   title: 'Transparency | CLASHR',
@@ -160,7 +160,7 @@ export default async function TransparencyPage() {
   const buybacks = data?.buybacks ?? [];
 
   return (
-    <div className="theme-paper min-h-dvh">
+    <div className="clashr-docs min-h-dvh">
       <Nav />
       <main className={`${WRAP} py-14 md:py-20`}>
         <div className="mx-auto max-w-5xl">

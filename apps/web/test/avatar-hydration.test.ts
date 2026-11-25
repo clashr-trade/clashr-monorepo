@@ -19,8 +19,9 @@ describe('generated avatar hydration', () => {
     vi.spyOn(Math, 'cos').mockImplementation((angle) => originalCos(angle) - Number.EPSILON);
 
     expect(render(address)).toBe(serverMarkup);
-    expect(serverMarkup).toContain('gradientTransform="rotate(161 0.5 0.5)"');
-    expect(serverMarkup).toContain('x1="0" y1="0.5" x2="1" y2="0.5"');
+    expect(serverMarkup).toContain('background:linear-gradient(251deg,');
+    expect(serverMarkup).not.toContain('linearGradient');
+    expect(serverMarkup).not.toContain('url(#');
   });
 
   it('renders every address-derived angle without evaluating runtime trigonometry', () => {
@@ -29,9 +30,19 @@ describe('generated avatar hydration', () => {
     for (let value = 0; value < 256; value++) {
       const address = `0x00${value.toString(16).padStart(2, '0')}${'0'.repeat(36)}`;
       const { angle } = avatarSpec(address);
-      expect(render(address)).toContain(`gradientTransform="rotate(${angle} 0.5 0.5)"`);
+      expect(render(address)).toContain(`background:linear-gradient(${(angle + 90) % 360}deg,`);
     }
     expect(sin).not.toHaveBeenCalled();
     expect(cos).not.toHaveBeenCalled();
+  });
+  it('does not depend on React tree IDs or reference another avatar instance',()=>{
+    const element=createElement(GeneratedAvatar,{address:'0x1234',symbol:'TEST',size:40});
+    const server=renderToString(element,{identifierPrefix:'server-tree-'});
+    const client=renderToString(element,{identifierPrefix:'client-tree-'});
+    expect(client).toBe(server);
+    expect(server).not.toMatch(/\bid=|url\(#/);
+    const duplicates=renderToString(createElement('div',null,element,element));
+    expect(duplicates.match(/background:linear-gradient/g)).toHaveLength(2);
+    expect(duplicates).not.toMatch(/\bid=|url\(#/);
   });
 });

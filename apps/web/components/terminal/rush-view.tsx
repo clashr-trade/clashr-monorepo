@@ -70,6 +70,7 @@ const countdown = (ms: number) => {
   return d > 0 ? `${d}d ${h}h ${m}m` : `${h}h ${m}m ${s % 60}s`;
 };
 const day = (iso: string) => new Date(iso).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'UTC' });
+const utcTime = (iso: string) => `${new Date(iso).toISOString().slice(11,19)} UTC`;
 const x = (n: number) => `${n >= 100 ? Math.round(n) : n.toFixed(n >= 10 ? 1 : 2)}x`;
 const signed = (n: number) => `${n >= 0 ? '+' : '-'}${usd(Math.abs(n))}`;
 
@@ -120,7 +121,7 @@ export function RushView({initial=null,serverNow=0}:{initial?:RushData|null;serv
               )}
               {ev && (
                 <div className="font-mono text-xs text-muted">
-                  {day(ev.startsAt)}  {translateUI("00:00 UTC →")} {day(new Date(Date.parse(ev.endsAt) - 1).toISOString())} {translateUI("23:59 UTC")}</div>
+                  {day(ev.startsAt)} {utcTime(ev.startsAt)} → {day(new Date(endsAt! - 1).toISOString())} {utcTime(new Date(endsAt! - 1).toISOString())}</div>
               )}
             </div>
             <div className="flex flex-wrap gap-2">

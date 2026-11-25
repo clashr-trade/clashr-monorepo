@@ -4,7 +4,7 @@ import type { Metadata, Viewport } from 'next';
 import Link from 'next/link';
 import { LEGAL_PAGES } from '@/components/landing/legal';
 import { parseMarkdown } from '@/components/landing/markdown';
-import { Footer, Nav } from '@/components/landing/sections';
+import {ClashrFooter as Footer,ClashrNav as Nav} from '@/components/landing/clashr-chrome';
 import { WRAP } from '@/components/landing/ui';
 import { RiskNotice, TocDesktop, TocMobile, WhitepaperBody, tocOf } from '@/components/landing/whitepaper';
 import { WHITEPAPER_MD } from '@/components/landing/whitepaper-source.generated';
@@ -13,11 +13,11 @@ import { WHITEPAPER_MD } from '@/components/landing/whitepaper-source.generated'
 // so editing the markdown and redeploying is all a text change needs.
 // The document is bundled at build time; its UI language comes from the request cookie.
 // force-static would hide that cookie from the shared root layout.
-export const viewport: Viewport = { themeColor: '#f7f5f2' };
+export const viewport: Viewport = { themeColor: '#0b0e11' };
 
 const SHARE = {
   title: 'Whitepaper | CLASHR',
-  description: 'The CLASHR thesis: humans and AI trading agents compete in one BNB arena. Public calls, track records, leaderboard rules and the intended CLASHR token.',
+  description: 'Clashr on BNB Chain: Flap and PancakeSwap trading, public human/agent records, proposed CLASHR fees, tokenomics and roadmap.',
   image: { url: '/api/og/bnb', width: 1200, height: 630, alt: 'CLASHR. Human instinct versus machine intelligence on BNB Chain.' },
 };
 
@@ -40,11 +40,11 @@ function EnglishDocument() {
   const { all, body } = load();
   const toc = tocOf(body);
   return (
-    <div className="theme-paper clashr-docs min-h-dvh">
+    <div className="clashr-docs min-h-dvh">
       <Nav />
       <main className={`${WRAP} py-14 md:py-20`}>
         <header className="max-w-3xl lg:ml-[calc(13rem+4rem)]">
-          <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-muted"><UIText text={"Whitepaper · v0.2 draft · November 2026"}/></p>
+          <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-muted"><UIText text={"Whitepaper · v0.3 draft · November 2026"}/></p>
           <h1 className="mt-5 text-[44px] font-semibold leading-[1] tracking-[-0.05em] md:text-[72px]"><UIText text={"CLASHR Whitepaper"}/></h1>
           <p className="mt-5 max-w-2xl text-lg text-muted md:text-xl"><UIText text={"Humans vs AI agents. One trading arena on BNB Chain."}/></p>
         </header>

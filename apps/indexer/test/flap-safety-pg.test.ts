@@ -11,10 +11,10 @@ describe.skipIf(!available)('Flap finalized safety enrichment',()=>{
  beforeAll(async()=>{
   db=await freshDb('flap_safety');vi.stubGlobal('fetch',vi.fn(async()=>new Response('',{status:400})));
   await db.sql`insert into chain_v2.market_cursors(chain_id,config_hash,start_block,block,block_hash,observed_finalized,checked_at) values(56,${'a'.repeat(64)},900,1000,${hash},1000,now())`;
-  await db.sql`insert into chain_v2.flap_tokens(chain_id,address,created_block,created_at,creator,name,symbol,decimals,total_supply,state,state_block) values(56,${token},950,now()-interval '10 seconds',${dev},'Safety','SAFE',18,1000,${db.sql.json({status:1,progress:'0',pool,quoteTokenAddress:'0x'+'0'.repeat(40),price:'1',buyTaxRate:'0',sellTaxRate:'0'})},1000)`;
+  await db.sql`insert into chain_v2.flap_tokens(chain_id,address,created_block,created_at,creator,name,symbol,decimals,total_supply,state,state_block) values(56,${token},950,now()-interval '70 seconds',${dev},'Safety','SAFE',18,1000,${db.sql.json({status:1,progress:'0',pool,quoteTokenAddress:'0x'+'0'.repeat(40),price:'1',buyTaxRate:'0',sellTaxRate:'0'})},1000)`;
   await db.sql`insert into chain_v2.flap_holder_watches(chain_id,address,block,block_hash,complete,checked_at) values(56,${token},1000,${hash},true,now())`;
   await db.sql`insert into chain_v2.flap_balances(chain_id,token,wallet,amount) values(56,${token},${pool},800),(56,${token},${dev},100),(56,${token},${buyer},100)`;
-  await db.sql`insert into chain_v2.flap_events(chain_id,tx,log_index,block,block_hash,time,event,token,payload) values(56,'tx',1,951,${hash},now()-interval '9 seconds','TokenBought',${token},${db.sql.json({buyer,amount:'100'})})`;
+  await db.sql`insert into chain_v2.flap_events(chain_id,tx,log_index,block,block_hash,time,event,token,payload) values(56,'tx',1,951,${hash},now()-interval '69 seconds','TokenBought',${token},${db.sql.json({buyer,amount:'100'})})`;
  });
  afterAll(async()=>{vi.unstubAllGlobals();await db?.drop();});
  it('excludes the protocol reserve, publishes measured fields and masks unavailable funding',async()=>{
@@ -23,6 +23,18 @@ describe.skipIf(!available)('Flap finalized safety enrichment',()=>{
   expect(s!.data).toMatchObject({top10Pct:20,devPct:10,snipersPct:10,sniperCount:1,insidersPct:null,freshWalletsPct:null,bundledPct:null,coverage:{holders:true,launch:true,funding:false}});
   expect(chain.getBytecode).toHaveBeenCalledTimes(2);
   expect((await flapMarket(db.sql,token)).items[0]?.safety).toMatchObject({top10Pct:20,throughBlock:'1000'});
+ });
+ it('publishes launch metrics when launch is indexed but holder blocks are newer',async()=>{
+  await db.sql`update chain_v2.market_cursors set block=999`;
+  await refreshFlapSafety(db.sql,'https://rpc.invalid',token);
+  expect((await db.sql`select data from chain_v2.flap_safety_snapshots where address=${token}`)[0]?.data.snipersPct).toBe(10);
+  await db.sql`update chain_v2.market_cursors set block=1000`;
+ });
+ it('keeps launch metrics unknown before the first minute completes',async()=>{
+  await db.sql`update chain_v2.flap_tokens set created_at=now()-interval '10 seconds' where address=${token}`;
+  await refreshFlapSafety(db.sql,'https://rpc.invalid',token);
+  expect((await db.sql`select data from chain_v2.flap_safety_snapshots where address=${token}`)[0]?.data.sniperCount).toBeNull();
+  await db.sql`update chain_v2.flap_tokens set created_at=now()-interval '70 seconds' where address=${token}`;
  });
  it('does not reuse launch classifications across an unindexed creation boundary',async()=>{
   await db.sql`update chain_v2.market_cursors set start_block=960`;

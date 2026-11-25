@@ -70,8 +70,13 @@ export async function refreshFlapSafety(sql:Sql,rpcUrl:string,token:string){
  facts=await sql`select * from chain_v2.flap_wallet_facts where chain_id=56 and address in ${sql(wanted.length?wanted:[''])}`;byWallet=new Map(facts.map(f=>[f.address,f]));
  const people=balances.filter(b=>!excluded.has(b.wallet)&&codeKnown(byWallet.get(b.wallet))&&byWallet.get(b.wallet)?.is_contract===false);
  const holdersComplete=balances.length<=1000&&balances.every(b=>excluded.has(b.wallet)||codeKnown(byWallet.get(b.wallet)));
- const [cursor]=await sql`select 1 from (select * from chain_v2.market_cursors union all select * from chain_v2.flap_live_cursors) c where chain_id=56 and halt_reason is null and start_block<=${t.created_block??'-1'} and block>=${through.toString()} limit 1`;
- const launch=!!t.created_at&&!!cursor&&events.length<=2000&&!!t.creator;
+ // Launch classification needs the first minute, not every subsequent holder block.
+ // A live cursor a few blocks behind the holder snapshot must not hide completed launch data.
+ const [cursor]=await sql`select block,block_hash from (select * from chain_v2.market_cursors union all select * from chain_v2.flap_live_cursors) c where chain_id=56 and halt_reason is null and start_block<=${t.created_block??'-1'} and block>=${t.created_block??'-1'} order by block desc limit 1`;
+ const launchEnd=t.created_at?Math.floor(new Date(t.created_at).getTime()/1000)+60:Infinity;
+ const indexedHeader=cursor?(BigInt(cursor.block)>=through?header:await client.getBlock({blockNumber:BigInt(cursor.block)})):null;
+ if(cursor&&BigInt(cursor.block)<through&&indexedHeader?.hash!==cursor.block_hash)throw new Error('Safety launch checkpoint ancestry mismatch');
+ const launch=!!t.creator&&events.length<=2000&&Number(header.timestamp)>=launchEnd&&!!indexedHeader&&Number(indexedHeader.timestamp)>=launchEnd;
  const funding=wanted.every(w=>{const f=byWallet.get(w);return f?.funding_status==='known'&&f.funded_at&&new Date(f.funded_at).getTime()<=Number(header.timestamp)*1000;});
  const common=new Set((await sql`select first_funder from chain_v2.flap_wallet_facts where chain_id=56 and first_funder is not null group by first_funder having count(*)>=50`).map(r=>r.first_funder));
  const wallets=Object.fromEntries(wanted.map(w=>{const f=byWallet.get(w);return [w,{firstFunder:f?.first_funder&&!common.has(f.first_funder)?f.first_funder:null,firstSeen:f?.funded_at?Math.floor(new Date(f.funded_at).getTime()/1000):null}];}));

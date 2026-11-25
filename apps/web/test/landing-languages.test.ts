@@ -35,12 +35,12 @@ describe('landing language preference', () => {
       }
     }
   });
-  it('preserves all twelve whitepaper sections in each localized edition', () => {
+  it('preserves all nine whitepaper sections in each localized edition', () => {
     for (const source of Object.values(WHITEPAPER_TRANSLATIONS)) {
       const headings = parseMarkdown(source).filter(
         (block) => block.t === 'h' && block.level === 2,
       );
-      expect(headings).toHaveLength(12);
+      expect(headings).toHaveLength(9);
     }
   });
   it('provides both translations for every rendered legal paragraph', () => {
