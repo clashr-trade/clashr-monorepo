@@ -87,7 +87,7 @@ async function main() {
     throw new Error('Unknown or duplicate option. Run with --help.');
   }
   const envArgument = args.find((arg) => arg.startsWith('--env-file='));
-  const envPath = path.resolve(root, envArgument?.slice('--env-file='.length) || 'apps/web/.env.local');
+  const envPath = path.resolve(root, envArgument?.slice('--env-file='.length) || (existsSync(path.join(root,'.env.backend')) ? '.env.backend' : 'apps/web/.env.local'));
   if (!existsSync(envPath)) throw new Error('Environment file not found. Use --env-file=PATH.');
   const env = { ...parseEnv(readFileSync(envPath, 'utf8')), ...process.env };
   for (const key of ['DATABASE_URL', 'BSC_INDEX_DATABASE_URL', 'BSC_RPC_URL', 'BSC_START_BLOCK', 'BSC_LIVE_START_BLOCK', 'BSC_INDEX_EPOCH']) {

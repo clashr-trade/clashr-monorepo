@@ -20,7 +20,8 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "publish:oss": "bash scripts/publish-oss.sh",
-    "seed:demo": "node scripts/seed-demo.mjs"
+    "seed:demo": "node scripts/seed-demo.mjs",
+    "start:backend": "node scripts/dev-backend.mjs"
   },
   "devDependencies": {
     "eslint": "^10.14.0",

@@ -1,0 +1,12 @@
+# Replace this hostname with your API domain. Its DNS must point to the VPS.
+api.YOUR-DOMAIN.example {
+    # The API runner is intentionally bound to localhost:8790.
+    # NEVER expose /admin/* publicly; internal jobs call it in-process.
+    @public path /health /search /v1/* /tokens/* /wallets/* /flap/*
+    handle @public {
+        reverse_proxy 127.0.0.1:8790
+    }
+    handle {
+        respond "Not found" 404
+    }
+}
