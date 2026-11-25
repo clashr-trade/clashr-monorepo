@@ -28,3 +28,7 @@ skills-lock.json
 
 # internal notes for the build sessions (not public)
 .private/
+
+# Deployment templates contain placeholders only.
+!.env.backend.example
+!.env.vercel.example

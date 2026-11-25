@@ -53,4 +53,4 @@ export default nextConfig;
 
 // Native VPS builds must not boot the Cloudflare dev proxy. Worker workflows
 // retain their existing bindings and build behavior.
-if (process.env.CLASHR_WEB_RUNTIME !== 'node') initOpenNextCloudflareForDev();
+if (process.env.CLASHR_WEB_RUNTIME !== 'node' && process.env.VERCEL !== '1') initOpenNextCloudflareForDev();

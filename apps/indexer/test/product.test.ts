@@ -89,4 +89,20 @@ describe.skipIf(!available)('independent BNB product: wallet sessions and origin
     await db.sql`update members set status='suspended' where id=${otherId}`;
     expect((await request('/v1/members/discover?q=bnb_other')).body.items).toEqual([]);
   });
+  it('serves wallet sessions and completes sign-in on an explicitly enabled VPS IP origin',async()=>{
+    const origin='http://135.181.237.187:3000',previewEnv={...env,PRODUCT_ORIGIN:origin,WEB_ORIGINS:origin,CLASHR_HTTP_PREVIEW_ORIGIN:origin};
+    const account=privateKeyToAccount(('0x'+'56'.repeat(32)) as `0x${string}`);
+    const call=async(path:string,body?:unknown,session?:string)=>{
+      const r=await productApp.fetch(new Request('http://127.0.0.1:8790'+path,{method:body?'POST':'GET',headers:{origin,...(body?{'content-type':'application/json'}:{}),...(session?{authorization:'Bearer '+session}:{})},body:body?JSON.stringify(body):undefined}),previewEnv);
+      return {status:r.status,body:await r.json() as any};
+    };
+    expect(await call('/v1/auth/wallet/session')).toMatchObject({status:200,body:{address:null}});
+    const challenge=await call('/v1/auth/wallet/nonce?address='+account.address);
+    expect(challenge.status).toBe(200);expect(challenge.body.message).toContain('135.181.237.187:3000');
+    const signature=await account.signMessage({message:challenge.body.message});
+    const login=await call('/v1/auth/wallet/verify',{message:challenge.body.message,signature});
+    expect(login.status).toBe(200);
+    expect(await call('/v1/auth/wallet/session',undefined,login.body.sessionToken)).toMatchObject({status:200,body:{address:account.address.toLowerCase()}});
+  });
+
 });

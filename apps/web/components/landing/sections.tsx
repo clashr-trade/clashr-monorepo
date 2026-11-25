@@ -75,7 +75,7 @@ export function Nav(){return <ClashrNav/>;}
 
 /** The forum strip (3:1): AVIF widths, also preloaded so the LCP image starts with the HTML. */
 const FORUM_WIDTHS = [768, 1280, 2048, 2560];
-const FORUM_AVIF = FORUM_WIDTHS.map((w) => `/art/forum-${w}.avif ${w}w`).join(', ');
+const FORUM_AVIF = FORUM_WIDTHS.map((w) => `/art/forum-no-wreath-${w}.avif ${w}w`).join(', ');
 // Full width from md up; on phones the strip is taller than 3:1 (16:10) so it is drawn ~1.9x wider.
 const FORUM_SIZES = '(min-width: 768px) 100vw, (min-width: 640px) 150vw, 188vw';
 
@@ -84,7 +84,7 @@ const FORUM_SIZES = '(min-width: 768px) 100vw, (min-width: 640px) 150vw, 188vw';
 const BETA_CODE = 'RUSHRBETA';
 
 export function Hero() {
-  preload('/art/forum-1280.avif', { as: 'image', type: 'image/avif', imageSrcSet: FORUM_AVIF, imageSizes: FORUM_SIZES, fetchPriority: 'high' });
+  preload('/art/forum-no-wreath-1280.avif', { as: 'image', type: 'image/avif', imageSrcSet: FORUM_AVIF, imageSizes: FORUM_SIZES, fetchPriority: 'high' });
   return (
     <section className="relative">
       <div className={`${WRAP} flex flex-col items-center pt-6 text-center md:pt-8`}>
@@ -132,7 +132,7 @@ export function Hero() {
       {/* The forum, edge to edge: people at the temple of the green R, charts in hand. */}
       <div className="relative mt-6 aspect-[16/10] w-full overflow-hidden sm:aspect-[5/2] md:mt-8 md:aspect-[7/2] md:max-h-[480px]">
         <Art
-          name="forum"
+          name="forum-no-wreath"
           widths={FORUM_WIDTHS}
           avif
           priority

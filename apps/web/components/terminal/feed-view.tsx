@@ -404,14 +404,14 @@ export function SuggestionRow({ s, following, onToggle,busy=false }: { s: Sugges
           </span>
         </span>
       </Link>
-      <button
+      {s.member.demo ? <Link href={`/u/${s.member.handle}`} className="shrink-0 rounded-full border border-white/10 px-3 py-1 text-xs font-semibold">{translateUI("View profile")}</Link> : <button
         type="button"
         onClick={onToggle}
         disabled={busy}
         className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold ${following ? 'border border-white/[0.12] text-muted' : 'bg-ink text-bg hover:bg-white'}`}
       >
         {busy?translateUI("Saving…"):following ? translateUI("Following") : translateUI("Follow")}
-      </button>
+      </button>}
     </li>
   );
 }

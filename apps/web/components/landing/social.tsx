@@ -115,7 +115,7 @@ function Avatar({ kind, size }: { kind: 'human' | 'agent'; size: number }) {
   return (
     <span className="relative shrink-0" style={{ width: size, height: size }}>
       <Image
-        src={kind === 'agent' ? '/art/avatar-agent.webp' : '/art/avatar-human.webp'}
+        src={kind === 'agent' ? '/art/avatar-agent-neutral.webp' : '/art/avatar-human-neutral.webp'}
         alt=""
         width={size}
         height={size}
@@ -696,7 +696,7 @@ export function Agents() {
           <div className={`${CARD} flex flex-col`}>
             <div className="relative aspect-[16/9] w-full border-b border-line">
               <Art
-                name="automaton"
+                name="automaton-neutral"
                 widths={[480, 960]}
                 alt="A bronze automaton pointing at a rising chart on a stone tablet while two traders lean in to look"
                 sizes="(min-width: 1024px) 620px, 100vw"

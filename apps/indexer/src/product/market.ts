@@ -3,10 +3,23 @@ import {createPublicClient,erc20Abi,http,type Address} from 'viem';
 import {bsc} from 'viem/chains';
 import {BSC_PUBLIC_RPC} from '@clashr/core/chain/bsc-rpc';
 
-export async function syncProductMarket(sql:Sql,origin:string,rpcUrl=BSC_PUBLIC_RPC){
-  const response=await fetch(`${origin}/api/bsc/market`,{signal:AbortSignal.timeout(20_000)});
+export interface ProductMarketDocument {chainId:number;source:string;tokens:Record<string,unknown>[]}
+/** Metadata needed by the product DB, derived directly from the finalized Flap index. */
+export function indexedProductMarket(index:Awaited<ReturnType<typeof import('./flap').flapMarket>>):ProductMarketDocument {
+ if(index.chainId!==56||index.provenance!=='finalized-onchain')throw new Error('Wrong indexed market source');
+ return {chainId:56,source:'flap',tokens:index.items.flatMap(r=>{
+  const decimals=Number(r.decimals),progress=Number(r.progress);
+  if(r.chainId!==56||!/^0x[0-9a-f]{40}$/.test(r.coin.address)||r.decimals===null||!Number.isInteger(decimals)||decimals<0||decimals>36||!Number.isFinite(progress)||progress<0||progress>100)return [];
+  return [{chain_id:56,address:r.coin.address,name:r.coin.name,symbol:r.coin.symbol,launchpad:'flap',status:r.listed?'migrated':'bonding',market_column:r.listed?'migrated':progress>=50?'almost':'new',created_at:r.createdAt??'',price_usd:r.priceUsd??null,market_cap_usd:r.priceUsd&&r.totalSupply?Number(r.totalSupply)/10**decimals*r.priceUsd:null,volume_24h_usd:null,liquidity_usd:null,bonding_progress:progress/100,holders:r.holders??0,quote:r.quoteToken,image_url:typeof r.coin.image==='string'&&r.coin.image.startsWith('https://')?r.coin.image:null}];
+ })};
+}
+export async function syncProductMarket(sql:Sql,source:string|ProductMarketDocument,rpcUrl=BSC_PUBLIC_RPC){
+ let market:ProductMarketDocument;
+ if(typeof source==='string'){
+  const response=await fetch(`${source}/api/bsc/market`,{signal:AbortSignal.timeout(20_000)});
   if(!response.ok)throw new Error('BNB market source unavailable');
-  const market=await response.json() as {chainId:number;source:string;tokens:Record<string,unknown>[]};
+  market=await response.json() as ProductMarketDocument;
+ }else market=source;
   if(market.chainId!==56||!['flap','geckoterminal'].includes(market.source)||!Array.isArray(market.tokens))throw new Error('Wrong market source');
   const groups=['new','almost','migrated'].map(column=>market.tokens.filter(token=>token.market_column===column));
   const fair=Array.from({length:60},(_,index)=>groups.flatMap(group=>group[index]?[group[index]!]:[])).flat().filter(token=>Number.isFinite(Date.parse(String(token.created_at)))).slice(0,150);

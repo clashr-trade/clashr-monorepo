@@ -143,24 +143,25 @@ const seedOf = (u: AuthUser) => `0x${[...u.id].map((c) => c.charCodeAt(0).toStri
 
 function ProfilePage({ view, onEdited }: { view: View; onEdited?: () => void }) {
   const pnl = useWalletPnl(view.wallet);
-  const holdings = useWalletHoldings(view.wallet);
+  const holdings = useWalletHoldings(view.member?.demo ? null : view.wallet);
   const positions = pnl.state === 'ready' ? pnl.data.positions : [];
   const summary = pnl.state === 'ready' ? pnl.data.summary : null;
   // Everything the wallet holds at today's prices (ETH, USDG and tokens, read on-chain).
-  const total = holdings.totalUsd;
+  const total = view.member?.demo ? summary?.portfolio_value_usd ?? null : holdings.totalUsd;
 
   return (
     <div className="h-full overflow-y-auto">
       <div className="mx-auto max-w-[1400px] pb-8">
         <Header view={view} summary={summary} onEdited={onEdited} />
+        {view.member?.demo && <DemoNotice/>}
         <div className="grid gap-3 px-3 sm:px-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] xl:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)_300px]">
           <div className="min-w-0 space-y-3">
             <Portfolio wallet={view.wallet} total={total} summary={summary} loading={pnl.state === 'loading'} />
             {view.own && <WalletOverview wallet={view.wallet} holdings={holdings} menu={<WalletMenu />} />}
-            <Positions state={pnl.state} positions={positions} handle={view.handle} own={view.own} />
+            <Positions state={pnl.state} positions={positions} handle={view.member?.demo ? null : view.handle} own={view.own} />
           </div>
           <div className="min-w-0">
-            <Activity handle={view.handle} wallet={view.wallet} />
+            <Activity key={view.member?.demo ? 'demo' : 'real'} handle={view.handle} wallet={view.wallet} demo={view.member?.demo ?? false} />
           </div>
           <div className="min-w-0 space-y-3 lg:col-span-2 xl:col-span-1">
             <TopTraders exclude={view.handle} />
@@ -177,15 +178,21 @@ function Header({ view, summary, onEdited }: { view: View; summary: PnlSummary |
   const {t:translateUI}=usePlatformLanguage();
   const { authenticated } = useAuth();
   const m = view.member;
-  const rel = useRelationship(view.own ? null : view.handle, authenticated);
+  const rel = useRelationship(view.own || m?.demo ? null : view.handle, authenticated);
   const [editing, setEditing] = useState(false);
   const [shared, setShared] = useState(false);
   const [card, setCard] = useState(false);
   // Members get the PnL card popup; a wallet without a handle can only share its page link.
   const share = async () => {
-    if (view.handle) return setCard(true);
+    if (view.handle && !m?.demo) return setCard(true);
     try {
-      await navigator.clipboard.writeText(window.location.href);
+      if(navigator.clipboard?.writeText){
+        await navigator.clipboard.writeText(window.location.href);
+      }else{
+        const input=document.createElement('textarea');input.value=window.location.href;
+        input.style.position='fixed';input.style.opacity='0';document.body.appendChild(input);
+        try{input.select();if(!document.execCommand('copy'))throw new Error('Clipboard unavailable');}finally{input.remove();}
+      }
       setShared(true);
       setTimeout(() => setShared(false), 1500);
     } catch {
@@ -199,8 +206,8 @@ function Header({ view, summary, onEdited }: { view: View; summary: PnlSummary |
           <img src={iconSrc(m.bannerUrl)} alt="" className="size-full object-cover" />
         ) : (
           <picture>
-            <source srcSet="/art/forum-1280.avif" type="image/avif" />
-            <img src="/art/forum-1280.webp" alt="" className="size-full object-cover object-[50%_35%] opacity-60" />
+            <source srcSet="/art/profile-forum-neutral-1280.avif" type="image/avif" />
+            <img src="/art/profile-forum-neutral-1280.webp" alt="" className="size-full object-cover object-[50%_35%] opacity-60" />
           </picture>
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-bg via-bg/30 to-transparent" />
@@ -216,7 +223,7 @@ function Header({ view, summary, onEdited }: { view: View; summary: PnlSummary |
             <button type="button" onClick={() => void share()} className="flex items-center gap-1.5 rounded-xl border border-white/[0.08] px-3 py-2 text-sm text-muted hover:text-ink">
               <ShareNetwork size={15} /> {shared ? translateUI("Link copied") : translateUI("Share")}
             </button>
-            {view.own ? (
+            {m?.demo ? null : view.own ? (
               <button
                 type="button"
                 disabled={!m}
@@ -256,7 +263,7 @@ function Header({ view, summary, onEdited }: { view: View; summary: PnlSummary |
                 <XLogo size={13} weight="bold" /> {m.x.username}
               </a>
             )}
-            {view.wallet && <span className="font-mono text-xs">{short(view.wallet)}</span>}
+            {view.wallet && <span className="font-mono text-xs" title={view.wallet}>{short(view.wallet)}</span>}
             {m?.owner && (
               <span>
                 {translateUI("Owned by")}{' '}
@@ -517,12 +524,12 @@ function heldTokens(p: Position): number {
 
 /* ------------------------------------------------------------------ activity */
 
-function Activity({ handle, wallet }: { handle: string | null; wallet: string | null }) {
+function Activity({ handle, wallet, demo=false }: { handle: string | null; wallet: string | null; demo?:boolean }) {
   const {t:translateUI}=usePlatformLanguage();
-  const [tab, setTab] = useState<'calls' | 'tx'>('calls');
+  const [tab, setTab] = useState<'calls' | 'tx'>(demo?'tx':'calls');
   const [side, setSide] = useState<'all' | 'buy' | 'sell'>('all');
   const [min, setMin] = useState(0);
-  const callouts = useCallouts(handle);
+  const callouts = useCallouts(demo?null:handle);
   const trades = useWalletTrades(tab === 'tx' ? wallet : null);
   return (
     <section className="overflow-hidden rounded-2xl border border-white/[0.06] bg-surface">
@@ -532,7 +539,7 @@ function Activity({ handle, wallet }: { handle: string | null; wallet: string | 
             ['calls', callouts.state === 'ready' && callouts.data.length ? `${translateUI('Calls')} ${callouts.data.length}` : 'Calls'],
             ['tx', 'Transactions'],
           ] as const
-        ).map(([id, label]) => (
+        ).filter(([id])=>!demo||id==='tx').map(([id, label]) => (
           <button key={id} type="button" onClick={() => setTab(id)} className={`rounded-lg px-2.5 py-1 text-xs font-medium ${tab === id ? 'bg-white/[0.08] text-ink' : 'text-muted hover:text-ink'}`}>
             {translateUI(label)}
           </button>
@@ -721,3 +728,5 @@ function Notice({ title, body, action }: { title: string; body: string; action?:
     </div>
   );
 }
+
+function DemoNotice(){const {t}=usePlatformLanguage();return <p role="note" className="mx-3 mb-4 text-xs text-muted sm:mx-4">{t('Trades, balances and PnL are simulated. This profile cannot trade or enter competitions.')}</p>;}

@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { V1 } from './members';
+import {useDemoProfiles} from './profile';
+import {BNB_PRODUCT} from './product';
 
 /**
  * The leaderboard (GET /v1/leaderboard, apps/indexer/src/agents/board.ts): registered members ranked by
@@ -21,6 +23,7 @@ export interface Season {
 }
 
 export interface BoardMember {
+  demo?: boolean;
   id: string;
   handle: string;
   kind: 'human' | 'agent';
@@ -99,3 +102,24 @@ export function useV1<T>(path: string | null): Load<T> {
 
 export const boardPath = (window: BoardWindow, kind: BoardKind, limit = 100) => `/leaderboard?window=${window}&kind=${kind}&limit=${limit}`;
 export const rankPath = (handle: string, window: BoardWindow) => `/members/${encodeURIComponent(handle)}/rank?window=${window}`;
+
+/** UI-only sample rows; official ranks and competition endpoints remain untouched. */
+export function useDisplayBoard(window: BoardWindow, kind: BoardKind, limit=100): Load<Board> {
+ const live=useV1<Board>(boardPath(window,kind,limit)), demos=useDemoProfiles();
+ if(!BNB_PRODUCT||live.state!=='ready'||demos.state!=='ready'||window==='season')return live;
+ return {state:'ready',data:mergeDemoBoard(live.data,demos.data.items,kind,limit)};
+}
+
+export function mergeDemoBoard(board: Board, demos: import('./profile').DemoProfileItem[], kind:BoardKind, limit=100):Board {
+ if(board.window==='season')return board;
+ const window=board.window;
+ const rows=[...board.rows];const handles=new Set(rows.map(r=>r.member.handle));
+ for(const {member,summary,performance} of demos){
+  if(handles.has(member.handle)||(kind!=='all'&&member.kind!==kind))continue;
+  const realized=window==='24h'?summary.realized_24h_usd:window==='7d'?summary.realized_7d_usd:summary.realized_30d_usd;
+  const stats=performance?.[window];
+  rows.push({rank:0,member,score:realized,pnl:realized,realized,unrealized:null,roi:stats?.roi??null,volumeUsd:stats?.volumeUsd??null,trades:stats?.trades??summary.trades??0,tokens:stats?.tokens??summary.tokens_traded??0,winRate:stats?.winRate??null,inclAgents:false,agentsPnl:null,agents:[]});
+ }
+ rows.sort((a,b)=>(b.score??b.pnl??0)-(a.score??a.pnl??0)||a.member.handle.localeCompare(b.member.handle));
+ return {...board,rows:rows.slice(0,limit).map((r,i)=>({...r,rank:i+1}))};
+}

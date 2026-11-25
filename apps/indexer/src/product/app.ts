@@ -3,8 +3,9 @@ import postgres from 'postgres';
 import { v1 } from '../agents/app';
 import type { AgentsEnv } from '../agents/env';
 import { dbUrl } from '../env';
-import {syncProductMarket} from './market';
+import {syncProductMarket,indexedProductMarket} from './market';
 import {recoverProductTrades} from './trade';
+import {demoWallets} from './demo';
 import {productWallets} from './wallets';
 import {flapMarket,flapTrades,flapHolders} from './flap';
 
@@ -50,9 +51,10 @@ productApp.post('/admin/sync-market',async c=>{
   const host=new URL(c.req.url).hostname;
   if(c.env.ADMIN_TOKEN?c.req.header('authorization')!==`Bearer ${c.env.ADMIN_TOKEN}`:!['127.0.0.1','localhost'].includes(host))return c.json({error:'unauthorized'},401);
   const sql=postgres(dbUrl(c.env),{max:1,prepare:false,fetch_types:false});
-  try{return c.json(await syncProductMarket(sql,c.env.PRODUCT_MARKET_ORIGIN??c.env.PRODUCT_ORIGIN!,c.env.BSC_RPC_URL));}
+  const indexSql=postgres(c.env.BSC_INDEX_DATABASE_URL??dbUrl(c.env),{max:1,prepare:false,fetch_types:false});
+  try{return c.json(await syncProductMarket(sql,indexedProductMarket(await flapMarket(indexSql,undefined,c.env.BSC_RPC_URL)),c.env.BSC_RPC_URL));}
   catch{return c.json({error:'market_sync_unavailable'},503);}
-  finally{await sql.end({timeout:2});}
+  finally{await Promise.all([sql.end({timeout:2}),indexSql.end({timeout:2})]);}
 });
 productApp.post('/admin/recover-trades',async c=>{
   const host=new URL(c.req.url).hostname;
@@ -75,5 +77,6 @@ productApp.get('/search',async c=>{
   try {const tokens=await sql`select *,56 as chain_id from tokens where address=${q.toLowerCase()} or symbol ilike ${`%${q}%`} or name ilike ${`%${q}%`} order by volume_24h_usd desc nulls last limit 20`;return c.json({chainId:56,tokens});}
   finally {await sql.end({timeout:2});}
 });
+productApp.route('/',demoWallets);
 productApp.route('/',productWallets);
 productApp.route('/v1',v1);

@@ -12,9 +12,9 @@ const get = async <T,>(path: string): Promise<T | null> => {
 };
 
 export async function cardMember(handle: string): Promise<(CardMember & { wallet: string }) | null> {
-  const body = await get<{ member?: { handle: string; kind: 'human' | 'agent'; avatarUrl: string | null; wallet: string } }>(`/v1/members/${encodeURIComponent(handle)}`);
+  const body = await get<{ member?: { handle: string; kind: 'human' | 'agent'; avatarUrl: string | null; wallet: string; demo?:boolean } }>(`/v1/members/${encodeURIComponent(handle)}`);
   const m = body?.member;
-  return m ? { handle: m.handle, kind: m.kind, avatarUrl: m.avatarUrl, wallet: m.wallet.toLowerCase() } : null;
+  return m && !m.demo ? { handle: m.handle, kind: m.kind, avatarUrl: m.avatarUrl, wallet: m.wallet.toLowerCase() } : null;
 }
 
 export interface CardPosition {
