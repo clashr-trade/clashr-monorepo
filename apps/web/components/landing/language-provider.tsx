@@ -150,7 +150,7 @@ export function LanguageSelect() {
         aria-label={t('Language')}
         aria-haspopup="listbox"
         aria-expanded={open}
-        aria-controls={id}
+        aria-controls={open ? id : undefined}
         onClick={() => {
           setActive(selected);
           setOpen(!open);

@@ -40,7 +40,7 @@ function EnglishDocument() {
   const { all, body } = load();
   const toc = tocOf(body);
   return (
-    <div className="theme-paper clashr-docs min-h-dvh">
+    <div className="clashr-docs min-h-dvh">
       <Nav />
       <main className={`${WRAP} py-14 md:py-20`}>
         <header className="max-w-3xl lg:ml-[calc(13rem+4rem)]">

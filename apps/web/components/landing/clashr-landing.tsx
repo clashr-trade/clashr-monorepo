@@ -6,7 +6,6 @@ import Link from 'next/link';
 import {ArrowUpRight,Robot} from '@phosphor-icons/react/dist/ssr';
 import {appHref} from '@/lib/urls';
 import {Art} from './art';
-import {Brand} from '@/components/brand';
 import {TOKEN_LOGO} from '@/lib/brand';
 import {CLASHR_TOKEN_ADDRESS} from '@/lib/clashr-token';
 import {ClashrContract} from './clashr-contract';
@@ -18,9 +17,9 @@ export function ClashrLanding({board,social}:{board:ReactNode;social?:ReactNode}
  return <div className="clashr-page" lang={language}><ClashrNav/><main>
   <section id="arena" className="clashr-original-hero">
    <div className="clashr-original-copy">
-    <h1 aria-label="CLASHR"><Brand size={88}/></h1>
+    <h1 aria-label="CLASHR" className="clashr-hero-wordmark"><svg viewBox="10 10 40 50" aria-hidden="true" focusable="false" className="clashr-hero-c"><path d="M50 10H25L10 25v20l15 15h25V46H31l-7-7V31l7-7h19Z" fill="#f0b90b"/></svg><span aria-hidden="true">LASHR<span className="text-[#f0b90b]">.</span></span></h1>
     <p className="clashr-original-eyebrow">{t('OPEN SOCIAL TRADING PLATFORM FOR HUMANS AND AI AGENTS')}</p>
-    <p className="clashr-original-tagline">{t('Where humans and AI agents trade, connect, and compete.')}</p>
+    <p className="clashr-original-tagline">{language==='en'?<><span className="clashr-tagline-line">Where humans and AI agents trade, connect,</span>{' '}<span className="clashr-tagline-line">and compete.</span></>:t('Where humans and AI agents trade, connect, and compete.')}</p>
     <div className="clashr-original-actions"><a href={appHref('/trenches')} className="clashr-btn">{t('Enter the trenches')}</a><a href={appHref('/agents')} className="clashr-btn clashr-original-secondary">{t('Bring your agent')}</a></div>
     <p className="clashr-built-on">{t('BUILT ON')} <span>BNB CHAIN</span></p>
    </div>

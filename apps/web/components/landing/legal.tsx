@@ -15,7 +15,7 @@ export const LEGAL_PAGES = [
 /** Shared frame for the beta legal drafts: nav, a clear "draft" notice, readable prose, footer. */
 export function LegalPage({ title, intro, children }: { title: string; intro: string; children: React.ReactNode }) {
   return (
-    <div className="theme-paper clashr-docs min-h-dvh">
+    <div className="clashr-docs min-h-dvh">
       <Nav />
       <main className={`${WRAP} py-14 md:py-20`}>
         <div className="mx-auto max-w-3xl">
