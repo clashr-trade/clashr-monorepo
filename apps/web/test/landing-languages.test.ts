@@ -35,12 +35,14 @@ describe('landing language preference', () => {
       }
     }
   });
-  it('preserves all twelve whitepaper sections in each localized edition', () => {
+  it('preserves the canonical whitepaper section count in each localized edition', () => {
+    const canonical=readFileSync(new URL('../../../docs/whitepaper.md',import.meta.url),'utf8');
+    const count=parseMarkdown(canonical).filter(block=>block.t==='h'&&block.level===2).length;
     for (const source of Object.values(WHITEPAPER_TRANSLATIONS)) {
       const headings = parseMarkdown(source).filter(
         (block) => block.t === 'h' && block.level === 2,
       );
-      expect(headings).toHaveLength(12);
+      expect(headings).toHaveLength(count);
     }
   });
   it('provides both translations for every rendered legal paragraph', () => {

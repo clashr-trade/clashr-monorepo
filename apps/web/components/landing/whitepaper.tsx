@@ -6,7 +6,7 @@ import { headingLabel, plain, type Block, type Inline } from './markdown';
 
 /** Absolute links to this site become relative, so they stay on the current host (and work locally). */
 function siteHref(href: string): string {
-  return href.replace(/^https:\/\/rushr\.trade(?=\/)/, '');
+  return href.replace(/^https:\/\/(?:www\.)?clashr\.trade(?=\/)/, '');
 }
 
 /** Placeholder values in the doc ("_tbd_", "_published at launch_") until the launch fills them in. */
@@ -55,7 +55,6 @@ function Inlines({ c, inTable = false }: { c: Inline[]; inTable?: boolean }) {
               </code>
             );
           case 'link': {
-            if (/^https?:\/\/(?:www\.)?github\.com(?:\/|$)/i.test(n.href)) return <Fragment key={i}><Inlines c={n.c} inTable={inTable} /></Fragment>;
             const href = siteHref(n.href);
             const external = /^https?:/.test(href);
             return external ? (
@@ -147,7 +146,7 @@ function SupplyChart({ slices }: { slices: Slice[] }) {
         })}
       </svg>
       <figcaption className="w-full">
-        <div className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted">$RUSHR supply at launch</div>
+        <div className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted"><UIText text="Proposed CLASHR launch distribution"/></div>
         <ul className="mt-4 space-y-3 !pl-0 [list-style:none]">
           {slices.map((s, i) => (
             <li key={i} className="!mt-0 flex items-baseline gap-3">
@@ -181,8 +180,8 @@ function LiveLink() {
       className="!no-underline flex items-center justify-between gap-4 rounded-xl border border-line bg-surface px-5 py-4 transition hover:border-ink/20"
     >
       <span>
-        <span className="block font-semibold text-ink">Live numbers</span>
-        <span className="block text-sm text-muted">Treasury balance, fees collected and every buyback, on the transparency page.</span>
+        <span className="block font-semibold text-ink"><UIText text="Token and treasury status"/></span>
+        <span className="block text-sm text-muted"><UIText text="Published contracts, fee activation and verified transaction records."/></span>
       </span>
       <span className="shrink-0 font-mono text-sm text-ink" aria-hidden>
         →
