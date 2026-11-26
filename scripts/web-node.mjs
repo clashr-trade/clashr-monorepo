@@ -2,12 +2,13 @@ import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const web = fileURLToPath(new URL('../apps/web/', import.meta.url));
-const command = process.argv[2];
+const requested = process.argv[2];
+const command = requested === 'railway-start' ? 'start' : requested;
 if (!['build', 'start'].includes(command)) {
   console.error('Usage: node scripts/web-node.mjs <build|start> [Next.js options]');
   process.exit(1);
 }
-const env = { ...process.env, CLASHR_WEB_RUNTIME: 'node' };
+const env = { ...process.env, CLASHR_WEB_RUNTIME: 'node', ...(requested === 'railway-start' ? {CLASHR_DEPLOYMENT: 'railway'} : {}) };
 // Bound native Rust compiler/scanner concurrency on memory-constrained VPS hosts.
 // This is independent of V8's heap limit and does not change page runtime speed.
 if (command === 'build') env.RAYON_NUM_THREADS = process.env.RAYON_NUM_THREADS || '1';

@@ -2,6 +2,21 @@ import { BNB_SESSION_COOKIE } from './brand-compat';
 import { devAllowedOrigin } from './dev-origin';
 import { httpPreviewOrigin } from './http-preview';
 const COOKIE=BNB_SESSION_COOKIE;
+/** Railway terminates HTTPS before Next. Bind forwarded origin handling to our configured host. */
+function frontendUrl(request:Request):URL {
+  const url=new URL(request.url);
+  if(process.env.CLASHR_DEPLOYMENT!=='railway')return url;
+  try {
+    const site=new URL(process.env.NEXT_PUBLIC_SITE_URL??'');
+    const hosts=[url.host,request.headers.get('host'),request.headers.get('x-forwarded-host')?.split(',')[0]?.trim()];
+    if(site.protocol==='https:'&&!site.username&&!site.password&&site.pathname==='/'&&!site.search&&!site.hash
+      &&hosts.some(host=>host?.toLowerCase()===site.host.toLowerCase())
+      &&request.headers.get('x-forwarded-proto')?.split(',')[0]?.trim()==='https'){
+      url.protocol='https:';url.host=site.host;url.port=site.port;
+    }
+  }catch{/* Invalid configuration never grants another origin access. */}
+  return url;
+}
 async function limitedBody(request:Pick<Request,'body'>,max:number):Promise<Uint8Array<ArrayBuffer>|null>{
   const reader=request.body?.getReader();
   if(!reader)return new Uint8Array();
@@ -21,7 +36,7 @@ export async function proxyProduct(request:Request,parts:string[],base:string|un
     ||!['http:','https:'].includes(target.protocol)||/(^|\.)rushr\.trade$/i.test(target.hostname))throw new Error();}
   catch{return Response.json({error:{code:'invalid_product_origin',message:'BNB requires an owned, independent API origin.'}},{status:503,headers});}
   if(parts.some(p=>!p||p==='.'||p==='..'||/[\/\\%?#\u0000]/.test(p)))return new Response(null,{status:400});
-  const own=new URL(request.url),origin=request.headers.get('origin');
+  const own=frontendUrl(request),origin=request.headers.get('origin');
   // The dev server reports request.url as localhost, so an address-based dev origin is matched explicitly.
   if(!['GET','HEAD','OPTIONS'].includes(request.method)&&origin!==own.origin&&origin!==devAllowedOrigin()?.origin&&origin!==httpPreviewOrigin()?.origin)return new Response('Invalid origin',{status:403,headers});
   target.pathname=`/${parts.join('/')}`;target.search=own.search;

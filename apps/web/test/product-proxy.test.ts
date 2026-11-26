@@ -1,8 +1,22 @@
-import {describe,it,expect,vi} from 'vitest';
+import {afterEach,describe,it,expect,vi} from 'vitest';
 import {proxyProduct} from '../lib/product-proxy';
 const origin='https://bnb.example',base='https://api.bnb.example';
 const session='ws_'+'1'.repeat(64);
 describe('BNB API/session isolation',()=>{
+  afterEach(()=>vi.unstubAllEnvs());
+  it('uses the configured Railway HTTPS origin for sign-in and secure cookies behind its proxy',async()=>{
+    vi.stubEnv('CLASHR_DEPLOYMENT','railway');vi.stubEnv('NEXT_PUBLIC_SITE_URL',origin);
+    const headers={origin,host:'bnb.example','x-forwarded-proto':'https'};
+    const fetcher=vi.fn(async()=>Response.json({sessionToken:session},{headers:{'x-clashr-chain-id':'56'}}));
+    const response=await proxyProduct(new Request('http://localhost:3000/api/product/v1/auth/wallet/verify',{method:'POST',headers,body:'{}'}),['v1','auth','wallet','verify'],base,fetcher);
+    expect(response.status).toBe(200);expect(response.headers.get('set-cookie')).toContain('; Secure');
+    expect((await response.json()).sessionToken).toBeUndefined();
+    for(const override of [{origin:'https://attacker.example'},{host:'attacker.example'}]){
+      const blocked=await proxyProduct(new Request('http://localhost:3000/api/product/v1/auth/wallet/verify',{method:'POST',headers:{...headers,...override},body:'{}'}),['v1','auth','wallet','verify'],base,fetcher);
+      expect(blocked.status).toBe(403);
+    }
+    expect(fetcher).toHaveBeenCalledOnce();
+  });
   it.each([
     [{'x-clashr-chain-id':'56'},200],
     [{'x-rushr-chain-id':'56'},200],

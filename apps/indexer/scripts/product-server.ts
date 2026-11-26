@@ -3,10 +3,13 @@ import {productApp} from '../src/product/app';
 import type {AgentsEnv} from '../src/agents/env';
 
 /** Node transport for the local product API; preserve image bytes and enforce route limits. */
-export function productServer(env:AgentsEnv){
+export function productServer(env:AgentsEnv, options: {publicOnly?: boolean} = {}){
   return createServer(async(req,res)=>{
     try{
       const route=new URL(req.url??'/', 'http://127.0.0.1:8790');
+      if(options.publicOnly && !/^\/(?:health\/?|search\/?|(?:v1|tokens|wallets|flap)\/.*)$/.test(route.pathname)){
+        res.writeHead(404,{'content-type':'application/json'});res.end(JSON.stringify({error:'not_found'}));return;
+      }
       const upload=req.method==='POST'&&/^\/v1\/me\/(avatar|banner)\/?$/.exec(route.pathname);
       const max=upload?(upload[1]==='avatar'?1_000_000:3_000_000):16_384;
       const chunks:Buffer[]=[];let size=0;

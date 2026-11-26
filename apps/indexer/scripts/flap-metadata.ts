@@ -1,7 +1,9 @@
 import postgres from 'postgres';
 import {readFlapMetadata} from '../src/bsc/flap-metadata';
+import {validateIndexDatabase} from '../../../scripts/backend-env.mjs';
 const url=process.env.BSC_INDEX_DATABASE_URL;
-if(!url||!['localhost','127.0.0.1'].includes(new URL(url).hostname))throw new Error('Explicit local index database required');
+validateIndexDatabase(url, process.env);
+if(!url)throw new Error('Explicit index database required');
 const sql=postgres(url,{max:1,prepare:false,fetch_types:false});
 const address=process.argv.find(arg=>arg.startsWith('--address='))?.slice(10).toLowerCase();
 if(address&&!/^0x[0-9a-f]{40}$/.test(address))throw new Error('Invalid token address');

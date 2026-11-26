@@ -1,10 +1,9 @@
 import { spawn, spawnSync } from 'node:child_process';
-import { existsSync, readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import path from 'node:path';
 import { createInterface } from 'node:readline';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { parseEnv } from 'node:util';
+import { backendEnvironment, validateIndexDatabase } from './backend-env.mjs';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const workers = [
@@ -78,18 +77,26 @@ export function runServices(services, { cwd = root, env = process.env } = {}) {
 async function main() {
   const args = process.argv.slice(2);
   if (args.includes('--help')) {
-    console.log('Usage: pnpm run dev:backend [--env-file=apps/web/.env.local] [--check|--check-rpc|--check-index]');
+    console.log('Usage: pnpm run dev:backend [--railway|--env-file=PATH] [--check|--check-rpc|--check-index]');
     console.log('Starts the API and six Flap workers. Ctrl+C stops the group. PostgreSQL must already be running.');
     return;
   }
-  if (args.some((arg) => arg !== '--check' && arg !== '--check-rpc' && arg !== '--check-index' && !arg.startsWith('--env-file='))
+  if (args.some((arg) => !['--railway', '--check', '--check-rpc', '--check-index'].includes(arg) && !arg.startsWith('--env-file='))
       || args.filter((arg) => arg.startsWith('--env-file=')).length > 1) {
     throw new Error('Unknown or duplicate option. Run with --help.');
   }
   const envArgument = args.find((arg) => arg.startsWith('--env-file='));
-  const envPath = path.resolve(root, envArgument?.slice('--env-file='.length) || (existsSync(path.join(root,'.env.backend')) ? '.env.backend' : 'apps/web/.env.local'));
-  if (!existsSync(envPath)) throw new Error('Environment file not found. Use --env-file=PATH.');
-  const env = { ...parseEnv(readFileSync(envPath, 'utf8')), ...process.env };
+  const managed = args.includes('--railway');
+  const {env, source: envPath} = backendEnvironment(root, envArgument?.slice('--env-file='.length), managed);
+  env.BSC_INDEX_DATABASE_URL ||= env.DATABASE_URL;
+  if (managed) {
+    env.PRODUCT_API_HOST ||= '::';
+    env.PORT ||= '8790';
+    for (const key of ['PRODUCT_ORIGIN', 'IP_SALT', 'ADMIN_TOKEN', 'PRODUCT_MEDIA_DIR']) {
+      if (!env[key]) throw new Error(`Missing ${key} for the Railway backend.`);
+    }
+    if (new URL(env.PRODUCT_ORIGIN).protocol !== 'https:') throw new Error('Railway PRODUCT_ORIGIN must be the HTTPS frontend origin.');
+  }
   for (const key of ['DATABASE_URL', 'BSC_INDEX_DATABASE_URL', 'BSC_RPC_URL']) {
     if (!env[key]) throw new Error(`Missing ${key}. Configure it before starting the backend.`);
   }
@@ -97,9 +104,7 @@ async function main() {
     let url;
     try { url = new URL(env[key]); } catch { throw new Error(`Invalid ${key}.`); }
     if (!['postgres:', 'postgresql:'].includes(url.protocol)) throw new Error(`Invalid ${key} protocol.`);
-    if (key === 'BSC_INDEX_DATABASE_URL' && !['localhost', '127.0.0.1'].includes(url.hostname)) {
-      throw new Error('The current Flap runners require a local index database.');
-    }
+    if (key === 'BSC_INDEX_DATABASE_URL') validateIndexDatabase(env[key], env);
   }
   for (const key of ['BSC_START_BLOCK', 'BSC_LIVE_START_BLOCK']) {
     if (env[key] && !/^[1-9][0-9]{0,17}$/.test(env[key])) throw new Error(`Invalid ${key}.`);

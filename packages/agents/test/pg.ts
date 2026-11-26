@@ -20,7 +20,7 @@ export async function pgAvailable(): Promise<boolean> {
 }
 
 /** Create a fresh database with every migration in the journal applied. Returns its URL and a client. */
-export async function freshDb(name: string): Promise<{ url: string; sql: Sql; drop: () => Promise<void> }> {
+export async function freshDb(name: string, options: {migrate?: boolean} = {}): Promise<{ url: string; sql: Sql; drop: () => Promise<void> }> {
   if (!/^[a-z0-9_]+$/.test(name)) throw new Error('bad db name');
   const db = `rushr_test_${name}_${process.pid}`;
   const admin = postgres(ADMIN_URL, { max: 1, onnotice: () => {} });
@@ -29,7 +29,7 @@ export async function freshDb(name: string): Promise<{ url: string; sql: Sql; dr
   const url = ADMIN_URL.replace(/\/[^/]+$/, `/${db}`);
   const sql = postgres(url, { max: 4, onnotice: () => {}, fetch_types: false, prepare: false });
   const journal = JSON.parse(readFileSync(join(MIGRATIONS, 'meta/_journal.json'), 'utf8')) as { entries: { tag: string }[] };
-  for (const { tag } of journal.entries) {
+  for (const { tag } of options.migrate === false ? [] : journal.entries) {
     const text = readFileSync(join(MIGRATIONS, `${tag}.sql`), 'utf8');
     for (const stmt of text.split('--> statement-breakpoint')) if (stmt.trim()) await sql.unsafe(stmt);
   }

@@ -21,7 +21,10 @@
     "format": "prettier --write .",
     "publish:oss": "bash scripts/publish-oss.sh",
     "seed:demo": "node scripts/seed-demo.mjs",
-    "start:backend": "node scripts/dev-backend.mjs"
+    "start:backend": "node scripts/dev-backend.mjs",
+    "start:railway:web": "node scripts/web-node.mjs railway-start --hostname 0.0.0.0",
+    "start:railway:backend": "node scripts/dev-backend.mjs --railway",
+    "migrate:railway": "node scripts/migrate-backend.mjs --railway"
   },
   "devDependencies": {
     "@next/eslint-plugin-next": "15.5.29",

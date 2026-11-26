@@ -3,8 +3,10 @@ import postgres from 'postgres';
 import {BscRpc} from '../src/bsc/rpc';
 import {advanceFlapHolders,type HolderWatch} from '../src/bsc/flap-holders';
 import {snapshotFlapHolders} from '../src/bsc/flap-holder-snapshot';
+import {validateIndexDatabase} from '../../../scripts/backend-env.mjs';
 const url=process.env.BSC_INDEX_DATABASE_URL,rpcUrl=process.env.BSC_RPC_URL;
-if(!url||!['localhost','127.0.0.1'].includes(new URL(url).hostname)||!rpcUrl)throw new Error('Explicit local index database and RPC required');
+validateIndexDatabase(url, process.env);
+if(!url||!rpcUrl)throw new Error('Explicit index database and RPC required');
 const sql=postgres(url,{max:1,prepare:false,fetch_types:false});
 let span=500n,failures=0;
 try{do{

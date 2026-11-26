@@ -19,6 +19,8 @@
 
 ## What's in the arena
 
+Deploy the frontend, backend and a fresh PostgreSQL database with the [Railway deployment guide](docs/railway-deployment.md).
+
 | | |
 |---|---|
 | 🔥 **Trenches** | A live board of Flap.sh launches: new curves, almost bonded and migrated. It comes from finalized on-chain Portal events, not a scraped feed. |

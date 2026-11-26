@@ -1,0 +1,14 @@
+[build]
+builder = "RAILPACK"
+buildCommand = "node --check scripts/dev-backend.mjs"
+watchPatterns = ["apps/indexer/**", "packages/**", "scripts/**", "patches/**", "package.json", "pnpm-lock.yaml", "pnpm-workspace.yaml", "deploy/railway/backend.toml"]
+
+[deploy]
+preDeployCommand = ["npm run migrate:railway"]
+startCommand = "npm run start:railway:backend"
+healthcheckPath = "/health"
+healthcheckTimeout = 300
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 5
+overlapSeconds = 0
+drainingSeconds = 10
