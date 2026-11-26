@@ -16,7 +16,7 @@ Use the production frontend origin as PRODUCT_ORIGIN on the VPS. Preview deploym
 
 Existing apps/web/.env.local still works for local development and existing deployments. For the split deployment, copy .env.backend.example to .env.backend in the repository root and fill it from your existing private configuration. Preserve DATABASE_URL, BSC_INDEX_DATABASE_URL, BSC_RPC_URL, cursor start blocks, index epoch and stable secrets. Set PRODUCT_ORIGIN to the HTTPS frontend origin. Do not carry over DEV_ALLOWED_ORIGIN or CLASHR_HTTP_PREVIEW_ORIGIN. PRODUCT_MARKET_ORIGIN is no longer used by the Node product sync. A custom file is supported with --env-file=PATH.
 
-The backend and demo seed launchers prefer .env.backend when present and otherwise fall back to apps/web/.env.local. Explicit process environment values override the selected file. Do not leave unrelated VPS environment variables overriding this deployment configuration.
+The backend and demo seed launchers prefer .env.backend when present and otherwise fall back to apps/web/.env.local. Explicit process environment values override the selected file. Once adopted or initialized, the index database's persisted configuration takes precedence over start-block/epoch environment values. Database credentials, RPC URL and other runtime settings continue to come from the environment.
 
 With PostgreSQL running, from the repository root:
 
@@ -33,6 +33,18 @@ npm run seed:demo -- --refresh
 
 Keep only one backend group running. No frontend build/start process is needed on the VPS. start:backend currently uses the existing tsx runner and requires the installed workspace dependencies, including development dependencies. For unattended uptime, configure a Windows service or Task Scheduler to start it after boot; foreground terminal execution ends when that process is stopped.
 
+## Automatic index startup
+
+Startup resolves history and live indexing together before launching any services. It automatically applies only the additive 0021_flap_startup_config metadata table, under the existing index advisory locks. The index database user needs permission to create that table; alternatively apply packages/db/migrations/0021_flap_startup_config.sql ahead of time as the database owner. The existing index/product schema must already be migrated; this does not initialize the rest of a blank database.
+
+On a migrated database with no cursors, BSC_START_BLOCK, BSC_LIVE_START_BLOCK and BSC_INDEX_EPOCH are optional. Omitted starts default to the current finalized BNB mainnet block, sampled once for both workers. The default epoch is flap_v1 (live uses flap_v1_live). This indexes forward only: configure an explicit BSC_START_BLOCK before first startup if you need earlier launch history. Explicit starts are preserved; startup never silently chooses a later start to avoid backfill.
+
+The complete identity (version, decoder, chain constants, scope, original start block and epoch) is persisted separately for each worker. Every restart reuses it and ingestion continues from its existing checkpoint. Stale environment values are reported and ignored after configuration has been persisted. Changing providers does not change the indexing identity. Decoder/chain changes still require a reviewed migration or replay.
+
+Older hash-only cursors are adopted only if their identity can be reproduced exactly. Startup first tries the supplied start/epoch, then the saved start with the supplied epoch; neither attempt changes any cursor. Both modes must validate or the entire initialization rolls back. Preserve the original settings for this one-time adoption. A legacy mismatch cannot be repaired by making the current environment authoritative or overwriting its hash.
+
+Rollback: stop the group and restore the prior code with its original resolved start/epoch settings. Keep the additive metadata table and cursors intact; no indexed rows are rewritten by this change.
+
 ## Index integrity startup errors
 
 If a worker stops with an index integrity error, stop the backend group and run:
@@ -41,7 +53,7 @@ If a worker stops with an index integrity error, stop the backend group and run:
 npm run start:backend -- --check-index
 ~~~
 
-This read-only diagnostic compares history/live start blocks and configuration hashes with their saved database cursors and checks saved finalized block hashes against the configured RPC. It prints which environment file was selected and whether process variables override it. It never resets or advances cursors.
+This read-only diagnostic uses the same startup resolver, prints resolved settings, and checks saved finalized block hashes against the configured RPC. It never creates metadata or resets/advances cursors. For a new index it may sample a proposed finalized start; only normal startup persists it.
 
 For a configuration mismatch, restore this database's original BSC_START_BLOCK, BSC_LIVE_START_BLOCK and BSC_INDEX_EPOCH from its prior deployment configuration. Local development values need not match the VPS. Changing RPC credentials alone does not change the configuration hash; start block, epoch and decoder/chain configuration do. A matching start block alone cannot recover a missing epoch from its hash. If original settings are unavailable or restored settings still mismatch, retain the diagnostic output and review the deployed decoder version before planning a replay. Do not replace config_hash, clear halt_reason or delete cursors to bypass the guard. A stored finalized block mismatch requires provider/history verification and a reviewed reconciliation.
 

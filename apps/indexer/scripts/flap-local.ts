@@ -6,7 +6,7 @@ import {ingestBscBatch} from '../src/bsc/ingest';
 const env={...process.env,DATABASE_URL:process.env.BSC_INDEX_DATABASE_URL??process.env.DATABASE_URL,BSC_INDEX_ENABLED:'1',BSC_INDEX_SOURCE:'flap'};
 if(!env.DATABASE_URL||!['127.0.0.1','localhost'].includes(new URL(env.DATABASE_URL).hostname))throw new Error('Explicit local DATABASE_URL required');
 const live=process.argv.includes('--live');
-if(live){if(!process.env.BSC_LIVE_START_BLOCK)throw new Error('Explicit live start block required');env.BSC_START_BLOCK=process.env.BSC_LIVE_START_BLOCK;env.BSC_INDEX_EPOCH=(env.BSC_INDEX_EPOCH??'')+'_live';}
+if(live){if(!process.env.BSC_LIVE_START_BLOCK)throw new Error('Explicit live start block required');env.BSC_START_BLOCK=process.env.BSC_LIVE_START_BLOCK;env.BSC_INDEX_EPOCH=process.env.BSC_LIVE_INDEX_EPOCH??(env.BSC_INDEX_EPOCH??'')+'_live';}
 const config={...await bscConfig(env),live},sql=postgres(env.DATABASE_URL,{max:1,prepare:false,fetch_types:false});
 const follow=process.argv.includes('--follow');
 let blocks=50,failures=0;

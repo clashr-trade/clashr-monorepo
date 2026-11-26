@@ -90,7 +90,7 @@ async function main() {
   const envPath = path.resolve(root, envArgument?.slice('--env-file='.length) || (existsSync(path.join(root,'.env.backend')) ? '.env.backend' : 'apps/web/.env.local'));
   if (!existsSync(envPath)) throw new Error('Environment file not found. Use --env-file=PATH.');
   const env = { ...parseEnv(readFileSync(envPath, 'utf8')), ...process.env };
-  for (const key of ['DATABASE_URL', 'BSC_INDEX_DATABASE_URL', 'BSC_RPC_URL', 'BSC_START_BLOCK', 'BSC_LIVE_START_BLOCK', 'BSC_INDEX_EPOCH']) {
+  for (const key of ['DATABASE_URL', 'BSC_INDEX_DATABASE_URL', 'BSC_RPC_URL']) {
     if (!env[key]) throw new Error(`Missing ${key}. Configure it before starting the backend.`);
   }
   for (const key of ['DATABASE_URL', 'BSC_INDEX_DATABASE_URL']) {
@@ -102,9 +102,9 @@ async function main() {
     }
   }
   for (const key of ['BSC_START_BLOCK', 'BSC_LIVE_START_BLOCK']) {
-    if (!/^[1-9][0-9]{0,17}$/.test(env[key])) throw new Error(`Invalid ${key}.`);
+    if (env[key] && !/^[1-9][0-9]{0,17}$/.test(env[key])) throw new Error(`Invalid ${key}.`);
   }
-  if (!/^[a-zA-Z0-9_-]{1,59}$/.test(env.BSC_INDEX_EPOCH)) {
+  if (env.BSC_INDEX_EPOCH && !/^[a-zA-Z0-9_-]{1,59}$/.test(env.BSC_INDEX_EPOCH)) {
     throw new Error('BSC_INDEX_EPOCH must contain 1..59 letters, digits, underscores or hyphens (live adds a suffix).');
   }
   const require = createRequire(new URL('../packages/trade/package.json', import.meta.url));
@@ -139,6 +139,20 @@ async function main() {
     return;
   }
   console.log('PostgreSQL must already be running. Ctrl+C stops all seven processes.');
+  const startup = spawnSync(process.execPath, ['--import', loader, path.join(root, 'apps/indexer/scripts/prepare-backend-index.ts')], {
+    cwd: root, env, encoding: 'utf8', windowsHide: true,
+  });
+  if (startup.stderr) process.stderr.write(startup.stderr);
+  if (startup.status !== 0) {
+    process.exitCode = startup.status ?? 1;
+    console.error('Index preflight failed; no backend services were started.');
+    return;
+  }
+  const resolved = JSON.parse(startup.stdout);
+  for (const key of ['BSC_START_BLOCK', 'BSC_LIVE_START_BLOCK', 'BSC_INDEX_EPOCH']) {
+    if (env[key] && env[key] !== resolved[key]) console.log(`${key}: using persisted database configuration instead of the environment value.`);
+  }
+  Object.assign(env, resolved);
   process.exitCode = await runServices(services, { env });
 }
 

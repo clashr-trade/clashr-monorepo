@@ -12,13 +12,16 @@ async function probe(name:string,run:()=>Promise<unknown>){
     console.error(`[FAIL] ${name}: ${error instanceof Error&&error.message.startsWith('BSC RPC')?error.message:'RPC transport or response unavailable'}`);
   }
 }
-await probe('BNB chain 56',()=>new BscRpc(url).chainId());
-await probe('finalized block headers',()=>new BscRpc(url).header('finalized'));
+await probe('BNB chain 56',async()=>{if(await new BscRpc(url).chainId()!==56)throw new Error('BSC RPC wrong chain');});
+let finalized: bigint | undefined;
+await probe('finalized block headers',async()=>{finalized=(await new BscRpc(url).header('finalized')).number;});
 const start=process.env.BSC_START_BLOCK;
-if(!/^[1-9][0-9]{0,17}$/.test(start??''))throw new Error('Configure BSC_START_BLOCK before probing historical indexing.');
-const block=BigInt(start!);
-await probe('configured historical start block',()=>new BscRpc(url).header(block));
-await probe('one-block Flap eth_getLogs',()=>new BscRpc(url).logs(block,block,[FLAP_PORTAL],FLAP_TOPICS));
+if(start&&!/^[1-9][0-9]{0,17}$/.test(start))throw new Error('Invalid BSC_START_BLOCK.');
+const block=start?BigInt(start):finalized;
+if(block!==undefined){
+  await probe(start?'configured historical start block':'first-start finalized block',()=>new BscRpc(url).header(block));
+  await probe('one-block Flap eth_getLogs',()=>new BscRpc(url).logs(block,block,[FLAP_PORTAL],FLAP_TOPICS));
+}
 if(failed){
   console.error('Fix BSC_RPC_URL provider quota, method permissions, historical coverage or VPS IP allowlists. No keys were printed and no index cursor was modified.');
   process.exitCode=1;

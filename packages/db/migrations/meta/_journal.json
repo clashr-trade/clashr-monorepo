@@ -148,6 +148,13 @@
       "when": 1795115000000,
       "tag": "0020_flap_safety_queue",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1795651200000,
+      "tag": "0021_flap_startup_config",
+      "breakpoints": true
     }
   ]
 }
