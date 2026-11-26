@@ -47,7 +47,7 @@ export function runServices(services, { cwd = root, env = process.env } = {}) {
       resolve(result);
     }
 
-    for (const { name, args } of services) {
+    for (const { name, args, allowSuccessfulExit = false } of services) {
       const child = spawn(process.execPath, args, {
         cwd, env, stdio: ['ignore', 'pipe', 'pipe'], windowsHide: true,
       });
@@ -60,6 +60,10 @@ export function runServices(services, { cwd = root, env = process.env } = {}) {
         stop(1);
       });
       child.on('exit', (code, signal) => {
+        if (!stopping && allowSuccessfulExit && code === 0 && !signal) {
+          console.log(`[${name}] Completed; other backend services remain running.`);
+          return;
+        }
         if (!stopping) {
           console.error(`[${name}] Exited (${signal ?? code}); stopping the backend group.`);
           stop(code || 1);
@@ -136,7 +140,7 @@ async function main() {
     return;
   }
   const services = workers.map(([name, file, extra]) => ({
-    name, args: ['--import', loader, path.join(root, 'apps/indexer/scripts', file), ...extra],
+    name, allowSuccessfulExit: name === 'history', args: ['--import', loader, path.join(root, 'apps/indexer/scripts', file), ...extra],
   }));
   console.log(`Backend group: ${services.map(({ name }) => name).join(', ')}`);
   if (args.includes('--check')) {

@@ -6,7 +6,7 @@ This deployment uses a fresh Railway database. It does not copy, reset or modify
 
 Create one Railway project/environment with services named `frontend`, `backend` and `Postgres`. Connect both application services to this GitHub repository, branch `main`. Keep both Root Directories at `/` so the pnpm workspace, packages, patches and documentation are available. Use Railpack, not Docker.
 
-Set the frontend's Config File Path to `/deploy/railway/frontend.toml` and the backend's to `/deploy/railway/backend.toml`. These select different build/start commands from the same checkout. Railway's config path is relative to the repository, independently of Root Directory.
+Configure commands in each service's Railway settings. Frontend: build `npm run build:web`, start `npm run start:railway:web`, health check `/api/health`. Backend: build `node --check scripts/dev-backend.mjs`, pre-deploy `npm run migrate:railway`, start `npm run start:railway:backend`, health check `/health`. Use a 300-second health-check timeout. The TOML files in `deploy/railway` are reference configurations for older Railway installations; the current API rejects Config File Path because Config as Code is deprecated. Leave that setting empty and use the native settings above.
 
 Add variables from `deploy/railway/frontend.env.example` and `deploy/railway/backend.env.example` in the appropriate service's Variables editor. These files are templates, not automatically loaded secrets. Retain Node 22.23.5, pnpm from packageManager, `RAILPACK_NODE_INSTALL_PATTERNS=patches/**` (needed for the ox dependency patch during install), and `RAILPACK_PRUNE_DEPS=false` (the existing scripts require tsx).
 
