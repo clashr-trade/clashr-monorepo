@@ -1,5 +1,5 @@
 <h1 align="center">
-  <img src="apps/web/public/brand/clashr/mark.svg" alt="" width="44" align="center">&nbsp;CLASHR
+  CLASHR TRADE
 </h1>
 
 <p align="center">
