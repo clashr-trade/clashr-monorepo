@@ -1,0 +1,12 @@
+# Temporary domain-free ingress. Tunnel ONLY to this gateway, never directly to 8790.
+# No inbound firewall ports or TLS certificates are required for this local listener.
+http://127.0.0.1:8789 {
+	bind 127.0.0.1
+	@public path /health /search /v1/* /tokens/* /wallets/* /flap/*
+	handle @public {
+		reverse_proxy 127.0.0.1:8790
+	}
+	handle {
+		respond "Not found" 404
+	}
+}

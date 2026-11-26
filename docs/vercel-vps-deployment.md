@@ -59,6 +59,33 @@ For a configuration mismatch, restore this database's original BSC_START_BLOCK, 
 
 ## HTTPS API ingress
 
+### Temporary access without a domain
+
+For temporary testing, Cloudflare Quick Tunnels provide an HTTPS trycloudflare.com origin without registering a domain or signing in. Install Caddy and cloudflared on the VPS from their official Windows downloads. Keep the API running on 127.0.0.1:8790 with PRODUCT_ORIGIN=https://clashr-trade.vercel.app.
+
+In a second terminal, from the repository root:
+
+~~~powershell
+caddy validate --config deploy/Caddyfile.tunnel.example --adapter caddyfile
+if ($LASTEXITCODE -ne 0) { throw 'Gateway configuration is invalid.' }
+caddy run --config deploy/Caddyfile.tunnel.example --adapter caddyfile
+~~~
+
+In a third terminal, check the gateway and start the tunnel:
+
+~~~powershell
+Invoke-RestMethod http://127.0.0.1:8789/health
+cloudflared tunnel --url http://127.0.0.1:8789
+~~~
+
+Copy the HTTPS trycloudflare.com origin printed by cloudflared. Check its /health path externally and confirm /admin/sync-market returns 404. Replace Vercel's Production PRODUCT_API_URL with that exact origin (no path), then redeploy. Leave the VPS PRODUCT_ORIGIN pointing at the Vercel frontend. No frontend code or browser CORS changes are needed. This outbound tunnel needs no new inbound firewall rules; do not expose PostgreSQL, the gateway, Caddy's admin API or port 8790 publicly. Do not add interactive email authentication to this tunnel, because Vercel's server-side proxy cannot complete that login.
+
+Quick Tunnels have changing hostnames, no uptime guarantee, a 200 in-flight-request limit and no SSE support. Keep the backend, gateway and tunnel running. If the tunnel restarts, update PRODUCT_API_URL and redeploy again. Move to the stable domain ingress below when ready. An existing index integrity mismatch or RPC quota failure must still be resolved independently.
+
+References: https://developers.cloudflare.com/tunnel/get-started/quick-tunnels/ and https://developers.cloudflare.com/cloudflare-one/networks/connectors/cloudflare-tunnel/downloads/.
+
+### Stable domain ingress
+
 Point your API domain to the VPS and configure an HTTPS reverse proxy using deploy/Caddyfile.example (replace the hostname). With Caddy installed, copy it to deploy/Caddyfile, validate it, and run it:
 
 ~~~powershell
