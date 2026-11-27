@@ -11,7 +11,7 @@ export function BscTrenches({initial,serverNow}:{initial:PublicBscMarket|null;se
   const {t:translateUI}=usePlatformLanguage();
   const [market,setMarket]=useState(initial);
   const [failed,setFailed]=useState(!initial);
-  const [simulation,setSimulation]=useState(false),[sampleTime,setSampleTime]=useState(serverNow);
+  const [simulation,setSimulation]=useState(BNB_PRODUCT),[sampleTime,setSampleTime]=useState(serverNow);
   const samples=useRef(new Map<string,{time:number;metrics:ReturnType<typeof simulatedTokenMetrics>}>());
   useEffect(()=>{if(!simulation)return;const timer=setInterval(()=>setSampleTime(Date.now()),60000);return()=>clearInterval(timer);},[simulation]);
   const shownTokens=useMemo(()=>{
@@ -40,7 +40,7 @@ export function BscTrenches({initial,serverNow}:{initial:PublicBscMarket|null;se
   },[initial]);
   return <div className="flex h-full min-h-0 flex-col overflow-hidden">
     {BNB_PRODUCT&&<div className="flex shrink-0 flex-wrap items-center gap-3 border-b border-white/[0.06] px-4 py-2 text-xs text-muted">
-      <button type="button" aria-pressed={simulation} className="rounded-lg border border-brand/30 px-3 py-1 text-brand" onClick={()=>{setSampleTime(Date.now());samples.current.clear();setSimulation(v=>!v);}}>{translateUI(simulation?'Return to live metrics':'Preview simulated metrics')}</button>
+      <button type="button" className="rounded-lg border border-brand/30 px-3 py-1 text-brand" onClick={()=>{setSampleTime(Date.now());samples.current.clear();setSimulation(v=>!v);}}>{translateUI(simulation?'Live':'Simulate')}</button>
       {simulation&&<span role="status" className="text-risk-medium">{translateUI('Simulation: generated safety and holder values, updated every minute. Not verified token data. Trading shortcuts are disabled.')}</span>}
     </div>}
     {(!BNB_PRODUCT||failed||market?.stale) && <div role="status" className="flex shrink-0 flex-wrap items-center gap-x-3 gap-y-1 border-b border-white/[0.06] px-4 py-2 text-[11px] text-muted">

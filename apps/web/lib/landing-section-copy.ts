@@ -1,4 +1,6 @@
 export const LANDING_SECTION_COPY: Record<string, readonly [string, string]> = {
+  'Live': ['实时', 'ライブ'],
+  'Simulate': ['模拟', 'シミュレーション'],
   'Indicative DEX market cap': ['DEX参考市值', 'DEX参考時価総額'],
   'Preview simulated metrics': ['预览模拟指标', '模擬指標をプレビュー'],
   'Return to live metrics': ['返回实时指标', '実際の指標に戻る'],
