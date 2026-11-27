@@ -767,7 +767,7 @@ const Row = memo(function Row({
         </div>
         {/* Right-aligned stack: small muted labels right before each value. */}
         <div className="flex shrink-0 flex-col items-end gap-0.5 font-mono">
-          <div className="flex items-baseline gap-1" title={t.market_cap_usd == null && mcap != null ? translateUI("Market cap at launch") : translateUI("Market cap")}>
+          <div className="flex items-baseline gap-1" title={t.status==='migrated'&&t.price_source?translateUI('Indicative DEX market cap'):t.market_cap_usd == null && mcap != null ? translateUI("Market cap at launch") : translateUI("Market cap")}>
             <span className="text-[10px] text-muted">{translateUI("MC")}</span>
             <span className={`text-[14px] font-semibold leading-tight ${moveTone || (t.market_cap_usd == null && mcap != null ? 'text-ink/70' : '')}`}>{usd(mcap)}</span>
           </div>
@@ -783,7 +783,7 @@ const Row = memo(function Row({
         </div>
         </div>
         <div className="mt-2 flex items-center gap-1 font-mono text-[10px]">
-          {chainId===56&&t.safety_status&&<span className="shrink-0 text-[9px] text-muted" title={translateUI('Safety data coverage; this is not a safety verdict.')}>{translateUI(t.safety_status==='ready'?'Safety data':t.safety_status==='partial'?'Partial safety':t.safety_status==='retrying'?'Safety retrying':t.safety_status==='history-unavailable'?'History unavailable':'Checking safety')}</span>}
+          {chainId===56&&t.safety_status&&<span className="shrink-0 text-[9px] text-muted" title={translateUI('Safety data coverage; this is not a safety verdict.')}>{translateUI(t.metrics_simulated?'Simulated metrics':t.safety_status==='ready'?'Safety data':t.safety_status==='partial'?'Partial safety':t.safety_status==='retrying'?'Safety retrying':t.safety_status==='history-unavailable'?'History unavailable':'Checking safety')}</span>}
           <span className="flex min-w-0 items-center gap-1 overflow-hidden">
             <Pill icon={Crown} value={t.top10_pct} bad={30} title={translateUI("Top 10 holders")} />
             <Pill icon={ChefHat} value={t.dev_pct} bad={10} title={translateUI("Dev holds")} />
@@ -797,7 +797,7 @@ const Row = memo(function Row({
             )}
           </span>
           <span className="relative z-10 ml-auto flex shrink-0 items-center gap-1">
-            {chainId===56 && BNB_PRODUCT ? <><BscQuickBuyButton venue={t.launchpad==='flap'&&t.status!=='migrated'?'flap':'pancake'} token={t.address as `0x${string}`} symbol={t.symbol} amountUsd={quick}/><BscQuickBuyButton venue={t.launchpad==='flap'&&t.status!=='migrated'?'flap':'pancake'} token={t.address as `0x${string}`} symbol={t.symbol} amountUsd={quick2}/></> : chainId === 4663 && tradingAvailable() ? (
+            {t.metrics_simulated ? <span className="text-[10px] text-muted">{translateUI('Simulation')}</span> : chainId===56 && BNB_PRODUCT ? <><BscQuickBuyButton venue={t.launchpad==='flap'&&t.status!=='migrated'?'flap':'pancake'} token={t.address as `0x${string}`} symbol={t.symbol} amountUsd={quick}/><BscQuickBuyButton venue={t.launchpad==='flap'&&t.status!=='migrated'?'flap':'pancake'} token={t.address as `0x${string}`} symbol={t.symbol} amountUsd={quick2}/></> : chainId === 4663 && tradingAvailable() ? (
               <>
                 <QuickBuyButton token={tradeToken} amountUsd={quick} variant="subtle" />
                 <QuickBuyButton token={tradeToken} amountUsd={quick2} variant="subtle" />

@@ -12,6 +12,9 @@ export interface TokenCard {
   chain_id?: 56 | 4663;
   market_column?: Column;
   holders_known?: boolean;
+  /** UI-only simulation, never persisted or used for quotes/execution. */
+  metrics_simulated?:boolean;
+  price_source?:string|null;
   safety_status?:'ready'|'partial'|'retrying'|'history-unavailable'|'indexing';
   address: string;
   symbol: string;

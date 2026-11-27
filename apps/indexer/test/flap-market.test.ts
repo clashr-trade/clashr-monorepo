@@ -2,7 +2,9 @@ import {describe,it,expect,beforeAll,afterAll,vi} from 'vitest';
 import {freshDb,pgAvailable} from '../../../packages/agents/test/pg';
 import {flapMarket,flapHolders,flapTrades} from '../src/product/flap';
 const conversions=vi.hoisted(()=>new Map<string,{usd:number;decimals:number;symbol:string;at:string}>());
+const migrated=vi.hoisted(()=>new Map());
 vi.mock('../src/product/flap-pricing',()=>({displayQuotes:async()=>conversions}));
+vi.mock('../src/product/flap-dex-pricing',()=>({migratedDisplayQuotes:async()=>migrated}));
 const available=await pgAvailable();
 describe.skipIf(!available)('Flap market column selection',()=>{
  let db:Awaited<ReturnType<typeof freshDb>>;
@@ -36,6 +38,12 @@ describe.skipIf(!available)('Flap market column selection',()=>{
  it('preserves unknown launch dates for on-chain active discovery',async()=>{
   const result=await flapMarket(db.sql);
   expect(result.items.find(r=>r.coin.name==='old 163')?.createdAt).toBeNull();
+ });
+ it('prices migrated tokens from their DEX instead of the zeroed curve price',async()=>{
+  const address='0x'+(162).toString(16).padStart(40,'0');
+  migrated.set(address,{priceUsd:.25,liquidityUsd:12000,volume24hUsd:3000,pool:'0x'+'ab'.repeat(20),at:new Date().toISOString(),source:'dexscreener-indicative'});
+  const item=(await flapMarket(db.sql,address)).items[0];
+  expect(item).toMatchObject({listed:true,priceUsd:.25,liquidityUsd:12000,volume24hUsd:3000,priceSource:'dexscreener-indicative'});
  });
  it('never reports incomplete holder history as a known count',async()=>{
   const address='0x'+'1'.padStart(40,'0');

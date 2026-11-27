@@ -40,7 +40,7 @@ export function normalizeIndexedFlap(rows:unknown):PublicBscToken[]{
   if(!Number.isFinite(Date.parse(r.createdAt))&&!r.listed&&progress<50)return [];
   return [{chain_id:56,address:r.coin.address,name:r.coin.name,symbol:r.coin.symbol,launchpad:'flap',status:r.listed?'migrated':'bonding',
    market_column:r.listed?'migrated':progress>=50?'almost':'new',created_at:r.createdAt??'',
-   price_usd:r.priceUsd??null,market_cap_usd:r.priceUsd&&r.totalSupply?Number(r.totalSupply)/10**r.decimals*r.priceUsd:null,liquidity_usd:null,volume_24h_usd:null,price_native:r.priceNative??null,
+   price_usd:r.priceUsd??null,market_cap_usd:r.priceUsd&&r.totalSupply?Number(r.totalSupply)/10**r.decimals*r.priceUsd:null,liquidity_usd:r.liquidityUsd??null,volume_24h_usd:r.volume24hUsd??null,price_native:r.priceNative??null,price_source:r.priceSource??null,
    holders:r.holders??0,holders_known:Number.isInteger(r.holders),bonding_progress:progress/100,quote:r.quoteToken,quote_symbol:r.quoteSymbol??(r.quoteToken===ZERO?'BNB':null),
    image_url:typeof r.coin.image==='string'&&r.coin.image.startsWith('https://')?r.coin.image:null,risk:null,verdict:null,top10_pct:r.safety?.top10Pct??null,dev_pct:r.safety?.devPct??null,bundled_pct:r.safety?.bundledPct??null,snipers_pct:r.safety?.snipersPct??null,insiders_pct:r.safety?.insidersPct??null,fresh_pct:r.safety?.freshWalletsPct??null,airdropped:null,copycat:null,serial_launcher:null,
    signals:r.safety??undefined,
@@ -49,7 +49,7 @@ export function normalizeIndexedFlap(rows:unknown):PublicBscToken[]{
    safety_at:r.safety?.computedAt??null,safety_block:r.safety?.throughBlock??null,
    website:r.metadata?.website??null,twitter:r.metadata?.twitter??null,telegram:r.metadata?.telegram??null,
    buy_tax_pct:Number(r.tax.buyTaxBps)/100,sell_tax_pct:Number(r.tax.sellTaxBps)/100,
-   decimals:r.decimals,pool_address:'',dex:'flap'} satisfies PublicBscToken];
+   decimals:r.decimals,pool_address:r.poolAddress??'',dex:'flap'} satisfies PublicBscToken];
  });
 }
 let cached:{until:number;value:PublicBscMarket}|null=null,pending:Promise<PublicBscMarket>|null=null;

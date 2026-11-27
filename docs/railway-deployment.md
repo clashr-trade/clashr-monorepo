@@ -34,6 +34,10 @@ Demo profiles are optional and are not seeded during deployment. To add the exis
 
 ## Validation
 
+Trenches offers an opt-in **Preview simulated metrics** mode. It starts a token's first-minute safety/holder values at zero and samples bounded, age/market-cap-based illustrative values once per minute. Generated values are labeled, are never stored or returned as live API safety analysis, and token quick-buy shortcuts are hidden in this mode. Switching back restores measured values and unknowns. Pricing remains actual in both modes.
+
+Migrated tokens no longer use the retired Flap curve price. Display prices come from the exact BNB PancakeSwap pool in the batched DEX Screener token API, with a bounded, factory-verified V2 reserve fallback for newly migrated pools. Market cap uses that indicative price and indexed on-chain supply. Unavailable pools remain unknown. References: https://docs.dexscreener.com/api/reference and the PancakeSwap factory bindings in `packages/core/src/chain/pancake.ts`.
+
 For production live-feed recovery, set backend `BSC_LIVE_CATCHUP_BLOCKS=2000`. On startup, if the live worker is further behind than this threshold, startup verifies both saved checkpoint hashes and records an audited live handoff to the current finalized block. The history cursor and all indexed events are retained; the history worker fills the entire prefix before the new live start. A missing covering history cursor, integrity halt or ancestry mismatch blocks the handoff. Without this variable, saved live configuration is resumed unchanged. This keeps current launches visible while background history catches up after an outage.
 
 Trenches displays an explicit stale-feed notice when the selected index is behind. Token ages come only from verified creation block timestamps. Older Flap launches can recover their creation and first-minute events from finalized Portal logs; provider transfer history supplies only the candidate mint height. Holder checkpoints are updated incrementally and stale snapshots can be reverified against current total supply. Missing launch or funding coverage remains unknown rather than becoming a zero-risk result.

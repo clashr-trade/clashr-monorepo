@@ -1,4 +1,5 @@
 import {displayQuotes} from './flap-pricing';
+import {migratedDisplayQuotes} from './flap-dex-pricing';
 export async function flapHolders(sql:Sql,address:string){
  const [watch]=await sql`select w.*,t.total_supply from chain_v2.flap_holder_watches w join chain_v2.flap_tokens t on t.chain_id=w.chain_id and t.address=w.address where w.chain_id=56 and w.address=${address}`;
  if(!watch?.complete||!watch.total_supply||BigInt(watch.total_supply)<=0n)return {available:false,holders:null};
@@ -40,16 +41,20 @@ export async function flapMarket(sql:Sql,address?:string,rpcUrl?:string){
  const watchRows=rows.length?await sql`select address,block,last_error from chain_v2.flap_holder_watches where chain_id=56 and address in ${sql(rows.map(r=>r.address))}`:[];
  const watches=new Map(watchRows.map(r=>[r.address,r]));
  const quotes=await displayQuotes(rows.map(r=>r.state.quoteTokenAddress),rpcUrl);
+ const dexQuotes=await migratedDisplayQuotes(rows.filter(r=>Number(r.state.status)===4).map(r=>{
+  const quote=quotes.get(r.state.quoteTokenAddress.toLowerCase());return {token:r.address,pool:r.state.pool,decimals:r.decimals,quote:quote?{...quote,address:r.state.quoteTokenAddress==='0x0000000000000000000000000000000000000000'?'0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c':r.state.quoteTokenAddress}:undefined};
+ }),fetch,rpcUrl);
  const items=rows.filter(row=>[1,4].includes(Number(row.state.status))).map(row=>{
   const s=row.state;
   const conversion=quotes.get(s.quoteTokenAddress.toLowerCase());
-  const safety=safetyByAddress.get(row.address),watch=watches.get(row.address);
+  const safety=safetyByAddress.get(row.address),watch=watches.get(row.address),dex=dexQuotes.get(row.address),listed=Number(s.status)===4;
   return {coin:{address:row.address,name:row.name,symbol:row.symbol,image:row.metadata_json?.image??null},metadata:row.metadata_json??null,listed:Number(s.status)===4,launchMode:'curve',
    createdAt:row.created_at?new Date(row.created_at).toISOString():null,quoteToken:s.quoteTokenAddress,quoteSymbol:conversion?.symbol??null,quoteUsd:conversion?.usd??null,
    progress:Number(BigInt(s.progress)*10000n/10n**18n)/100,
    tax:{buyTaxBps:s.buyTaxRate,sellTaxBps:s.sellTaxRate},
    chainId:56,decimals:row.decimals,priceNative:s.quoteTokenAddress==='0x0000000000000000000000000000000000000000'?Number(s.price)/1e18:null,
-   totalSupply:row.total_supply,priceUsd:conversion?Number(s.price)/1e18*conversion.usd:null,usdConversionAt:conversion?.at??null,
+   totalSupply:row.total_supply,priceUsd:listed?dex?.priceUsd??null:conversion?Number(s.price)/1e18*conversion.usd:null,usdConversionAt:listed?dex?.at??null:conversion?.at??null,
+   priceSource:listed?dex?.source??null:'curve-indicative',liquidityUsd:dex?.liquidityUsd??null,volume24hUsd:dex?.volume24hUsd??null,poolAddress:dex?.pool??s.pool??null,
    metadataCid:row.metadata_cid,creator:row.creator,stateBlock:row.state_block,holders:countsByAddress.get(row.address)??null,safety:safety??null,
    safetyStatus:safety?(safety.coverage?.holders&&safety.coverage?.launch&&safety.coverage?.funding?'ready':'partial'):row.created_block===null||watch?.last_error==='history_unavailable'?'history-unavailable':watch?.last_error?'retrying':'indexing',
   };

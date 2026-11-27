@@ -16,4 +16,7 @@ describe('Flap finalized feed',()=>{
  it('preserves measured safety zeros and unknown funding fields',()=>{
   expect(normalizeIndexedFlap([{...row,safety:{top10Pct:3,devPct:0,sniperCount:0,snipersPct:0,insidersPct:null,freshWalletsPct:null}}])[0]).toMatchObject({top10_pct:3,dev_pct:0,snipers_pct:0,insiders_pct:null,fresh_pct:null,signals:{sniperCount:0}});
  });
+ it('derives migrated market caps from DEX price and on-chain supply, preserving liquidity and volume',()=>{
+  expect(normalizeIndexedFlap([{...row,listed:true,priceUsd:.002,totalSupply:'1000000000000000000000',liquidityUsd:20000,volume24hUsd:1500,priceSource:'dexscreener-indicative'}])[0]).toMatchObject({market_column:'migrated',market_cap_usd:2,liquidity_usd:20000,volume_24h_usd:1500,price_source:'dexscreener-indicative'});
+ });
 });
