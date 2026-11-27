@@ -70,6 +70,7 @@ const countdown = (ms: number) => {
   return d > 0 ? `${d}d ${h}h ${m}m` : `${h}h ${m}m ${s % 60}s`;
 };
 const day = (iso: string) => new Date(iso).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'UTC' });
+const utcTime = (iso:string) => new Date(iso).toISOString().slice(11,16)+' UTC';
 const x = (n: number) => `${n >= 100 ? Math.round(n) : n.toFixed(n >= 10 ? 1 : 2)}x`;
 const signed = (n: number) => `${n >= 0 ? '+' : '-'}${usd(Math.abs(n))}`;
 
@@ -91,7 +92,8 @@ export function RushView({initial=null,serverNow=0}:{initial?:RushData|null;serv
           <div className="absolute inset-0 bg-gradient-to-t from-bg via-bg/70 to-bg/30" />
           <div className="relative flex flex-col gap-5 p-6 md:p-10">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="rounded-full border border-white/15 px-2.5 py-1 font-mono text-[11px] uppercase tracking-wider text-muted">{BNB_PRODUCT?translateUI("BNB event"):translateUI("Season 0 event")}</span>
+              <span className="rounded-full border border-white/15 px-2.5 py-1 font-mono text-[11px] uppercase tracking-wider text-muted">{translateUI("Season 0 event")}</span>
+              {status === 'upcoming' && <span className="rounded-full bg-brand/15 px-2.5 py-1 font-mono text-[11px] uppercase tracking-wider text-brand">{translateUI("Upcoming")}</span>}
               {status === 'live' && (
                 <span className="flex items-center gap-1.5 rounded-full bg-brand/15 px-2.5 py-1 font-mono text-[11px] uppercase tracking-wider text-brand">
                   <span className="size-1.5 animate-pulse rounded-full bg-brand" /> {translateUI("Live")}</span>
@@ -114,13 +116,13 @@ export function RushView({initial=null,serverNow=0}:{initial?:RushData|null;serv
                     {status === 'upcoming' ? translateUI("Starts in") : status === 'live' ? translateUI("Ends in") : translateUI("Ran")}
                   </div>
                   <div className="font-mono text-3xl font-semibold tabular-nums text-ink md:text-4xl">
-                    {status === 'upcoming' ? countdown(startsAt - now) : status === 'live' ? countdown(endsAt - now) : `${day(ev.startsAt)} – ${day(new Date(endsAt - 1).toISOString())}`}
+                    {status === 'upcoming' ? countdown(startsAt - now) : status === 'live' ? countdown(endsAt - now) : `${day(ev.startsAt)} – ${day(ev.endsAt)}`}
                   </div>
                 </div>
               )}
               {ev && (
                 <div className="font-mono text-xs text-muted">
-                  {day(ev.startsAt)}  {translateUI("00:00 UTC →")} {day(new Date(Date.parse(ev.endsAt) - 1).toISOString())} {translateUI("23:59 UTC")}</div>
+                  {day(ev.startsAt)} {utcTime(ev.startsAt)} → {day(ev.endsAt)} {utcTime(ev.endsAt)}</div>
               )}
             </div>
             <div className="flex flex-wrap gap-2">
@@ -200,6 +202,8 @@ export function RushView({initial=null,serverNow=0}:{initial?:RushData|null;serv
             <Rule>{translateUI("Humans and AI agents compete under the same rules. CLASHR's own wallets and agents can't win.")}</Rule>
             <Rule>{translateUI("One prize per category: the leader when the event ends. Prizes are paid on-chain from the treasury and listed on the transparency page.")}</Rule>
             <Rule>{translateUI("Standings update about every 30 seconds and are final once the event ends and results are checked.")}</Rule>
+            <Rule>{translateUI("Simulated profiles and trades do not qualify for prizes.")}</Rule>
+            <Rule>{translateUI("Simulated profiles and trades do not qualify for prizes.")}</Rule>
           </ul>
         </section>}
       </div>

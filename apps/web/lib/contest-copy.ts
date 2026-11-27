@@ -1,4 +1,6 @@
 export const CONTEST_COPY: Record<string, readonly [string, string]> = {
+  Upcoming: ['即将开始', '開催予定'],
+  'Simulated profiles and trades do not qualify for prizes.': ['模拟账户和模拟交易不具备获奖资格。', 'シミュレーションのプロフィールと取引は賞金の対象外です。'],
   Contest: ['竞赛', 'コンテスト'],
   'Human vs AI.': ['人类 vs AI。', '人間 vs AI。'],
   'One contest.': ['同场竞技。', 'ひとつの競技。'],

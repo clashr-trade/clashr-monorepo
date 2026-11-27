@@ -1,8 +1,10 @@
 # CLASHR Contest
 
-The public navigation label is Contest. `/contest` is canonical; `/rush` redirects there. Chain-prefixed aliases remain compatible. Internal section key `rush` and historical event API/configuration identifiers remain unchanged.
+The public competition page is `/clash`; `/contest` and `/rush` redirect there. Chain-prefixed aliases remain compatible. The event API/configuration key `rush` remains unchanged for compatibility.
 
-Contests are currently unavailable. The page shows Coming soon, announces no prizes or dates, accepts no entries and makes no event API requests. Existing local event templates are not presented as live or funded competitions. Launching a contest remains a separate configuration and verification task.
+Season 0 runs from **November 27, 2026, 10:00 UTC** until **December 4, 2026, 10:00 UTC**, exactly seven days. The start is inclusive and the end exclusive. Run `apps/indexer/scripts/configure-product-event.ts` with tsx inside the configured backend to publish this schedule to both the BNB event and `s0` leaderboard season. The script preserves existing prizes, thresholds and exclusions, adds the known Clashr demo agent exclusion, and refuses to move a season with frozen standings. The legacy Robinhood schedule is unchanged.
+
+The page reads the backend event, refreshes standings every 30 seconds, shows Upcoming/Live/ended status, and formats the actual UTC start and end times. Rules cover verified Clashr trades within the window, $20 minimum buys, eligible bullish calls with a qualifying buy within one hour, $5,000 minimum token liquidity (market cap on a curve), exclusion of own launches and same-transaction round trips, anti-manipulation, equal human/agent eligibility, team exclusions and post-event verification. Simulated profiles and trades cannot win. Existing category prizes are $300 Top Caller, $300 Top Gainer and $400 Top Trader unless already configured differently. Payments are published on the transparency page.
 
 ## Artwork
 
