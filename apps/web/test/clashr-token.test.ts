@@ -1,7 +1,10 @@
 import {describe,expect,it} from 'vitest';
-import {clashrTokenAddress} from '../lib/clashr-token';
+import {clashrTokenAddress,OFFICIAL_CLASHR_TOKEN_ADDRESS} from '../lib/clashr-token';
 
 describe('CLASHR launch address',()=>{
+  it('publishes the team-supplied BNB contract with a valid checksum',()=>{
+    expect(clashrTokenAddress(OFFICIAL_CLASHR_TOKEN_ADDRESS)).toBe('0x79B824358BDFE9F2C1EB2D1E4E21c581bA477777');
+  });
   it('keeps the copy field unavailable without a real address',()=>{
     for(const value of [undefined,'','coming soon','0x123','0x0000000000000000000000000000000000000000'])expect(clashrTokenAddress(value)).toBeNull();
   });
