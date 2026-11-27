@@ -20,7 +20,8 @@ export class BscRpcRequestError extends Error {
   constructor(readonly method: string, readonly status: number, providerError?: unknown) {
     const error = providerError && typeof providerError === 'object' ? providerError as Record<string,unknown> : {};
     const message = typeof providerError === 'string' ? providerError : typeof error.message === 'string' ? error.message : '';
-    const reason = /monthly|daily|quota|credits|capacity|compute unit/i.test(message) ? 'provider capacity/quota exceeded'
+    const reason = /per second|throughput|rate limit/i.test(message) ? 'provider rate limit exceeded'
+      : /monthly|daily|quota|credits|capacity|compute unit/i.test(message) ? 'provider capacity/quota exceeded'
       : /allowlist|whitelist|origin|referer|ip address/i.test(message) ? 'provider allowlist rejected this request'
       : /api.?key|unauthorized|authentication/i.test(message) ? 'provider credentials rejected'
       : /not supported|not available|disabled|not allowed|method not found/i.test(message) ? 'provider method unavailable or restricted'
@@ -34,7 +35,7 @@ export class BscRpcRequestError extends Error {
     this.name = 'BscRpcRequestError';
     this.reason = reason;
     this.rpcCode = code;
-    this.retryAfterMs = status === 401 || status === 403 || /capacity|quota/.test(reason) ? 60_000 : status === 429 ? 30_000 : 0;
+    this.retryAfterMs = status === 401 || status === 403 || /capacity|quota/.test(reason) ? 60_000 : /rate limit/.test(reason) ? 1000 : status === 429 ? 30_000 : 0;
   }
 }
 
@@ -47,16 +48,22 @@ export class BscRpc implements MarketRpc {
     const id = ++this.id;
     const remaining = this.deadline - Date.now();
     if (id > 200 || remaining <= 0) throw new Error('BSC RPC batch budget exhausted');
+    for(let attempt=0;;attempt++){
+    const available=this.deadline-Date.now();if(available<=0)throw new Error('BSC RPC batch budget exhausted');
     const response = await this.fetcher(this.url, { method: 'POST', headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ jsonrpc: '2.0', id, method, params }), signal: AbortSignal.timeout(Math.min(10_000, remaining)) });
-    if (!response.ok) {
-      const body = await response.json().catch(() => null) as {error?:unknown}|null;
-      throw new BscRpcRequestError(method,response.status,body?.error);
+      body: JSON.stringify({ jsonrpc: '2.0', id, method, params }), signal: AbortSignal.timeout(Math.min(10_000, available)) });
+    const body = await response.json().catch(()=>null) as {id?:number;error?:unknown;result?:T}|null;
+    if(!response.ok||body?.error){
+      const error=new BscRpcRequestError(method,response.status,body?.error);
+      const delay=1000*2**attempt;
+      // Retry transient throughput limits inside this atomic batch, rather than
+      // discard every already-verified header and repeat all its RPC requests.
+      if(error.reason==='provider rate limit exceeded'&&attempt<3&&Date.now()+delay+1000<this.deadline){await new Promise(resolve=>setTimeout(resolve,delay));continue;}
+      throw error;
     }
-    const body = await response.json() as { id?: number; error?: unknown; result?: T };
-    if (body.error) throw new BscRpcRequestError(method,response.status,body.error);
-    if (body.id !== id || body.result == null) throw new Error(`BSC RPC invalid ${method} response`);
+    if (!body || body.id !== id || body.result == null) throw new Error(`BSC RPC invalid ${method} response`);
     return body.result;
+    }
   }
   async chainId() {
     const value = await this.request<unknown>('eth_chainId', []);

@@ -155,6 +155,7 @@
       "when": 1795651200000,
       "tag": "0021_flap_startup_config",
       "breakpoints": true
-    }
+    },
+    {"idx":22,"version":"7","when":1795752000000,"tag":"0022_flap_enrichment_progress","breakpoints":true}
   ]
 }

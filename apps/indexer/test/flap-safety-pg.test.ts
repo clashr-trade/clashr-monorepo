@@ -33,6 +33,22 @@ describe.skipIf(!available)('Flap finalized safety enrichment',()=>{
   chain.getBlock.mockResolvedValueOnce({hash:'0x'+'22'.repeat(32),timestamp:1n});
   await expect(refreshFlapSafety(db.sql,'https://rpc.invalid',token)).rejects.toThrow('ancestry');
  });
+ it('uses completed launch coverage even when the main cursor trails current holders',async()=>{
+  await db.sql`update chain_v2.market_cursors set start_block=900,block=990`;
+  await db.sql`update chain_v2.flap_tokens set created_at=now()-interval '10 minutes' where address=${token}`;
+  await refreshFlapSafety(db.sql,'https://rpc.invalid',token);
+  const [s]=await db.sql`select data from chain_v2.flap_safety_snapshots where address=${token}`;
+  expect(s!.data.coverage.launch).toBe(true);
+  await db.sql`update chain_v2.market_cursors set start_block=960`;
+  await db.sql`insert into chain_v2.flap_launch_coverage(chain_id,address,through_block,block_hash) values(56,${token},990,${hash})`;
+  await refreshFlapSafety(db.sql,'https://rpc.invalid',token);
+  expect((await db.sql`select data from chain_v2.flap_safety_snapshots where address=${token}`)[0]!.data.coverage.launch).toBe(true);
+ });
+ it('reports the measured creator balance even if the creator is a contract',async()=>{
+  await db.sql`update chain_v2.flap_wallet_facts set is_contract=true where address=${dev}`;
+  await refreshFlapSafety(db.sql,'https://rpc.invalid',token);
+  expect((await db.sql`select data from chain_v2.flap_safety_snapshots where address=${token}`)[0]!.data.devPct).toBe(10);
+ });
  it('does not publish expired safety cache entries',async()=>{
   await db.sql`update chain_v2.flap_safety_snapshots set computed_at=now()-interval '6 minutes'`;
   expect((await flapMarket(db.sql,token)).items[0]?.safety).toBeNull();

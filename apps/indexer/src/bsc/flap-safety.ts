@@ -62,7 +62,7 @@ export async function refreshFlapSafety(sql:Sql,rpcUrl:string,token:string){
   const code=await client.getBytecode({address:wallet as Address,blockNumber:through});
   await sql`insert into chain_v2.flap_wallet_facts(chain_id,address,is_contract,code_block,code_checked_at) values(56,${wallet},${bscWalletIsContract(code??'0x')},${through.toString()},now()) on conflict(chain_id,address) do update set is_contract=excluded.is_contract,code_block=excluded.code_block,code_checked_at=excluded.code_checked_at`;
  }));
- if(Date.now()>fundingUnavailableUntil)for(const wallet of wanted.filter(w=>{const f=byWallet.get(w);return !f?.funding_checked_at||f.funding_status!=='known'&&Date.now()-new Date(f.funding_checked_at).getTime()>3600000;}).slice(0,20)){
+ if(Date.now()>fundingUnavailableUntil)for(const wallet of wanted.filter(w=>{const f=byWallet.get(w);return !f?.funding_checked_at||f.funding_status!=='known'&&Date.now()-new Date(f.funding_checked_at).getTime()>3600000;}).slice(0,2)){
   const f=await firstFunding(rpcUrl,wallet,through);
   await sql`insert into chain_v2.flap_wallet_facts(chain_id,address,first_funder,funded_at,funding_status,funding_checked_at) values(56,${wallet},${f.status==='known'?f.funder:null},${f.status==='known'?f.at:null},${f.status},now()) on conflict(chain_id,address) do update set first_funder=excluded.first_funder,funded_at=excluded.funded_at,funding_status=excluded.funding_status,funding_checked_at=excluded.funding_checked_at`;
   if(f.status==='unsupported'){fundingUnavailableUntil=Date.now()+3600000;break;}
@@ -70,12 +70,19 @@ export async function refreshFlapSafety(sql:Sql,rpcUrl:string,token:string){
  facts=await sql`select * from chain_v2.flap_wallet_facts where chain_id=56 and address in ${sql(wanted.length?wanted:[''])}`;byWallet=new Map(facts.map(f=>[f.address,f]));
  const people=balances.filter(b=>!excluded.has(b.wallet)&&codeKnown(byWallet.get(b.wallet))&&byWallet.get(b.wallet)?.is_contract===false);
  const holdersComplete=balances.length<=1000&&balances.every(b=>excluded.has(b.wallet)||codeKnown(byWallet.get(b.wallet)));
- const [cursor]=await sql`select 1 from (select * from chain_v2.market_cursors union all select * from chain_v2.flap_live_cursors) c where chain_id=56 and halt_reason is null and start_block<=${t.created_block??'-1'} and block>=${through.toString()} limit 1`;
- const launch=!!t.created_at&&!!cursor&&events.length<=2000&&!!t.creator;
+ const [cursor]=await sql`select block from (select * from chain_v2.market_cursors union all select * from chain_v2.flap_live_cursors) c where chain_id=56 and halt_reason is null and start_block<=${t.created_block??'-1'} and block>=${t.created_block??'0'} order by block desc limit 1`;
+ const [recovered]=await sql`select through_block,block_hash from chain_v2.flap_launch_coverage where chain_id=56 and address=${token} and through_block<=${through.toString()}`;
+ let launchCovered=!!cursor&&BigInt(cursor.block)>=through;
+ if(cursor&&!launchCovered&&t.created_at){const h=await client.getBlock({blockNumber:BigInt(cursor.block)});launchCovered=Number(h.timestamp)>=Math.floor(new Date(t.created_at).getTime()/1000)+60;}
+ if(recovered){const h=await client.getBlock({blockNumber:BigInt(recovered.through_block)});if(h.hash!==recovered.block_hash)throw new Error('Recovered launch ancestry mismatch');launchCovered=true;}
+ const launch=!!t.created_at&&launchCovered&&events.length<=2000&&!!t.creator;
  const funding=wanted.every(w=>{const f=byWallet.get(w);return f?.funding_status==='known'&&f.funded_at&&new Date(f.funded_at).getTime()<=Number(header.timestamp)*1000;});
  const common=new Set((await sql`select first_funder from chain_v2.flap_wallet_facts where chain_id=56 and first_funder is not null group by first_funder having count(*)>=50`).map(r=>r.first_funder));
  const wallets=Object.fromEntries(wanted.map(w=>{const f=byWallet.get(w);return [w,{firstFunder:f?.first_funder&&!common.has(f.first_funder)?f.first_funder:null,firstSeen:f?.funded_at?Math.floor(new Date(f.funded_at).getTime()/1000):null}];}));
  const data=projectFlapSafety({address:token,symbol:t.symbol,totalSupply:BigInt(t.total_supply),deployer:t.creator??'',createdAt:t.created_at?Math.floor(new Date(t.created_at).getTime()/1000):0,createdBlock:BigInt(t.created_block??0),holders:people.map(b=>({wallet:b.wallet,amount:BigInt(b.amount)})),burnt:balances.filter(b=>b.wallet===ZERO||b.wallet===DEAD).reduce((a,b)=>a+BigInt(b.amount),0n),holderCount:people.length,earlyBuys:events.map(e=>({trader:String(e.payload.buyer).toLowerCase(),block:BigInt(e.block),time:Math.floor(new Date(e.time).getTime()/1000),tokenAmount:BigInt(e.payload.amount)})),launchIndexed:launch,wallets,airdropped:[],devTokens:[],twinOrganicHolders:0,launchpad:'flap',now:Number(header.timestamp)}, {holders:holdersComplete,launch,funding});
+ // Creator balance is already fully verified, independent of optional code/funding
+ // classification of every other holder. Contracts can also be token creators.
+ if(address(t.creator))data.devPct=Number(BigInt(balances.find(b=>b.wallet===t.creator)?.amount??0)*1000000n/BigInt(t.total_supply))/10000;
  if((await client.getBlock({blockNumber:through})).hash!==header.hash)throw new Error('Safety ancestry changed');
  await sql`insert into chain_v2.flap_safety_snapshots(chain_id,address,block,block_hash,data) values(56,${token},${through.toString()},${header.hash},${sql.json(data)}) on conflict(chain_id,address) do update set block=excluded.block,block_hash=excluded.block_hash,data=excluded.data,computed_at=now() where flap_safety_snapshots.block<=excluded.block`;
  return true;

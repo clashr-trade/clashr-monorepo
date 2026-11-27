@@ -11,13 +11,22 @@ if(live){if(!process.env.BSC_LIVE_START_BLOCK)throw new Error('Explicit live sta
 const config={...await bscConfig(env),live},sql=postgres(env.DATABASE_URL,{max:1,prepare:false,fetch_types:false});
 const follow=process.argv.includes('--follow');
 let blocks=50,failures=0;
+// Backfill owns the prefix before live's persisted start, never a second live tail.
+const historyEnd=!live&&process.env.BSC_LIVE_START_BLOCK?BigInt(process.env.BSC_LIVE_START_BLOCK)-1n:null;
 try{
- do{
+ indexLoop:do{
   let idle=false,retryDelay=0;
   try{
    const minute=Math.floor(Date.now()/60000);
    for(let step=0;step<20;step++){
-    const result=await ingestBscBatch(sql,new BscRpc(env.BSC_RPC_URL!),{...config,batchBlocks:blocks},{version:2,chainId:56,kind:'market-index',configHash:config.hash,minute,step,executionId:'local-'+crypto.randomUUID()});
+    let batchBlocks=blocks;
+    if(historyEnd!==null){
+     const [saved]=await sql`select block from chain_v2.market_cursors where chain_id=56`;
+     const previous=saved?.block==null?config.startBlock-1n:BigInt(saved.block);
+     if(previous>=historyEnd){console.log('History prefix complete; live worker owns subsequent blocks.');break indexLoop;}
+     batchBlocks=Number(historyEnd-previous<BigInt(blocks)?historyEnd-previous:BigInt(blocks));
+    }
+    const result=await ingestBscBatch(sql,new BscRpc(env.BSC_RPC_URL!),{...config,batchBlocks},{version:2,chainId:56,kind:'market-index',configHash:config.hash,minute,step,executionId:'local-'+crypto.randomUUID()});
     console.log(JSON.stringify(result));failures=0;
     if(!live)await new Promise(resolve=>setTimeout(resolve,5000));
     if(result.phase==='halted')throw new Error('Index requires operator reconciliation: saved finalized block integrity halt');

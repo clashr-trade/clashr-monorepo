@@ -7,6 +7,9 @@ const database = process.env.BSC_INDEX_DATABASE_URL;
 if (!database || !process.env.BSC_RPC_URL) throw new Error('Index database and BSC RPC required.');
 const sql = postgres(database, {max: 1, prepare: false, fetch_types: false, onnotice: () => {}});
 try {
+  // Existing local databases already have startup configuration, so its bootstrap
+  // path will not run again. Apply the idempotent enrichment schema separately.
+  await sql.unsafe(readFileSync(new URL('../../../packages/db/migrations/0022_flap_enrichment_progress.sql', import.meta.url), 'utf8'));
   const schema = readFileSync(new URL('../../../packages/db/migrations/0021_flap_startup_config.sql', import.meta.url), 'utf8');
   const settings = await prepareFlapStartup(sql, new BscRpc(process.env.BSC_RPC_URL), {...process.env, DATABASE_URL: database}, {schema});
   for (const mode of ['history', 'live'] as const) console.error(`[${mode}] persisted configuration: start=${settings[mode].startBlock}, epoch=${settings[mode].epoch}`);

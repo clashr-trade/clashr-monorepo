@@ -2,6 +2,16 @@ import {describe,it,expect,vi} from 'vitest';
 import {BscRpc,BscRpcRequestError} from '../src/bsc/rpc';
 
 describe('safe BNB RPC diagnostics',()=>{
+  it('retries temporary per-second throttling without restarting a verified batch',async()=>{
+    vi.useFakeTimers();
+    try{
+      const fetcher=vi.fn().mockResolvedValueOnce(Response.json({error:{code:429,message:'compute units per second capacity exceeded'}},{status:429})).mockResolvedValueOnce(Response.json({id:1,result:'0x38'}));
+      const result=new BscRpc('https://rpc.invalid',fetcher).chainId();
+      await vi.advanceTimersByTimeAsync(1000);
+      expect(await result).toBe(56);expect(fetcher).toHaveBeenCalledTimes(2);
+      expect(JSON.parse(fetcher.mock.calls[0]![1].body).id).toBe(JSON.parse(fetcher.mock.calls[1]![1].body).id);
+    }finally{vi.useRealTimers();}
+  });
   it('identifies the blocked method and quota failure without logging provider secrets',async()=>{
     const fetcher=vi.fn(async()=>Response.json({error:{code:-32600,message:'Monthly capacity exceeded at https://provider.invalid/v2/SECRET'}},{status:403}));
     const rpc=new BscRpc('https://provider.invalid/v2/SECRET',fetcher);
