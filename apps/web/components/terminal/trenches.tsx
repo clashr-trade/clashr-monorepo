@@ -4,6 +4,7 @@ import { storageKey } from '@/lib/brand-compat';
 
 import {usePlatformLanguage} from '@/components/landing/language-provider';
 import Link from 'next/link';
+import type { ReactNode } from 'react';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ChefHat,
@@ -141,7 +142,7 @@ function loadFilters(chainId = 4663): Record<Column, Filters> {
 
 /* ------------------------------------------------------------------ main */
 
-export function Trenches({ initial, serverNow, chainId = 4663 }: { initial: TokenCard[]; serverNow: number; chainId?: 56 | 4663 }) {
+export function Trenches({ initial, serverNow, chainId = 4663, toolbarAction }: { initial: TokenCard[]; serverNow: number; chainId?: 56 | 4663; toolbarAction?: ReactNode }) {
  const {t:translateUI}=usePlatformLanguage();
   const legacyEnabled = chainId === 4663;
   const columns = legacyEnabled || BNB_PRODUCT ? COLUMNS : BSC_COLUMNS;
@@ -263,7 +264,7 @@ export function Trenches({ initial, serverNow, chainId = 4663 }: { initial: Toke
 
   return (
     <div className="flex h-full min-h-0 flex-col overflow-hidden">
-      <Toolbar chainId={chainId} showSpam={showSpam} onShowSpam={setShowSpam} showPlain={showPlain} onShowPlain={setShowPlain} quick={quick} onQuick={changeQuick} />
+      <Toolbar chainId={chainId} showSpam={showSpam} onShowSpam={setShowSpam} showPlain={showPlain} onShowPlain={setShowPlain} quick={quick} onQuick={changeQuick} action={toolbarAction} />
       {/* Mobile: one column at a time */}
       <div className="flex gap-1 px-2 pb-2 md:hidden">
         {columns.map((c) => (
@@ -319,6 +320,7 @@ export function Trenches({ initial, serverNow, chainId = 4663 }: { initial: Toke
 /* ------------------------------------------------------------------ toolbar */
 
 function Toolbar({
+  action,
   chainId,
   showSpam,
   onShowSpam,
@@ -327,6 +329,7 @@ function Toolbar({
   quick,
   onQuick,
 }: {
+  action?: ReactNode;
   chainId: 56 | 4663;
   showSpam: boolean;
   onShowSpam: (v: boolean) => void;
@@ -360,8 +363,10 @@ function Toolbar({
         {translateUI("Plain pools")}</label>
         </>
       )}
+      <div className="ml-auto flex max-w-full flex-wrap items-center justify-end gap-2">
+      {action}
       <div
-        className="ml-auto flex items-center gap-1.5 rounded-xl border border-white/[0.06] bg-surface py-1 pl-3 pr-1 text-xs"
+        className="flex items-center gap-1.5 rounded-xl border border-white/[0.06] bg-surface py-1 pl-3 pr-1 text-xs"
         title={chainId === 56 ? translateUI("BNB quick trading is not enabled yet") : translateUI("The first Buy amount on every card, in US dollars (converted to ETH at the live price)")}
       >
         <Lightning size={14} weight="fill" className="text-brand" />
@@ -396,6 +401,7 @@ function Toolbar({
             aria-label={translateUI("Quick buy amount in US dollars")}
           />
         </label>
+      </div>
       </div>
     </div>
   );
