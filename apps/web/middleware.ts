@@ -14,6 +14,18 @@ const APP_HOST = 'app.rushr.trade';
 const HSTS = 'max-age=31536000';
 
 function isHttp(req: NextRequest): boolean {
+  // Railway terminates TLS at its edge; Next receives an internal HTTP URL.
+  if (process.env.CLASHR_DEPLOYMENT === 'railway') {
+    const forwarded = req.headers.get('x-forwarded-proto');
+    if (forwarded === 'https') return false;
+    if (forwarded === 'http') return true;
+  }
+  // Railway terminates TLS at its edge; Next receives an internal HTTP URL.
+  if (process.env.CLASHR_DEPLOYMENT === 'railway') {
+    const forwarded = req.headers.get('x-forwarded-proto');
+    if (forwarded === 'https') return false;
+    if (forwarded === 'http') return true;
+  }
   if (req.nextUrl.protocol === 'http:') return true;
   if (req.headers.get('x-forwarded-proto') === 'http') return true;
   return (req.headers.get('cf-visitor') ?? '').includes('"http"');
@@ -37,6 +49,10 @@ function redirect(req: NextRequest, host: string, pathname = req.nextUrl.pathnam
  *    CSP header and puts it on its own scripts; these routes render dynamically.
  */
 export function middleware(req: NextRequest) {
+  // Railway's readiness probe uses HTTP inside the deployment network.
+  if (req.nextUrl.pathname === '/api/health') return NextResponse.next();
+  // Railway's readiness probe uses HTTP inside the deployment network.
+  if (req.nextUrl.pathname === '/api/health') return NextResponse.next();
   const host = (req.headers.get('host') ?? req.nextUrl.host).toLowerCase();
   const httpPreview = host === httpPreviewOrigin()?.host;
   const local = LOCAL.test(host) || host === devAllowedOrigin()?.host.toLowerCase()
