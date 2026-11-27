@@ -1,0 +1,42 @@
+import {it,expect,vi,afterEach} from 'vitest';
+import {renderToStaticMarkup} from 'react-dom/server';
+import {makeDemoAccounts,demoPerformance} from '../../indexer/src/product/demo-data';
+import {mergeLandingRows} from '../lib/landing-showcase';
+import type {LandingRow} from '../lib/landing';
+import {getLandingData} from '../lib/landing';
+import {ClashrSocial} from '../components/landing/clashr-social';
+import {ClashrBoard} from '../components/landing/clashr-board';
+import {LanguageProvider} from '../components/landing/language-provider';
+vi.mock('../lib/api',()=>({API_URL:'https://backend.example'}));
+vi.mock('../lib/product',()=>({BNB_PRODUCT:true}));
+const at=new Date('2026-11-27T09:00:00Z');
+const accounts=makeDemoAccounts(at).accounts;
+const examples=accounts.map(a=>({...a,performance:demoPerformance(a,at.getTime())}));
+const actual:LandingRow={rank:1,member:{handle:'professor',kind:'human',displayName:'professor',avatarUrl:null},pnl:0,trades:0,volumeUsd:0,winRate:null};
+afterEach(()=>vi.unstubAllGlobals());
+it('merges stored results without replacing actual members or altering official rows',()=>{
+ const live={...actual,member:{...actual.member,handle:'lucas_vault'},pnl:99,trades:2};
+ const merged=mergeLandingRows([live],examples);
+ expect(merged.filter(r=>r.member.handle==='lucas_vault')).toHaveLength(1);
+ expect(merged.find(r=>r.member.handle==='lucas_vault')).toMatchObject({pnl:99,trades:2});
+ expect(merged.find(r=>r.member.handle==='lucas_vault')?.member.demo).toBeUndefined();
+ expect(merged.find(r=>r.member.handle==='meridian_flow')).toMatchObject({pnl:3.92,member:{demo:true,kind:'agent'}});
+ expect(live.rank).toBe(1);
+});
+it('features the requested human and agent with stored PnL and profile links',async()=>{
+ vi.stubGlobal('fetch',vi.fn(async(input:RequestInfo|URL)=>{
+  const path=new URL(String(input)).pathname;
+  if(path==='/v1/feed')return Response.json({items:[]});
+  if(path==='/v1/leaderboard')return Response.json({rows:[actual]});
+  if(path==='/v1/demo/accounts')return Response.json({items:examples});
+  const member=accounts.find(a=>path==='/v1/members/'+a.member.handle)?.member;
+  return member?Response.json({member}):new Response('',{status:404});
+ }));
+ const data=await getLandingData();
+ expect(data.topHuman?.row).toMatchObject({pnl:4.92,trades:10,member:{handle:'lucas_vault'}});
+ expect(data.topAgent?.row).toMatchObject({pnl:3.92,member:{handle:'meridian_flow',kind:'agent'}});
+ const html=renderToStaticMarkup(<LanguageProvider initialLanguage="en"><ClashrSocial data={data}/><ClashrBoard initial={data.rows}/></LanguageProvider>);
+ for(const text of ['Lucas Meyer','Meridian','+$4.92','+$3.92','/u/lucas_vault','/u/meridian_flow'])expect(html).toContain(text);
+ expect(html).toContain('Simulated PnL');expect(html).toContain('Official season rankings use verified activity only.');
+ expect(data.position).toBeNull();
+});

@@ -13,8 +13,8 @@ import {useLandingLanguage} from './language-provider';
 const money = (value: number) => value.toLocaleString('en-US', {style:'currency', currency:'USD', maximumFractionDigits:2});
 const signed = (value: number) => `${value >= 0 ? '+' : '-'}${money(Math.abs(value))}`;
 
-function Portrait({handle, kind, avatarUrl}: {handle:string; kind:'human'|'agent'; avatarUrl?:string|null}) {
-  return avatarUrl ? <MemberAvatar member={{id:handle,handle,avatarUrl}} size={42}/> : <img src={`/art/avatar-${kind}-neutral.webp`} width={42} height={42} alt="" className="clashr-social-portrait"/>;
+function Portrait({handle, kind, avatarUrl,memberId}: {handle:string; kind:'human'|'agent'; avatarUrl?:string|null;memberId?:string}) {
+  return avatarUrl||memberId ? <MemberAvatar member={{id:memberId??handle,handle,avatarUrl}} size={42}/> : <img src={`/art/avatar-${kind}-neutral.webp`} width={42} height={42} alt="" className="clashr-social-portrait"/>;
 }
 
 function ProfileCard({profile, kind}: {profile:LandingProfile|null; kind:'human'|'agent'}) {
@@ -23,7 +23,7 @@ function ProfileCard({profile, kind}: {profile:LandingProfile|null; kind:'human'
   const member = shown.row.member;
   const destination = appHref(profile ? `/u/${encodeURIComponent(member.handle)}` : exampleProfilePath(kind));
   return <article className={`clashr-social-card clashr-social-${kind}`}>
-    <a href={destination} className="clashr-card-target" aria-label={t('View profile')}/><header className="clashr-social-card-head"><Portrait handle={member?.handle ?? kind} kind={kind} avatarUrl={member?.avatarUrl}/><div><a href={destination} className="clashr-social-name">{member.displayName?.trim() || member.handle}</a><span className="clashr-social-meta">{member ? `@${member.handle}` : t('Build your public record on BNB Chain.')}</span></div><span className="clashr-social-status">{profile ? t('Live') : t('Preview')}</span></header>
+    <a href={destination} className="clashr-card-target" aria-label={t('View profile')}/><header className="clashr-social-card-head"><Portrait handle={member?.handle ?? kind} kind={kind} avatarUrl={member?.avatarUrl} memberId={member.id}/><div><a href={destination} className="clashr-social-name">{member.displayName?.trim() || member.handle}</a><span className="clashr-social-meta">{member ? `@${member.handle}` : t('Build your public record on BNB Chain.')}</span></div><span className="clashr-social-status">{profile&&!member.demo ? t('Live') : t('Preview')}</span></header>
     <span className="clashr-social-kind">{kind === 'agent' ? <Robot size={12}/> : <User size={12}/>} {kind === 'agent' ? t('Agent') : t('Human')}</span>
     {kind === 'agent' && <p className="clashr-social-bio">{profile?.bio || t('An agent in the BNB trenches. Public calls, visible trades, one shared leaderboard.')}</p>}
     <dl className="clashr-social-stats"><div><dt>{t('PnL')}</dt><dd className={profile && profile.row.pnl < 0 ? 'clashr-social-loss' : 'clashr-social-gain'}>{shown.statsAvailable===false||!Number.isFinite(shown.row.pnl)?'\u2014':signed(shown.row.pnl)}</dd></div><div><dt>{t('Trades')}</dt><dd>{shown.statsAvailable===false||!Number.isFinite(shown.row.trades)?'\u2014':shown.row.trades}</dd></div><div><dt>{t('Volume')}</dt><dd>{shown.statsAvailable===false||!Number.isFinite(shown.row.volumeUsd)?'\u2014':money(shown.row.volumeUsd)}</dd></div></dl>
@@ -43,10 +43,10 @@ export function ClashrPnlCard({position,profile=null,linked=true}:{position:Land
   const negative=position?position.realizedUsd<0:accountPnl!=null&&accountPnl<0;
   return <article className="clashr-social-card clashr-social-pnl">
     {linked&&<a href={href} className="clashr-card-target" aria-label={t(position||profile?'Open PnL card':'Open example PnL card')}/>}
-    <header className="clashr-social-card-head"><img src={TOKEN_LOGO} width={24} height={24} alt=""/><strong>{t('PnL card')}</strong><span className="clashr-social-status">{t(position||profile?'Live':'Preview')}</span></header>
+    <header className="clashr-social-card-head"><img src={TOKEN_LOGO} width={24} height={24} alt=""/><strong>{t('PnL card')}</strong><span className="clashr-social-status">{t((position||profile)&&!profile?.row.member.demo?'Live':'Preview')}</span></header>
     <div className="clashr-social-pnl-art"><div className="clashr-social-pnl-copy">
       <span className="clashr-social-name">{position?position.imageUrl?<img src={iconSrc(position.imageUrl)} width={22} height={22} alt=""/>:<span className="clashr-safety-token-icon">{label.slice(0,1)}</span>:<img src={TOKEN_LOGO} width={22} height={22} alt=""/>} {profile&&!position?t('Account PnL'):`$${label}`}</span>
-      <span className="clashr-social-meta">{t(position||profile?'Recorded PnL':'Example performance')}</span>
+      <span className="clashr-social-meta">{t(profile?.row.member.demo?'Simulated PnL':position||profile?'Recorded PnL':'Example performance')}</span>
       <strong className={`clashr-social-pnl-value ${negative?'clashr-position-negative':''}`}>{position?`${position.returnPct>=0?'+':''}${position.returnPct.toFixed(1)}%`:profile?accountPnl==null?'\u2014':signed(accountPnl):'+617.5%'}</strong>
       {(!profile||position)&&<span className={negative?'clashr-social-loss':'clashr-social-gain'}>{position?signed(position.realizedUsd):'+$123.50'}</span>}
       {profile&&!position?<dl className="clashr-social-stats"><div><dt>{t('Trades')}</dt><dd>{profile.statsAvailable===false||!Number.isFinite(profile.row.trades)?'\u2014':profile.row.trades}</dd></div><div><dt>{t('Volume')}</dt><dd>{profile.statsAvailable===false||!Number.isFinite(profile.row.volumeUsd)?'\u2014':money(profile.row.volumeUsd)}</dd></div><div><dt>{t('Followers')}</dt><dd>{profile.followers??'\u2014'}</dd></div></dl>:<><dl className="clashr-social-stats"><div><dt>{t('Bought')}</dt><dd>{money(position?.boughtUsd??20)}</dd></div><div><dt>{t('Sold')}</dt><dd>{money(position?.soldUsd??143.5)}</dd></div><div><dt>{t('Held')}</dt><dd>{position?position.heldHours==null?'—':`${Math.round(position.heldHours*10)/10}h`:'10h'}</dd></div></dl></>}<span>@{handle}</span>
@@ -75,6 +75,6 @@ export function ClashrSocial({data = null}: {data?:LandingData|null}) {
       <ClashrPnlCard position={data?.position ?? null} profile={human ?? data?.topAgent ?? null} linked={false}/>
       <ProfileCard profile={data?.topAgent ?? null} kind="agent"/>
     </div>
-    <p className="clashr-section-note clashr-social-caption">{t('Open the feed for current calls.')} <a href={callUrl} className="clashr-section-link">{t('Open the calls feed')}</a></p>
+    <p className="clashr-section-note clashr-social-caption">{(human?.row.member.demo||data?.topAgent?.row.member.demo)&&<>{t('Includes simulated trades. Official season rankings use verified activity only.')} </>}{t('Open the feed for current calls.')} <a href={callUrl} className="clashr-section-link">{t('Open the calls feed')}</a></p>
   </section>;
 }

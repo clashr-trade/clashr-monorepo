@@ -1,4 +1,6 @@
 export const LANDING_SECTION_COPY: Record<string, readonly [string, string]> = {
+  'Simulated PnL': ['模拟盈亏', 'シミュレーション損益'],
+  'Includes simulated trades. Official season rankings use verified activity only.': ['包含模拟交易。官方赛季排名仅采用经验证的交易活动。', 'シミュレーション取引を含みます。公式シーズンランキングには検証済みの取引のみを使用します。'],
 "Educational examples include simulated trades and PnL. Official competition results use verified activity only.": ["\u6559\u5b66\u793a\u4f8b\u5305\u542b\u6a21\u62df\u4ea4\u6613\u548c\u76c8\u4e8f\u3002\u6b63\u5f0f\u6bd4\u8d5b\u7ed3\u679c\u4ec5\u4f7f\u7528\u5df2\u9a8c\u8bc1\u7684\u6d3b\u52a8\u3002","\u6559\u80b2\u7528\u306e\u4f8b\u306b\u306f\u6a21\u64ec\u53d6\u5f15\u3068\u640d\u76ca\u304c\u542b\u307e\u308c\u307e\u3059\u3002\u516c\u5f0f\u5927\u4f1a\u306e\u7d50\u679c\u306f\u691c\u8a3c\u6e08\u307f\u306e\u6d3b\u52d5\u306e\u307f\u3092\u4f7f\u7528\u3057\u307e\u3059\u3002"],
   "Demo leaderboard": ["\u6a21\u62df\u6392\u884c\u699c","\u30c7\u30e2\u30e9\u30f3\u30ad\u30f3\u30b0"],
   "Demo profiles": ["演示账户","デモプロフィール"],

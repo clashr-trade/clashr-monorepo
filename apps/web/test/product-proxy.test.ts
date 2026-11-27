@@ -10,7 +10,7 @@ describe('BNB API/session isolation',()=>{
     const fetcher=vi.fn(async()=>Response.json({sessionToken:session},{headers:{'x-clashr-chain-id':'56'}}));
     const response=await proxyProduct(new Request('http://localhost:3000/api/product/v1/auth/wallet/verify',{method:'POST',headers,body:'{}'}),['v1','auth','wallet','verify'],base,fetcher);
     expect(response.status).toBe(200);expect(response.headers.get('set-cookie')).toContain('; Secure');
-    expect((await response.json()).sessionToken).toBeUndefined();
+    expect((await response.json() as {sessionToken?:string}).sessionToken).toBeUndefined();
     for(const override of [{origin:'https://attacker.example'},{host:'attacker.example'}]){
       const blocked=await proxyProduct(new Request('http://localhost:3000/api/product/v1/auth/wallet/verify',{method:'POST',headers:{...headers,...override},body:'{}'}),['v1','auth','wallet','verify'],base,fetcher);
       expect(blocked.status).toBe(403);

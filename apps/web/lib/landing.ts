@@ -4,6 +4,7 @@
 import { API_URL } from './api';
 import { BNB_PRODUCT } from './product';
 import {findLandingPosition,type LandingPosition} from './landing-position';
+import {mergeLandingRows,type LandingDemoItem} from './landing-showcase';
 
 /**
  * The showcase features $RUSHR calls and trades: the landing shouldn't advertise someone else's token.
@@ -19,6 +20,8 @@ const isLegacyPlatformToken = (address: string) => address.toLowerCase() === LEG
 const BLOCKED = /fag|nig+(a|er)|retard|rape|nazi|hitler|porn|sex|cum|dick|dih|cock|pussy|fuck|shit|cunt|whore|slut|kike|spic|scam|rug/i;
 
 export interface LandingMember {
+  id?:string;
+  demo?:boolean;
   handle: string;
   kind: 'human' | 'agent';
   displayName: string | null;
@@ -118,9 +121,10 @@ async function profileOf(row:LandingRow|undefined,author?:LandingMember):Promise
 }
 
 export async function getLandingData(): Promise<LandingData> {
-  const [feed, board] = await Promise.all([
+  const [feed, board, demos] = await Promise.all([
     get<{ items: ApiCall[] }>('/v1/feed?limit=50'),
     get<{ rows: ApiRow[] }>(`/v1/leaderboard?window=${BNB_PRODUCT ? '30d' : 'season'}&kind=all&limit=50`),
+    BNB_PRODUCT?get<{items:LandingDemoItem[]}>('/v1/demo/accounts'):Promise.resolve(null),
   ]);
   const calls = (feed?.items ?? []).filter(presentable);
   // A human's $RUSHR call that's up at least 50%, with the most to say; else the best performer on any token.
@@ -133,14 +137,14 @@ export async function getLandingData(): Promise<LandingData> {
   const agent =
     calls.filter((c) => c.author.kind === 'agent' && !TEAM_AGENTS.has(c.author.handle) && !isLegacyPlatformToken(c.token.address)).sort((a, b) => b.body.length - a.body.length)[0] ?? null;
 
-  const rows = (board?.rows ?? []).filter((r) => !BLOCKED.test(r.member.handle)).map(toRow);
+  const rows = mergeLandingRows((board?.rows ?? []).filter((r) => !BLOCKED.test(r.member.handle)).map(toRow),demos?.items??[]);
   const traded = rows.filter((r) => r.trades > 0);
   const [topHuman, topAgent] = await Promise.all([
-    profileOf(traded.find((r) => r.member.kind === 'human' && r.pnl > 0 && !NOT_FEATURED.has(r.member.handle)) ?? traded.find(r=>r.member.kind==='human'&&!NOT_FEATURED.has(r.member.handle)) ?? rows.find(r=>r.member.kind==='human'&&!NOT_FEATURED.has(r.member.handle)), human?.author),
-    profileOf(traded.find((r) => r.member.kind === 'agent') ?? rows.find(r=>r.member.kind==='agent'), agent?.author ?? calls.find(c=>c.author.kind==='agent')?.author),
+    profileOf(traded.find(r=>r.member.handle==='lucas_vault'&&r.member.kind==='human') ?? traded.find((r) => r.member.kind === 'human' && r.pnl > 0 && !NOT_FEATURED.has(r.member.handle)) ?? traded.find(r=>r.member.kind==='human'&&!NOT_FEATURED.has(r.member.handle)) ?? rows.find(r=>r.member.kind==='human'&&!NOT_FEATURED.has(r.member.handle)), human?.author),
+    profileOf(traded.find(r=>r.member.handle==='meridian_flow'&&r.member.kind==='agent') ?? traded.find((r) => r.member.kind === 'agent') ?? rows.find(r=>r.member.kind==='agent'), agent?.author ?? calls.find(c=>c.author.kind==='agent')?.author),
   ]);
 
-  const position=BNB_PRODUCT&&topHuman?await findLandingPosition(topHuman.row.member.handle,topHuman.wallet):null;
+  const position=BNB_PRODUCT&&topHuman&&!topHuman.row.member.demo?await findLandingPosition(topHuman.row.member.handle,topHuman.wallet):null;
 
   // The PnL card: the best closed, profitable $RUSHR trade among the season's traders (by return).
   let flex: LandingData['flex'] = null;
@@ -156,7 +160,7 @@ export async function getLandingData(): Promise<LandingData> {
   const best = legacyTokenTrades.filter((x): x is { handle: string; ret: number } => !!x).sort((a, b) => b.ret - a.ret)[0];
   if (best) flex = { handle: best.handle, token: LEGACY_ROBINHOOD_TOKEN, symbol: 'RUSHR' };
 
-  return { call: human ? toCall(human) : null, agentCall: agent ? toCall(agent) : null, topHuman, topAgent, flex, position, rows: rows.slice(0, 5) };
+  return { call: human ? toCall(human) : null, agentCall: agent ? toCall(agent) : null, topHuman, topAgent, flex, position, rows: BNB_PRODUCT?rows:rows.slice(0, 5) };
 }
 
 async function walletOf(handle: string): Promise<string | null> {
