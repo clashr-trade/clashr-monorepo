@@ -11,7 +11,7 @@ if(!url||!rpcUrl)throw new Error('Explicit index database and RPC required');
 const sql=postgres(url,{max:1,prepare:false,fetch_types:false});
 let span=500n,failures=0;
 try{do{
- const rows=await sql<(Omit<HolderWatch,'created_block'>&{created_block:string|null;complete:boolean})[]>`select w.address,w.block,w.block_hash,w.complete,coalesce(t.created_block,w.block+1) as created_block from chain_v2.flap_holder_watches w join chain_v2.flap_tokens t using(chain_id,address)
+ const rows=await sql<(Omit<HolderWatch,'created_block'>&{created_block:string|null;complete:boolean;checked_at:Date|null})[]>`select w.address,w.block,w.block_hash,w.complete,w.checked_at,coalesce(t.created_block,w.block+1) as created_block from chain_v2.flap_holder_watches w join chain_v2.flap_tokens t using(chain_id,address)
   where w.chain_id=56 and w.requested_at>now()-interval '1 hour'
   and (w.last_error is null or w.attempted_at<now()-case when w.last_error='history_unavailable' then interval '5 minutes' else interval '15 seconds' end)
   and (w.checked_at is null or w.checked_at<now()-interval '30 seconds' or not w.complete)
@@ -21,7 +21,7 @@ try{do{
   await sql`update chain_v2.flap_holder_watches set attempted_at=now() where chain_id=56 and address=${first.address}`;
   let seeded=false;
   try{if(await recoverFlapLaunch(sql,new BscRpc(rpcUrl),rpcUrl,first.address)){console.log('Recovered finalized Flap launch',first.address);if(!process.argv.includes('--follow'))break;continue;}}catch{console.error('Launch recovery deferred; no age guessed');}
-  if(first.block===null){try{seeded=await snapshotFlapHolders(sql,new BscRpc(rpcUrl),rpcUrl,first.address);if(seeded){failures=0;console.log('Flap holder snapshot verified',first.address);}}
+  if(first.block===null||!first.checked_at||Date.now()-new Date(first.checked_at).getTime()>300000){try{seeded=await snapshotFlapHolders(sql,new BscRpc(rpcUrl),rpcUrl,first.address);if(seeded){failures=0;console.log('Flap holder snapshot verified',first.address);}}
    catch(e){if(e instanceof Error&&e.message.includes('429')){failures++;await sql`update chain_v2.flap_holder_watches set last_error='rpc_unavailable' where chain_id=56 and address=${first.address}`;if(!process.argv.includes('--follow'))break;await new Promise(resolve=>setTimeout(resolve,15000));continue;}}
   }
   if(seeded){if(!process.argv.includes('--follow'))break;await new Promise(resolve=>setTimeout(resolve,1000));continue;}

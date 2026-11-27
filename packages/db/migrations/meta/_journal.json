@@ -156,6 +156,7 @@
       "tag": "0021_flap_startup_config",
       "breakpoints": true
     },
-    {"idx":22,"version":"7","when":1795752000000,"tag":"0022_flap_enrichment_progress","breakpoints":true}
+    {"idx":22,"version":"7","when":1795752000000,"tag":"0022_flap_enrichment_progress","breakpoints":true},
+    {"idx":23,"version":"7","when":1795752100000,"tag":"0023_flap_live_handoffs","breakpoints":true}
   ]
 }
