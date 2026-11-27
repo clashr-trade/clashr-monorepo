@@ -1,5 +1,7 @@
 import type { IChartApi, IPrimitivePaneRenderer, IPrimitivePaneView, ISeriesApi, ISeriesPrimitive, SeriesAttachedParameter, SeriesType, Time } from 'lightweight-charts';
 import { avatarSpec, initialOf } from './avatar';
+import {BNB_PRODUCT} from '@/lib/product';
+import {BRAND_ACCENT} from '@/lib/brand';
 
 type Target = Parameters<IPrimitivePaneRenderer['draw']>[0];
 
@@ -11,7 +13,7 @@ export interface Pill {
   pending: boolean;
 }
 
-const BUY = '#36d42a';
+const BUY = BNB_PRODUCT?BRAND_ACCENT:'#36d42a';
 const SELL = '#ff6b5b';
 
 /**

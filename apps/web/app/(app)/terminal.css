@@ -1,7 +1,7 @@
 /*
  * Neutral grays for every terminal surface. The shared dark tokens (globals.css) carry a slight
- * green cast; inside the app the surfaces, lines and text are plain gray and green is kept for
- * accents only (buy buttons, gains, the live dot, the brand mark, progress rings).
+ * green cast; inside the app the surfaces, lines and text are plain gray.
+ * The BNB product overrides brand accents with Binance yellow.
  * Set on :root while the terminal is mounted, so dialogs and sheets portalled to <body> match too.
  * The landing (.theme-paper) is untouched.
  */
@@ -12,6 +12,14 @@
   --color-line: #232428;
   --color-ink: #eef0f2;
   --color-muted: #8c9097;
+}
+
+/* Set on the document root so body-portalled menus and dialogs inherit BNB colors. */
+:root:has(.terminal-bnb) {
+  --color-brand: #f0b90b;
+  --color-brand-deep: #c99a09;
+  --color-go: #f0b90b;
+  --color-lime: #f0b90b;
 }
 
 /*

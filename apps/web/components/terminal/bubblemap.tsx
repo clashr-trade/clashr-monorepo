@@ -4,6 +4,8 @@ import {usePlatformLanguage} from '@/components/landing/language-provider';
 import { useMemo, useState } from 'react';
 import { forceCenter, forceCollide, forceLink, forceManyBody, forceSimulation, type SimulationNodeDatum } from 'd3-force';
 import { pct, short } from '@/lib/format';
+import {BNB_PRODUCT} from '@/lib/product';
+import {BRAND_ACCENT} from '@/lib/brand';
 
 export interface BubbleData {
   nodes: { wallet: string; pct: number; tags: string[]; funder: string | null }[];
@@ -51,7 +53,7 @@ export function BubbleMap({ data }: { data: BubbleData }) {
   const active = focus ?? (hover && hover.cluster >= 0 ? hover.cluster : null);
   const dim = (n: Node) => active != null && n.cluster !== active;
   const color = (n: Node) =>
-    n.cluster >= 0 ? CLUSTER_COLORS[n.cluster % CLUSTER_COLORS.length]! : n.tags.includes('dev') ? '#ffffff' : '#36d42a';
+    n.cluster >= 0 ? CLUSTER_COLORS[n.cluster % CLUSTER_COLORS.length]! : n.tags.includes('dev') ? '#ffffff' : BNB_PRODUCT?BRAND_ACCENT:'#36d42a';
 
   return (
     <div className="grid gap-4 p-4 lg:grid-cols-[1fr_240px]">

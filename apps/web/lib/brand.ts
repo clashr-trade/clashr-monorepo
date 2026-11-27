@@ -1,5 +1,6 @@
 /** Product identity. Internal package names, receipt history and storage keys retain compatibility. */
 export const BRAND_NAME='CLASHR';
+export const BRAND_ACCENT='#f0b90b';
 export const TOKEN_TICKER='CLASHR';
 export const BRAND_DOMAIN='clashr.trade';
 export const BRAND_ORIGIN='https://clashr.trade';

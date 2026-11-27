@@ -88,7 +88,7 @@ export function WalletOverview({
         <span>{translateUI("Tokens")}</span>
         {dust.length > 0 && (
           <label className="flex cursor-pointer items-center gap-1.5">
-            <input type="checkbox" checked={showDust} onChange={(e) => setShowDust(e.target.checked)} className="accent-[#36d42a]" />
+            <input type="checkbox" checked={showDust} onChange={(e) => setShowDust(e.target.checked)} className="accent-brand" />
             {translateUI("Show dust (")}{dust.length})
           </label>
         )}

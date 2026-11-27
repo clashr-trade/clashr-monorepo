@@ -16,6 +16,8 @@ import {
   type UTCTimestamp,
 } from 'lightweight-charts';
 import { API_URL, type Candle } from '@/lib/api';
+import {BNB_PRODUCT} from '@/lib/product';
+import {BRAND_ACCENT} from '@/lib/brand';
 import { price, usd } from '@/lib/format';
 import type { Hydration } from '@/lib/feed/protocol';
 import type { Callout } from '@/lib/callouts';
@@ -41,7 +43,7 @@ const HOURS: Partial<Record<Interval, number>> = { '1m': 24, '5m': 72, '15m': 16
 const BAR_SPACING = 7;
 const RIGHT_OFFSET = 6;
 
-const UP = '#36d42a';
+const UP = BNB_PRODUCT?BRAND_ACCENT:'#36d42a';
 const DOWN = '#ff6b5b';
 
 interface Bar {
@@ -347,7 +349,7 @@ export function PriceChart({
     if (!series || avgBuy == null || !(avgBuy > 0)) return;
     const line = series.createPriceLine({
       price: avgBuy * scale,
-      color: '#36d42a',
+      color: UP,
       lineWidth: 1,
       lineStyle: LineStyle.Dashed,
       axisLabelVisible: true,
@@ -507,7 +509,7 @@ function fromTrades(trades: Tx[], step: number): Candle[] {
 
 const ohlc = (k: Bar, s: number) => ({ open: k.open * s, high: k.high * s, low: k.low * s, close: k.close * s });
 const scaled = (k: Bar, s: number): Bar => ({ ...k, ...ohlc(k, s) });
-const volColor = (k: Bar) => (k.close >= k.open ? 'rgba(54,212,42,0.35)' : 'rgba(255,107,91,0.35)');
+const volColor = (k: Bar) => (k.close >= k.open ? BNB_PRODUCT?'rgba(240,185,11,0.35)':'rgba(54,212,42,0.35)' : 'rgba(255,107,91,0.35)');
 
 /**
  * Chain candles the way GMGN/TradingView do: each one opens at the previous close, so price moves

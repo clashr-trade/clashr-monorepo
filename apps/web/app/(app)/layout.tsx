@@ -3,6 +3,7 @@ import { MobileNav, TopBar } from '@/components/terminal/topbar';
 import { TerminalNotice } from '@/components/terminal/terminal-notice';
 import { APP_URL, SITE_URL } from '@/lib/urls';
 import { httpPreviewOrigin } from '@/lib/http-preview';
+import {BNB_PRODUCT} from '@/lib/product';
 import type { Metadata } from 'next';
 import './terminal.css';
 
@@ -11,7 +12,7 @@ export const metadata: Metadata = { metadataBase: new URL(APP_URL || SITE_URL) }
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="terminal-ui flex h-dvh flex-col overflow-hidden">
+    <div className={`terminal-ui ${BNB_PRODUCT?'terminal-bnb ':''}flex h-dvh flex-col overflow-hidden`}>
       <TopBar />
       <MobileNav />
       <TerminalNotice />

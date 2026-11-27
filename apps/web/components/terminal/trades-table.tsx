@@ -5,6 +5,7 @@ import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowSquareOut, Funnel, PauseCircle, X } from '@phosphor-icons/react';
 import { age, compact, EXPLORER, price, short, usd } from '@/lib/format';
 import { useNow } from '@/lib/now';
+import {BNB_PRODUCT} from '@/lib/product';
 import { makerTags, type MakerContext, type MakerTag, type Tx } from '@/lib/trades';
 import { TagChip, TagList, TAG_META } from './tags';
 
@@ -230,7 +231,7 @@ function Age({ time, serverNow }: { time: number; serverNow: number }) {
 
 function flash(el: HTMLTableRowElement | null, side: 'buy' | 'sell') {
   if (!el || typeof el.animate !== 'function' || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-  const tint = side === 'buy' ? 'rgba(54,212,42,0.18)' : 'rgba(255,107,91,0.18)';
+  const tint = side === 'buy' ? BNB_PRODUCT?'rgba(240,185,11,0.18)':'rgba(54,212,42,0.18)' : 'rgba(255,107,91,0.18)';
   el.animate([{ backgroundColor: tint, opacity: 0.3 }, { backgroundColor: tint, opacity: 1, offset: 0.15 }, { backgroundColor: 'transparent' }], {
     duration: 1400,
     easing: 'ease-out',

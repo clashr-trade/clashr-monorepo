@@ -4,8 +4,10 @@ import {usePlatformLanguage} from '@/components/landing/language-provider';
 import { useMemo, useState } from 'react';
 import { usdSigned } from '@/lib/format';
 import type { PnlHistory } from '@/lib/profile';
+import {BNB_PRODUCT} from '@/lib/product';
+import {BRAND_ACCENT} from '@/lib/brand';
 
-const UP = '#36d42a';
+const UP = BNB_PRODUCT?BRAND_ACCENT:'#36d42a';
 const DOWN = '#ff6b5b';
 const W = 300;
 const H = 100;
